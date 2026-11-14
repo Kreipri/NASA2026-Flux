@@ -6,6 +6,14 @@ Status: `decided` | `proposed` | `open` | `superseded`
 
 ---
 
+## D-027: Food supply and faster terminal testing
+**Status:** decided (2026-11-15; user-requested playtest additions).
+- Add a FOOD SUPPLY bar as a simple base-support meter. It starts at 100. Each day the player chooses LIGHT meals (food -4, stamina -5), NORMAL meals (food -6, no stamina modifier), or FULL meals (food -8, stamina +5). It is a game abstraction, not a NASA ration limit.
+- Food reaching zero is a distinct Level 3 mission failure. Food is shown alongside Power, Oxygen, Dose, and Stamina in the terminal interface.
+- Add `fast` mode for testing. When enabled, entering a valid task commits it immediately without the repeated `yes` confirmation; the full interface still redraws after every task.
+- Keep one-by-one task execution. Power-saving mode is allowed after a drone or radiation-meter task, but not before one; task order now matters.
+- Older saved states migrate to 100 food when loaded. Use `new week` to start a clean Day 1 run instead of continuing a saved mission.
+
 ## D-026: Daily scenarios, repeatable light work, and explicit mission outcomes
 **Status:** decided (2026-11-15; user-requested gameplay direction).
 - The overall mission stays visible in the terminal: manage the lunar outpost and prove whether the ridge can host a Moon base.

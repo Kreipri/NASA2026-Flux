@@ -10,11 +10,12 @@ export type ActionId =
 export type ScenarioId = 'week' | 'slice' | 'full';
 export type StormLevel = 'none' | 'warning' | 'rising' | 'strong';
 export type TripChoice = 'back' | 'finish';
+export type MealMode = 'light' | 'normal' | 'full';
 export type Goal = 'LIGHT' | 'RADIATION' | 'SHELTER' | 'ICE';
 
 export interface ActionDef {
   id: ActionId; group: 'goal' | 'alive' | 'safe'; goal?: Goal; label: string; blocks: number;
-  power: number; o2: number; dose: number; outside: boolean; repeatable?: boolean; stamina?: number;
+  power: number; o2: number; food?: number; dose: number; outside: boolean; repeatable?: boolean; stamina?: number;
   needsLink?: boolean; needsPower?: boolean; emergencyOk?: boolean;
 }
 
@@ -43,7 +44,7 @@ export interface State {
   evidence: Evidence;
   timeline: Env[];
   pending: null | { type: 'tripChoice'; actions: ActionId[] };
-  ended: null | { reason: 'complete' | 'oxygen' | 'dose' };
+  ended: null | { reason: 'complete' | 'oxygen' | 'food' | 'dose' };
   history: { turn: number; actions: ActionId[]; choice?: TripChoice }[];
 }
 
@@ -185,8 +186,15 @@ export function validate(s: State, ids: ActionId[]): string | null {
   }
   const used = ids.reduce((n, id) => n + actionDef(id).blocks, 0);
   if (used > blocksToday(s)) return `Those jobs need ${used} crew time, your crew has ${blocksToday(s)} today.`;
-  if (ids.includes('powersave') && ids.some((id) => actionDef(id).needsPower)) return 'Power-saving mode turns off the instruments (no drone, no radiation meter).';
+  const powerSaveAt = ids.indexOf('powersave');
+  if (powerSaveAt >= 0 && ids.slice(powerSaveAt + 1).some((id) => actionDef(id).needsPower)) return 'Power-saving mode turns off instruments after it starts. Do the drone or radiation meter first.';
   return null;
+}
+
+export function mealEffects(mode: MealMode): { food: number; stamina: number; label: string } {
+  if (mode === 'light') return { food: 4, stamina: -5, label: 'LIGHT MEALS' };
+  if (mode === 'full') return { food: 8, stamina: 5, label: 'FULL MEALS' };
+  return { food: 6, stamina: 0, label: 'NORMAL MEALS' };
 }
 
 const clamp = (v: number) => Math.max(0, Math.min(100, v));
@@ -195,7 +203,7 @@ const clamp = (v: number) => Math.max(0, Math.min(100, v));
  * Resolve one day. If a storm starts while the rover is out and no choice was given,
  * returns with pending set and nothing resolved: call again with a TripChoice.
  */
-export function step(s0: State, ids: ActionId[], choice?: TripChoice): { state: State; log: string[] } {
+export function step(s0: State, ids: ActionId[], choice?: TripChoice, meal: MealMode = 'normal'): { state: State; log: string[] } {
   const err = validate(s0, ids);
   if (err) return { state: s0, log: ['! ' + err] };
   const e = env(s0);
@@ -292,6 +300,10 @@ export function step(s0: State, ids: ActionId[], choice?: TripChoice): { state: 
   s.o2 -= s.emergency ? pd.emergencyO2 : pd.breathO2;
   if (s.faults.scrubber) s.o2 -= pd.scrubberFaultO2;
 
+  // Food is a simple base-supply meter. It is a game abstraction, not a NASA ration limit.
+  const meals = mealEffects(meal);
+  s.food -= meals.food;
+
   // Dose
   let dose: number;
   if (stormActive(e)) {
@@ -310,6 +322,8 @@ export function step(s0: State, ids: ActionId[], choice?: TripChoice): { state: 
   // Stamina: work tires, sleep + daily exercise restore, free time relaxes
   const unused = blocksToday(s0) - ids.reduce((n, id) => n + actionDef(id).blocks, 0);
   s.stamina += st.dailyRecovery + insideBlocks * st.insideBlock + outsideBlocks * st.outsideBlock + unused * st.unusedBlock + (powerSave ? st.powerSaveCold : 0) + (s0.emergency ? st.emergencyCold : 0);
+  s.stamina += meals.stamina;
+  log.push(`${meals.label}: food -${meals.food}${meals.stamina ? `, stamina ${meals.stamina > 0 ? '+' : ''}${meals.stamina}` : ''}.`);
   if (unused > 0) log.push(`Free crew time (${unused}) went to rest and chores. Stamina +${unused * st.unusedBlock}.`);
 
   // Dust builds up
@@ -325,7 +339,7 @@ export function step(s0: State, ids: ActionId[], choice?: TripChoice): { state: 
   }
 
   // Clamp + power emergency
-  s.o2 = clamp(s.o2); s.dose = Math.min(100, s.dose); s.stamina = clamp(s.stamina);
+  s.o2 = clamp(s.o2); s.food = clamp(s.food); s.dose = Math.min(100, s.dose); s.stamina = clamp(s.stamina);
   if (s.power <= 0) {
     if (!s.emergency) log.push('POWER EMERGENCY: the batteries are empty.');
     s.power = 0; s.emergency = true; s.evidence.powerHitZero = true;
@@ -337,6 +351,7 @@ export function step(s0: State, ids: ActionId[], choice?: TripChoice): { state: 
   s.history.push({ turn: s.turn, actions: ids, ...(choice ? { choice } : {}) });
   s.turn++;
   if (s.o2 <= 0) s.ended = { reason: 'oxygen' };
+  else if (s.food <= 0) s.ended = { reason: 'food' };
   else if (s.dose >= 100) s.ended = { reason: 'dose' };
   else if (s.turn >= totalDays(s)) s.ended = { reason: 'complete' };
   return { state: s, log };
