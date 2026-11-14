@@ -1,0 +1,28 @@
+{
+  "slice": {
+    "_about": "Thin prototype: 5 days x 2 shifts. One replayed real storm (May 2024), one short eclipse.",
+    "days": 5,
+    "shiftsPerDay": 2,
+    "actions": ["clean", "air", "scout", "rover", "shelter", "measure", "logsun"],
+    "features": { "fatigue": false, "faults": false },
+    "replayStorm": { "alertTurn": 2, "alertWindow": "2024-05-09T00Z", "windows": ["2024-05-09T12Z", "2024-05-10T00Z", "2024-05-10T12Z"] },
+    "simStorm": null,
+    "longShadow": { "startTurn": 6, "length": [2, 2] },
+    "shortEclipses": { "count": 0, "turnRanges": [] },
+    "linkDown": null,
+    "eclipseForecastTurns": 6
+  },
+  "full": {
+    "_about": "Full 14-day story (D-015 pacing). Storm replay day 7, long shadow days 8-10, comms drop + simulated storm days 11-12.",
+    "days": 14,
+    "shiftsPerDay": 2,
+    "actions": ["clean", "air", "repair", "regolith", "shelter", "rest", "rover", "scout", "logsun", "measure", "samples", "call", "report"],
+    "features": { "fatigue": true, "faults": true },
+    "replayStorm": { "alertTurn": 12, "alertWindow": "2024-05-09T00Z", "windows": ["2024-05-09T12Z", "2024-05-10T00Z", "2024-05-10T12Z"] },
+    "simStorm": { "startTurn": [20, 21], "length": [2, 3], "level": "strong" },
+    "longShadow": { "startTurn": 16, "length": [4, 6] },
+    "shortEclipses": { "count": 2, "turnRanges": [[2, 11], [24, 27]] },
+    "linkDown": { "startTurn": 20, "length": 4 },
+    "eclipseForecastTurns": 6
+  }
+}

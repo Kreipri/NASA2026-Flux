@@ -1,0 +1,47 @@
+{
+  "_about": "Site config (D-006). All numbers are GAME numbers from ideas/balance-pass-v1.md (SIMULATED). Real anchors are listed there.",
+  "site": "Shackleton Connecting Ridge, lunar south pole",
+  "start": { "power": 80, "o2": 90, "dose": 0, "science": 0 },
+  "perShift": {
+    "solar": 30,
+    "dustSolarPenalty": 5,
+    "panelFaultSolarPenalty": 10,
+    "upkeepPower": 12,
+    "breathO2": 4,
+    "emergencyO2": 6,
+    "scrubberFaultO2": 3,
+    "baseDose": 1,
+    "dustEveryShifts": 4,
+    "maxDust": 3
+  },
+  "storm": {
+    "outside": 20,
+    "habitat": 8,
+    "shelterByLevel": [4, 3, 2, 1],
+    "risingFactor": 0.5,
+    "risingMinDoseRate": 15,
+    "strongMinDoseRate": 100
+  },
+  "ice": { "baseChance": 0.30, "scoutBonus": 0.25, "maxChance": 0.80, "airDiscountPerSample": 3, "maxDiscountSamples": 2 },
+  "faults": { "baseChance": 0.05, "dustyChance": 0.20 },
+  "fatigueShifts": 6,
+  "emergencyExitPower": 10,
+  "warn": { "o2": 25, "dose": 75, "power": 20 },
+  "actions": [
+    { "id": "clean",    "label": "Clean dust off panels",  "slots": 1, "power": 0,   "o2": -2, "dose": 1, "outside": true },
+    { "id": "air",      "label": "Tune air system",        "slots": 1, "power": -10, "o2": 15, "dose": 0, "outside": false },
+    { "id": "repair",   "label": "Repair a fault",         "slots": 1, "power": -5,  "o2": 0,  "dose": 0, "outside": false, "emergencyOk": true },
+    { "id": "regolith", "label": "Pile moon soil on shelter", "slots": 2, "power": -5, "o2": -2, "dose": 2, "outside": true },
+    { "id": "shelter",  "label": "Shelter in place",       "slots": 2, "power": 3,   "o2": 0,  "dose": 0, "outside": false, "emergencyOk": true },
+    { "id": "rest",     "label": "Rest and exercise",      "slots": 1, "power": 0,   "o2": -1, "dose": 0, "outside": false, "emergencyOk": true },
+    { "id": "rover",    "label": "Rover to the dark crater", "slots": 2, "power": -35, "o2": -5, "dose": 4, "outside": true },
+    { "id": "scout",    "label": "Scout with hop-drone",   "slots": 1, "power": -10, "o2": 0,  "dose": 0, "outside": false },
+    { "id": "logsun",   "label": "Log sunlight",           "slots": 1, "power": -1,  "o2": 0,  "dose": 0, "outside": false },
+    { "id": "measure",  "label": "Measure radiation",      "slots": 1, "power": -2,  "o2": 0,  "dose": 0, "outside": false },
+    { "id": "samples",  "label": "Collect rock samples",   "slots": 1, "power": 0,   "o2": -2, "dose": 1, "outside": true },
+    { "id": "call",     "label": "Call Mission Control",   "slots": 1, "power": -3,  "o2": 0,  "dose": 0, "outside": false, "needsLink": true },
+    { "id": "report",   "label": "Send daily report",      "slots": 1, "power": -3,  "o2": 0,  "dose": 0, "outside": false, "needsLink": true }
+  ],
+  "science": { "repeatFullCount": 3, "repeatAfter": 1, "iceSample": 25, "noIce": 8, "scout": 3, "logsun": 4, "logsunEclipse": 10, "measure": 4, "measureStorm": 10, "samples": 6, "report": 5 },
+  "trip": { "backPower": -20, "backO2": -3 }
+}
