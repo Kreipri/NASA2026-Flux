@@ -1,6 +1,6 @@
 # Gameplay layout drafts
 
-Open `index.html` to compare three arrangements of the current Week 1 gameplay UI with its actual three.js base. **Proposed layouts only; A is recommended.**
+Open `index.html` to compare three arrangements of the Week 1 gameplay UI with its actual three.js base. **Historical comparison: Bea chose A.** Current refinement: `ideas/ui-mockups/gameplay-side-dock-v2/index.html`.
 
 - A: side dock; B: bottom tray; C: focus window.
 - Switch Jobs / Mission tasks, click a 3D pin or place tab, add/remove jobs, close the panel, or review the plan. Selections persist between layouts.
