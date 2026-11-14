@@ -1,0 +1,491 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Base Screen Drafts v2</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Exo+2:ital,wght@0,700;0,800;1,800&family=Nunito:wght@600;700;800&display=swap" rel="stylesheet">
+<style>
+  .mock { margin: 0 0 22px; }
+  .bar { display:flex; flex-wrap:wrap; gap:8px; align-items:center; justify-content:space-between; margin:0 0 8px; }
+  .bar b { font: 600 14px var(--font-sans, system-ui); color: var(--foreground, #eee); }
+  .bar span.note { font: 400 12px var(--font-sans, system-ui); color: var(--muted-foreground, #999); }
+  .seg { display:inline-flex; border:1px solid var(--border, #444); border-radius: var(--radius, 8px); overflow:hidden; }
+  .seg button { font: 500 12px var(--font-sans, system-ui); padding:5px 10px; border:0; background:transparent; color: var(--muted-foreground, #aaa); cursor:pointer; }
+  .seg button.on { background: var(--secondary, #333); color: var(--foreground, #fff); }
+  .frame { position:relative; width:100%; aspect-ratio:16/9; border-radius: var(--radius, 8px); overflow:hidden; background:#050810; }
+  .stage { position:absolute; left:0; top:0; width:1280px; height:720px; transform-origin:0 0; color:#e6fbff; font-family:'Nunito', system-ui, sans-serif; }
+  .stage, .stage * { box-sizing:border-box; }
+  .stage canvas.scene { position:absolute; left:0; top:0; width:1280px; height:720px; }
+  .stage svg.lines { position:absolute; left:0; top:0; width:1280px; height:720px; pointer-events:none; }
+  .ui { position:absolute; }
+  .h { font-family:'Exo 2', sans-serif; font-weight:800; letter-spacing:.06em; text-transform:uppercase; }
+  .panel { background:rgba(6,26,36,.80); border:2px solid rgba(94,224,232,.8); border-radius:16px; box-shadow:0 0 18px rgba(94,224,232,.18); }
+  .ic { width:22px; height:22px; display:block; }
+
+  /* day + light (no panel, just type over the sky) */
+  .day { left:32px; top:26px; text-shadow:0 2px 12px rgba(0,0,0,.6); }
+  .day .t1 { font-family:'Exo 2'; font-style:italic; font-weight:800; font-size:38px; line-height:1; text-transform:uppercase; letter-spacing:.04em; }
+  .day .t1 small { font-size:19px; opacity:.7; margin-left:6px; }
+  .day .t2 { font-size:15px; opacity:.8; margin-top:4px; font-weight:700; }
+  .dots { display:flex; gap:7px; margin-top:10px; align-items:center; }
+  .dots i { width:12px; height:12px; border-radius:50%; border:2px solid rgba(94,224,232,.55); display:block; }
+  .dots i.past { background:rgba(94,224,232,.55); border-color:transparent; }
+  .dots i.now { background:#5ee0e8; border-color:#c9fbff; box-shadow:0 0 10px #5ee0e8; width:16px; height:16px; }
+  .dots i.f { border-style:dashed; border-color:#9aa8ff; }
+  .chips2 { display:flex; gap:8px; margin-top:12px; flex-wrap:wrap; }
+  .pill { font-size:14px; font-weight:800; padding:5px 12px; border-radius:999px; border:1.5px solid; cursor:pointer; white-space:nowrap; display:inline-flex; gap:6px; align-items:center; background:rgba(6,26,36,.55); }
+  .pill.sun { border-color:#ffc24a; color:#ffd98a; }
+  .pill.dark { border-color:#9aa8ff; color:#d0d6ff; }
+  .pill.star { border-color:rgba(94,224,232,.8); color:#bff8ff; }
+  .pill.warn { border-color:#ffc24a; color:#2a1a00; background:#ffc24a; }
+
+  /* round icon buttons */
+  .ibtn { width:44px; height:44px; border-radius:50%; display:flex; align-items:center; justify-content:center; cursor:pointer; position:relative; background:rgba(6,26,36,.7); border:2px solid rgba(94,224,232,.7); color:#bff8ff; }
+  .ibtn .dot { position:absolute; right:-3px; top:-3px; width:16px; height:16px; border-radius:50%; background:#ffc24a; border:2px solid #061a24; }
+
+  /* place pins */
+  .pin { transform:translate(-50%,-100%); display:flex; align-items:center; gap:0; cursor:pointer; }
+  .pin .o { width:36px; height:36px; border-radius:50%; background:rgba(6,26,36,.82); border:2px solid #5ee0e8; display:flex; align-items:center; justify-content:center; color:#9ff6ff; box-shadow:0 0 12px rgba(94,224,232,.35); flex:none; }
+  .pin .o .ic { width:20px; height:20px; }
+  .pin .nm { position:absolute; left:42px; top:50%; transform:translateY(-50%); white-space:nowrap; font-size:14px; font-weight:800; padding:3px 10px; border-radius:8px; background:rgba(6,26,36,.85); border:1.5px solid rgba(94,224,232,.6); opacity:0; transition:opacity .15s; pointer-events:none; }
+  .pin:hover .nm, .pin.sel .nm, .names .pin .nm { opacity:1; }
+  .pin.sel .o { background:#5ee0e8; color:#062030; }
+
+  /* job popover */
+  .pop { width:310px; padding:14px 16px 10px; display:none; }
+  .pop .hd { display:flex; justify-content:space-between; align-items:center; }
+  .pop .x { cursor:pointer; opacity:.75; font-size:18px; line-height:1; }
+  .pop .sub { font-size:13px; opacity:.8; margin:3px 0 6px; }
+  .job { display:flex; justify-content:space-between; align-items:center; gap:10px; padding:9px 0; border-top:1px solid rgba(94,224,232,.18); cursor:pointer; }
+  .job .n { font-size:15px; font-weight:800; }
+  .job .c { font-size:12.5px; opacity:.85; margin-top:2px; }
+  .job .c b.out { color:#ffd98a; }
+  .job .t { display:flex; gap:3px; flex:none; }
+  .job .t i { width:10px; height:10px; border-radius:50%; background:#5ee0e8; display:block; }
+  .job .t i.o { background:#ffc24a; }
+  .job .tag { font-size:10.5px; padding:1px 6px; border-radius:99px; background:#ffc24a; color:#2a1a00; font-weight:800; margin-left:6px; vertical-align:2px; }
+
+  /* report popover */
+  .rep { width:300px; padding:14px 16px; display:none; }
+  .rep .r { display:flex; justify-content:space-between; font-size:15px; padding:5px 0; }
+  .rep .r span:last-child { color:#ffc24a; letter-spacing:2px; }
+  .rep .goal { font-size:13px; opacity:.85; margin-top:6px; }
+
+  /* bot bubble */
+  .face { width:84px; height:84px; border-radius:50%; overflow:hidden; border:3px solid #5ee0e8; box-shadow:0 0 18px rgba(94,224,232,.35); background:#0b2a3a; flex:none; }
+  .bub { padding:14px 18px 12px; position:relative; }
+  .bub .who { position:absolute; left:16px; top:-12px; font-family:'Exo 2'; font-weight:800; font-size:12px; letter-spacing:.08em; background:#5ee0e8; color:#062030; padding:2px 9px; border-radius:6px; }
+  .bub p { margin:0; font-size:18px; line-height:1.35; font-weight:700; }
+  .bub .tags { display:flex; gap:6px; margin-top:7px; }
+  .badge { font-size:11px; font-weight:800; padding:1px 7px; border-radius:6px; white-space:nowrap; }
+  .b-arch { border:1.5px solid #ffc24a; color:#ffd98a; }
+  .b-ai, .b-sim { border:1.5px dashed rgba(230,251,255,.45); color:rgba(230,251,255,.7); }
+
+  /* end day */
+  .endbtn { font-family:'Exo 2'; font-weight:800; letter-spacing:.1em; text-transform:uppercase; font-size:19px; color:#062030; background:linear-gradient(180deg,#7ff0f8,#3cc7d6); border-radius:14px; box-shadow:0 0 18px rgba(94,224,232,.45); text-align:center; cursor:pointer; }
+  .crew { display:flex; gap:6px; }
+  .crew i { width:18px; height:18px; border-radius:50%; border:2px solid rgba(94,224,232,.5); display:block; }
+  .crew i.in { background:#5ee0e8; border-color:#5ee0e8; }
+  .crew i.out { background:#ffc24a; border-color:#ffc24a; }
+
+  /* ===== Layout 1: bottom tray ===== */
+  .L1 .tray { left:0; right:0; bottom:0; height:150px; background:linear-gradient(180deg, rgba(3,10,18,0), rgba(3,10,18,.86) 42%); }
+  .L1 .face { position:absolute; left:28px; bottom:22px; }
+  .L1 .bub { position:absolute; left:126px; bottom:26px; width:500px; }
+  .L1 .meters { position:absolute; left:660px; bottom:28px; width:330px; display:grid; grid-template-columns:1fr 1fr; gap:10px 22px; }
+  .L1 .m { display:grid; grid-template-columns:22px 1fr 30px; gap:8px; align-items:center; }
+  .L1 .m .tr { height:9px; border-radius:99px; background:rgba(255,255,255,.12); overflow:hidden; }
+  .L1 .m .tr i { display:block; height:100%; border-radius:99px; }
+  .L1 .m .v { font-weight:800; font-size:15px; text-align:right; }
+  .L1 .m .lb { grid-column:2 / span 2; font-size:12px; opacity:.7; margin-top:-6px; font-weight:700; }
+  .L1 .endw { position:absolute; right:28px; bottom:26px; width:220px; }
+  .L1 .endw .crew { justify-content:space-between; margin-bottom:10px; }
+  .L1 .endbtn { padding:12px 0; }
+  .L1 .tools { right:28px; top:26px; display:flex; gap:10px; }
+
+  /* ===== Layout 2: corners ===== */
+  .L2 .gauges { right:28px; top:22px; display:flex; gap:14px; }
+  .L2 .g { width:62px; text-align:center; }
+  .L2 .g svg { width:62px; height:62px; display:block; }
+  .L2 .g .lb { font-size:12px; font-weight:800; opacity:.8; margin-top:3px; }
+  .L2 .botl { left:28px; bottom:26px; display:flex; align-items:flex-end; gap:14px; }
+  .L2 .bub { width:470px; margin-bottom:6px; }
+  .L2 .endw { right:28px; bottom:28px; width:210px; text-align:right; }
+  .L2 .endw .lbl { font-size:13px; font-weight:800; opacity:.8; margin-bottom:6px; }
+  .L2 .endw .crew { justify-content:flex-end; margin-bottom:10px; }
+  .L2 .endbtn { padding:14px 0; }
+
+  /* ===== Layout 3: side rail ===== */
+  .L3 .rail { left:18px; top:18px; bottom:18px; width:84px; padding:14px 0; display:flex; flex-direction:column; align-items:center; gap:10px; }
+  .L3 .rm { display:flex; flex-direction:column; align-items:center; gap:4px; width:100%; }
+  .L3 .rm .vb { width:14px; height:46px; border-radius:99px; background:rgba(255,255,255,.12); position:relative; overflow:hidden; }
+  .L3 .rm .vb i { position:absolute; left:0; right:0; bottom:0; border-radius:99px; }
+  .L3 .rm .v { font-weight:800; font-size:14px; }
+  .L3 .rail hr { width:44px; border:0; border-top:1.5px solid rgba(94,224,232,.3); margin:2px 0; }
+  .L3 .rstar { font-weight:800; color:#ffc24a; font-size:15px; text-align:center; cursor:pointer; }
+  .L3 .top { left:50%; top:22px; transform:translateX(-50%); display:flex; align-items:center; gap:14px; padding:8px 18px; border-radius:999px; }
+  .L3 .top .d { font-family:'Exo 2'; font-weight:800; font-style:italic; font-size:22px; text-transform:uppercase; letter-spacing:.04em; }
+  .L3 .top .dots { margin-top:0; }
+  .L3 .botc { left:50%; bottom:24px; transform:translateX(-50%); display:flex; align-items:flex-end; gap:12px; }
+  .L3 .face { width:72px; height:72px; }
+  .L3 .bub { width:520px; margin-bottom:4px; }
+  .L3 .ring { right:30px; bottom:24px; width:132px; text-align:center; }
+  .L3 .ring .btn { width:132px; height:132px; position:relative; cursor:pointer; }
+  .L3 .ring svg { position:absolute; inset:0; }
+  .L3 .ring .in { position:absolute; inset:18px; border-radius:50%; background:linear-gradient(180deg,#7ff0f8,#3cc7d6); box-shadow:0 0 18px rgba(94,224,232,.5); display:flex; flex-direction:column; align-items:center; justify-content:center; color:#062030; font-family:'Exo 2'; font-weight:800; text-transform:uppercase; letter-spacing:.08em; font-size:16px; line-height:1.1; }
+  .L3 .ring .lbl { font-size:12.5px; font-weight:800; opacity:.8; margin-top:6px; }
+</style>
+</head>
+<body>
+<div id="mocks"></div>
+<script>
+
+/* ======================= math + scene ======================= */
+const W = 1280, H = 720, D2R = Math.PI / 180;
+const sub=(a,b)=>[a[0]-b[0],a[1]-b[1],a[2]-b[2]], add=(a,b)=>[a[0]+b[0],a[1]+b[1],a[2]+b[2]],
+      mul=(a,s)=>[a[0]*s,a[1]*s,a[2]*s], dot=(a,b)=>a[0]*b[0]+a[1]*b[1]+a[2]*b[2],
+      cross=(a,b)=>[a[1]*b[2]-a[2]*b[1],a[2]*b[0]-a[0]*b[2],a[0]*b[1]-a[1]*b[0]],
+      norm=a=>{const l=Math.hypot(a[0],a[1],a[2])||1;return [a[0]/l,a[1]/l,a[2]/l]};
+function rng(s){return function(){s|=0;s=s+0x6D2B79F5|0;let t=Math.imul(s^s>>>15,1|s);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
+const dirAE=(az,el)=>[Math.sin(az*D2R)*Math.cos(el*D2R), Math.sin(el*D2R), Math.cos(az*D2R)*Math.cos(el*D2R)];
+
+// Sun drawn at 4 deg (real polar max is about 1.5 deg) so shapes read; Earth low in the sky.
+const SUN_AZ = -30, SUN = dirAE(SUN_AZ, 4), SUN_DOWN = dirAE(SUN_AZ, -2), EARTH = dirAE(0, 8);
+
+const VIEWS = {
+  low:  { tx:-8.7, ty:3, tz:42.6, dist:38, pitch:0,  yaw:-17, fov:40, name:'Low (like ref)' },
+  high: { tx:-7.5, ty:0, tz:44.6, dist:58, pitch:13, yaw:-17, fov:50, name:'High 3/4' },
+  wide: { tx:-5.5, ty:0, tz:74.7, dist:112, pitch:7, yaw:-19, fov:34, name:'Wide' },
+};
+function camFrom(v){
+  const p=v.pitch*D2R, y=v.yaw*D2R;
+  const f=[Math.sin(y)*Math.cos(p), -Math.sin(p), Math.cos(y)*Math.cos(p)];
+  const r=[Math.cos(y),0,-Math.sin(y)];
+  const u=cross(f,r);
+  const C=[v.tx-f[0]*v.dist, v.ty-f[1]*v.dist, v.tz-f[2]*v.dist];
+  return {C,f,r,u,F:(H/2)/Math.tan(v.fov*D2R/2),v};
+}
+const toCam=(cam,P)=>{const d=sub(P,cam.C);return [dot(d,cam.r),dot(d,cam.u),dot(d,cam.f)]};
+const proj=(cam,c)=>[W/2+c[0]/c[2]*cam.F, H/2-c[1]/c[2]*cam.F];
+function projDir(cam,d){const x=dot(d,cam.r),y=dot(d,cam.u),z=dot(d,cam.f);if(z<=0.01)return null;return [W/2+x/z*cam.F,H/2-y/z*cam.F]}
+function projPt(cam,P){const c=toCam(cam,P);if(c[2]<0.5)return null;return proj(cam,c)}
+function clipNear(poly,n=0.5){const o=[];for(let i=0;i<poly.length;i++){const a=poly[i],b=poly[(i+1)%poly.length],ai=a[2]>=n,bi=b[2]>=n;if(ai)o.push(a);if(ai!==bi){const t=(n-a[2])/(b[2]-a[2]);o.push([a[0]+(b[0]-a[0])*t,a[1]+(b[1]-a[1])*t,n])}}return o}
+function pathWorld(ctx,cam,pts){const c=clipNear(pts.map(p=>toCam(cam,p)));if(c.length<3)return false;ctx.beginPath();c.forEach((q,i)=>{const s=proj(cam,q);i?ctx.lineTo(s[0],s[1]):ctx.moveTo(s[0],s[1])});ctx.closePath();return true}
+
+function mkFace(p,col,o={}){let n=[0,0,0];for(let i=0;i<p.length;i++){const a=p[i],b=p[(i+1)%p.length];n[0]+=(a[1]-b[1])*(a[2]+b[2]);n[1]+=(a[2]-b[2])*(a[0]+b[0]);n[2]+=(a[0]-b[0])*(a[1]+b[1])}
+  const c=mul(p.reduce((s,q)=>add(s,q),[0,0,0]),1/p.length);return Object.assign({p,n:norm(n),c,col},o)}
+function orient(fs,ctr){fs.forEach(f=>{if(!f.two&&dot(f.n,sub(f.c,ctr))<0)f.n=mul(f.n,-1)});return fs}
+const rotY=(x,z,t)=>[x*Math.cos(t)+z*Math.sin(t), -x*Math.sin(t)+z*Math.cos(t)];
+
+function box(c,s,col,yaw=0,o={}){const t=yaw*D2R,P=(x,y,z)=>{const r=rotY(x,z,t);return [c[0]+r[0],c[1]+y,c[2]+r[1]]};
+  const [a,b,d]=[s[0]/2,s[1],s[2]/2];const v=[P(-a,0,-d),P(a,0,-d),P(a,0,d),P(-a,0,d),P(-a,b,-d),P(a,b,-d),P(a,b,d),P(-a,b,d)];
+  const fs=[[0,1,5,4],[1,2,6,5],[2,3,7,6],[3,0,4,7],[4,5,6,7],[0,3,2,1]].map(q=>mkFace(q.map(i=>v[i]),col,o));
+  return orient(fs,[c[0],c[1]+b/2,c[2]])}
+function cylX(c,len,r,n,col,yaw=0){const t=yaw*D2R,P=(x,y,z)=>{const q=rotY(x,z,t);return [c[0]+q[0],c[1]+y,c[2]+q[1]]};const fs=[],A=[],B=[];
+  for(let i=0;i<n;i++){const a=i/n*2*Math.PI;A.push(P(-len/2,r*Math.sin(a),-r*Math.cos(a)));B.push(P(len/2,r*Math.sin(a),-r*Math.cos(a)))}
+  for(let i=0;i<n;i++){const j=(i+1)%n;fs.push(mkFace([A[i],A[j],B[j],B[i]],col))}
+  fs.push(mkFace(A.slice(),col),mkFace(B.slice(),col));return orient(fs,c)}
+function dome(c,rx,h,rz,col,nu=18,nv=5,seed=3){const R=rng(seed),j=[];for(let i=0;i<nu;i++)j.push(1+(R()-.5)*.14);const rows=[];
+  for(let v=0;v<=nv;v++){const ph=v/nv*Math.PI/2,row=[];for(let u=0;u<nu;u++){const a=u/nu*2*Math.PI,k=Math.cos(ph)*(v<nv?j[u]:1);row.push([c[0]+rx*k*Math.cos(a),h*Math.sin(ph)*(v>0&&v<nv?j[(u+2)%nu]:1),c[2]+rz*k*Math.sin(a)])}rows.push(row)}
+  const fs=[];for(let v=0;v<nv;v++)for(let u=0;u<nu;u++){const w=(u+1)%nu;if(v===nv-1)fs.push(mkFace([rows[v][u],rows[v][w],rows[v+1][0]],col));else fs.push(mkFace([rows[v][u],rows[v][w],rows[v+1][w],rows[v+1][u]],col))}
+  return orient(fs,[c[0],h*0.3,c[2]])}
+function rock(c,s,R){const b=[];for(let i=0;i<4;i++){const a=i/4*2*Math.PI+R()*.8;b.push([c[0]+Math.cos(a)*s*(.7+R()*.5),0,c[2]+Math.sin(a)*s*(.7+R()*.5)])}
+  const ap=[c[0]+(R()-.5)*s*.6,s*(.5+R()*.6),c[2]+(R()-.5)*s*.6];const g=150+R()*40;
+  return orient(b.map((q,i)=>mkFace([q,b[(i+1)%4],ap],[g,g-4,g-10])),[c[0],s*.25,c[2]])}
+function disk(ctr,n,r,k,col){const a=Math.abs(n[1])<.9?[0,1,0]:[1,0,0],e1=norm(cross(n,a)),e2=cross(n,e1),p=[];
+  for(let i=0;i<k;i++){const t=i/k*2*Math.PI;p.push(add(ctr,add(mul(e1,Math.cos(t)*r),mul(e2,Math.sin(t)*r))))}return [mkFace(p,col,{two:true})]}
+
+/* ---- the base ---- */
+const WHITE=[232,236,240], ORANGE=[240,140,60], REG=[150,143,135], DARKP=[70,78,92], CELL=[40,70,140], WIN=[255,205,120];
+const HAB={x:-2,z:40,r:2.3,len:10,cy:2.9}, SHEL={x:-15,z:46}, ROVER={x:7,z:37,yaw:20}, CRATER={x:20,z:122,R:24};
+const PANEL_YAW = Math.atan2(SUN[0],SUN[2])/D2R;
+const MASTS=[[-21,58],[-16.5,60],[-12,62]];
+function buildScene(){
+  const objs=[], glows=[];
+  // habitat
+  const hf=cylX([HAB.x,HAB.cy,HAB.z],HAB.len,HAB.r,16,WHITE);
+  for(const lx of [-4.4,-2,0.4]){for(const [y0,y1] of [[-6,22]]){}
+    const p=[];const rr=HAB.r*1.03;
+    const pt=(x,a)=>[HAB.x+x,HAB.cy+rr*Math.sin(a*D2R),HAB.z-rr*Math.cos(a*D2R)];
+    p.push(pt(lx-.5,-4),pt(lx+.5,-4),pt(lx+.5,24),pt(lx-.5,24));hf.push(mkFace(p,WIN,{emis:true,decal:true}));glows.push([HAB.x+lx,HAB.cy+1,HAB.z-HAB.r-.3])}
+  // orange band
+  for(const bx of [-4.9,4.9]){const p=[];const rr=HAB.r*1.02;for(const a of [-80,80]){}}
+  objs.push({f:hf,ctr:[HAB.x,HAB.cy,HAB.z]});
+  for(const lx of [-4,0,4])for(const lz of [-1.4,1.4])objs.push({f:box([HAB.x+lx,0,HAB.z+lz],[.25,HAB.cy-HAB.r+.2,.25],DARKP),ctr:[HAB.x+lx,.3,HAB.z+lz]});
+  // airlock + door
+  const al=box([HAB.x+HAB.len/2+1,0.2,HAB.z],[2,3.4,2.4],[220,224,228]);
+  al.push(mkFace([[HAB.x+HAB.len/2+.6,.6,HAB.z-1.22],[HAB.x+HAB.len/2+1.4,.6,HAB.z-1.22],[HAB.x+HAB.len/2+1.4,2.6,HAB.z-1.22],[HAB.x+HAB.len/2+.6,2.6,HAB.z-1.22]],ORANGE,{decal:true}));
+  objs.push({f:al,ctr:[HAB.x+HAB.len/2+1,1.5,HAB.z]});
+  // shelter mound (regolith over a buried module) + entry
+  objs.push({f:dome([SHEL.x,0,SHEL.z],5.8,3.4,4.8,REG,20,5,7),ctr:[SHEL.x,1.4,SHEL.z],shelter:true});
+  const en=box([SHEL.x+1,0,SHEL.z-5.2],[2,2.1,2.2],[200,200,204]);
+  en.push(mkFace([[SHEL.x+.45,.2,SHEL.z-6.32],[SHEL.x+1.55,.2,SHEL.z-6.32],[SHEL.x+1.55,1.8,SHEL.z-6.32],[SHEL.x+.45,1.8,SHEL.z-6.32]],WIN,{emis:true,decal:true}));
+  glows.push([SHEL.x+1,1,SHEL.z-6.6]);
+  objs.push({f:en,ctr:[SHEL.x+1,1,SHEL.z-5.2]});
+  // vertical solar arrays (real: polar arrays stand tall and turn to follow the low Sun)
+  for(const [mx,mz] of MASTS){
+    objs.push({f:box([mx,0,mz],[.55,13,.55],[190,192,198]),ctr:[mx,6,mz]});
+    const pc=[mx+SUN[0]*.5,6.2,mz+SUN[2]*.5];
+    const pf=box(pc,[3.6,6.4,.18],DARKP,PANEL_YAW);
+    // sun-facing side gets the blue cell colour
+    pf.forEach(f=>{if(dot(f.n,norm([SUN[0],0,SUN[2]]))>.9)f.col=CELL});
+    objs.push({f:pf,ctr:add(pc,[0,3.2,0])});
+  }
+  glows.push([MASTS[1][0],13.4,MASTS[1][1],'red']);
+  // battery / power unit
+  objs.push({f:box([-8,0,56],[3,1.6,2],[205,205,210],PANEL_YAW),ctr:[-8,.8,56]});
+  // rover
+  const rv=box([ROVER.x,.75,ROVER.z],[3.4,1.2,2],WHITE,ROVER.yaw);
+  objs.push({f:rv,ctr:[ROVER.x,1.3,ROVER.z]});
+  const cab=box([ROVER.x+.6*Math.cos(ROVER.yaw*D2R),1.95,ROVER.z-.6*Math.sin(ROVER.yaw*D2R)],[1.4,.8,1.7],[210,215,222],ROVER.yaw);
+  objs.push({f:cab,ctr:[ROVER.x,2.3,ROVER.z]});
+  for(const [wx,wz] of [[-1.2,-1.1],[1.2,-1.1],[-1.2,1.1],[1.2,1.1]]){const q=rotY(wx,wz,ROVER.yaw*D2R);objs.push({f:box([ROVER.x+q[0],0,ROVER.z+q[1]],[.7,.7,.4],[70,72,80],ROVER.yaw),ctr:[ROVER.x+q[0],.45,ROVER.z+q[1]]})}
+  // comms dish pointing at Earth
+  objs.push({f:box([4,0,50],[.3,4.2,.3],[190,192,198]),ctr:[4,2,50]});
+  objs.push({f:disk([4,4.6,50],EARTH,1.5,12,[225,228,232]),ctr:[4,4.6,50]});
+  // rocks
+  const R=rng(11);
+  for(let i=0;i<46;i++){const x=-70+R()*170,z=10+R()*170,s=.3+R()*R()*1.8;
+    if(x>-26&&x<14&&z>26&&z<68)continue; if(Math.hypot(x-CRATER.x,z-CRATER.z)<CRATER.R*1.5)continue;
+    objs.push({f:rock([x,0,z],s,R),ctr:[x,s*.3,z]})}
+  return {objs,glows};
+}
+const SCENE=buildScene();
+const R2=rng(5), CRATERLETS=[];for(let i=0;i<55;i++){const x=-80+R2()*200,z=8+R2()*230,r=.8+R2()*R2()*7;if(Math.hypot(x-CRATER.x,z-CRATER.z)<CRATER.R*1.4)continue;if(x>-24&&x<14&&z>26&&z<66)continue;CRATERLETS.push([x,z,r])}
+const R3=rng(9), STARS=[];for(let i=0;i<220;i++)STARS.push([-100+R3()*200, .5+Math.pow(R3(),1.6)*70, .5+R3()*1.4, .3+R3()*.7]);
+const mtnFar=az=>1.3+.75*Math.sin(az*.09+1)+.5*Math.sin(az*.23+2)+.28*Math.sin(az*.61+.5)+.15*Math.sin(az*1.7);
+const mtnNear=az=>.55+.35*Math.sin(az*.13+4)+.25*Math.sin(az*.41+1)+.12*Math.sin(az*1.3+2);
+
+const FILL=norm([-0.35,0.55,-0.75]); // stylised fill light (game art choice, not physics)
+function shadeCol(f,n,L,sunUp,nightAmb){
+  const lam=(sunUp&&!f.noSun)?Math.max(0,dot(n,L)):0, es=Math.max(0,dot(n,EARTH)), up=Math.max(0,n[1]), fl=Math.max(0,dot(n,FILL));
+  const a=sunUp?0.30:nightAmb, fk=sunUp?0.36:0.14;
+  return [f.col[0]*(a+.05*up+.06*es+fk*fl+1.1*lam), f.col[1]*(a+.05*up+.07*es+fk*fl+1.0*lam), f.col[2]*(a*1.15+.06*up+.12*es+fk*fl*1.05+.82*lam)];
+}
+const rgb=c=>`rgb(${c[0]|0},${c[1]|0},${c[2]|0})`;
+
+function drawScene(ctx, st, px){
+  const cam=camFrom(VIEWS[st.view]), sunUp=st.light==='sun', L=sunUp?SUN:SUN_DOWN;
+  const hz=projDir(cam,dirAE(cam.v.yaw,0))[1];
+  // sky
+  const g=ctx.createLinearGradient(0,0,0,hz);g.addColorStop(0,'#03050c');g.addColorStop(.7,'#08102a');g.addColorStop(1,sunUp?'#132550':'#0c1636');
+  ctx.fillStyle=g;ctx.fillRect(0,0,W,hz+2);
+  // stars
+  for(const [az,el,sz,b] of STARS){const s=projDir(cam,dirAE(az,el));if(!s||s[1]>hz-4)continue;ctx.fillStyle=`rgba(230,240,255,${(sunUp?.45:.9)*b})`;
+    if(px){ctx.fillRect(Math.round(s[0]/4)*4,Math.round(s[1]/4)*4,sz>1.5?8:4,4)}else{ctx.beginPath();ctx.arc(s[0],s[1],sz,0,7);ctx.fill()}}
+  // sun
+  const sp=projDir(cam,SUN);
+  if(sunUp&&sp){const gl=ctx.createRadialGradient(sp[0],sp[1],0,sp[0],sp[1],230);gl.addColorStop(0,'rgba(255,240,200,.55)');gl.addColorStop(.25,'rgba(255,214,150,.18)');gl.addColorStop(1,'rgba(255,200,120,0)');
+    ctx.fillStyle=gl;ctx.fillRect(sp[0]-240,sp[1]-240,480,480);
+    const st2=ctx.createLinearGradient(sp[0]-420,0,sp[0]+420,0);st2.addColorStop(0,'rgba(255,230,180,0)');st2.addColorStop(.5,'rgba(255,236,190,.35)');st2.addColorStop(1,'rgba(255,230,180,0)');
+    ctx.fillStyle=st2;ctx.fillRect(sp[0]-420,sp[1]-2,840,4);
+    ctx.fillStyle='#fffbe9';ctx.beginPath();ctx.arc(sp[0],sp[1],17,0,7);ctx.fill()}
+  // earth (crescent: Sun and Earth sit in a similar part of the sky, so most of Earth's day side faces away)
+  const ep=st.light==='sun'?projDir(cam,EARTH):null; // days 5-7: Earth below the horizon (D-020)
+  if(ep){const r=17;ctx.save();ctx.beginPath();ctx.arc(ep[0],ep[1],r,0,7);ctx.clip();
+    ctx.fillStyle='#16304f';ctx.fillRect(ep[0]-r,ep[1]-r,2*r,2*r);
+    const toS=sp?norm([sp[0]-ep[0],sp[1]-ep[1],0]):[-1,0,0];
+    ctx.fillStyle='#4f8fe0';ctx.beginPath();ctx.arc(ep[0],ep[1],r,0,7);ctx.fill();
+    ctx.fillStyle='#e9f3ff';ctx.beginPath();ctx.ellipse(ep[0]+toS[0]*r*.5,ep[1]-r*.3,r*.5,r*.18,.3,0,7);ctx.fill();
+    ctx.fillStyle='#3a9a5c';ctx.beginPath();ctx.ellipse(ep[0]+toS[0]*r*.55,ep[1]+r*.25,r*.3,r*.35,0,0,7);ctx.fill();
+    ctx.fillStyle='rgba(12,24,48,.93)';ctx.beginPath();ctx.arc(ep[0]-toS[0]*r*.62,ep[1]-toS[1]*r*.62,r*1.02,0,7);ctx.fill();ctx.restore();
+    const eg=ctx.createRadialGradient(ep[0],ep[1],r,ep[0],ep[1],r*2.4);eg.addColorStop(0,'rgba(120,180,255,.25)');eg.addColorStop(1,'rgba(120,180,255,0)');ctx.fillStyle=eg;ctx.beginPath();ctx.arc(ep[0],ep[1],r*2.4,0,7);ctx.fill()}
+  // mountains
+  const cp=Math.cos(cam.v.pitch*D2R);
+  for(const [fn,col,lit] of [[mtnFar,sunUp?'#4a4752':'#15151d','#d9c9a8'],[mtnNear,sunUp?'#2d2c35':'#0e0e15',null]]){
+    ctx.beginPath();ctx.moveTo(0,hz+1);const pts=[];
+    for(let x=0;x<=W;x+=px?4:3){const az=cam.v.yaw+Math.atan((x-W/2)/cam.F*cp)/D2R;const s=projDir(cam,dirAE(az,fn(az)));pts.push([x,s[1]]);ctx.lineTo(x,s[1])}
+    ctx.lineTo(W,hz+1);ctx.closePath();ctx.fillStyle=col;ctx.fill();
+    if(sunUp&&fn===mtnFar){ctx.save();ctx.clip();const mg=ctx.createLinearGradient(sp?sp[0]:0,0,(sp?sp[0]:0)+700,0);mg.addColorStop(0,'rgba(255,226,170,.28)');mg.addColorStop(1,'rgba(255,226,170,0)');ctx.fillStyle=mg;ctx.fillRect(0,0,W,hz+2);ctx.restore()}
+    if(!sunUp&&lit){ctx.strokeStyle=lit;ctx.lineWidth=px?4:2;ctx.globalAlpha=.55;ctx.beginPath();pts.forEach((p,i)=>i?ctx.lineTo(p[0],p[1]):ctx.moveTo(p[0],p[1]));ctx.stroke();ctx.globalAlpha=1}
+  }
+  // ground
+  const gg=ctx.createLinearGradient(0,hz,0,H);
+  if(sunUp){gg.addColorStop(0,'#9a959d');gg.addColorStop(.3,'#76727b');gg.addColorStop(1,'#56535c')}else{gg.addColorStop(0,'#2c2c38');gg.addColorStop(1,'#1c1c26')}
+  ctx.fillStyle=gg;ctx.fillRect(0,hz,W,H-hz);
+  // craterlets
+  const Lh=norm([L[0],0,L[2]]);
+  const cl=CRATERLETS.map(c=>({c,d:toCam(cam,[c[0],0,c[1]])[2]})).filter(o=>o.d>1).sort((a,b)=>b.d-a.d);
+  const circ=(x,z,r,k=16)=>{const p=[];for(let i=0;i<k;i++){const a=i/k*2*Math.PI;p.push([x+Math.cos(a)*r,0,z+Math.sin(a)*r])}return p};
+  for(const {c:[x,z,r]} of cl){
+    if(pathWorld(ctx,cam,circ(x,z,r*1.08))){ctx.fillStyle=sunUp?'rgba(170,165,170,.35)':'rgba(60,60,75,.4)';ctx.fill()}
+    if(pathWorld(ctx,cam,circ(x+Lh[0]*r*.3,z+Lh[2]*r*.3,r*.86))){ctx.fillStyle=sunUp?'rgba(20,20,30,.55)':'rgba(5,5,10,.5)';ctx.fill()}}
+  // rover tracks
+  ctx.strokeStyle=sunUp?'rgba(200,198,205,.35)':'rgba(120,120,140,.25)';ctx.lineWidth=px?4:1.6;
+  for(const off of [-.8,.8]){ctx.beginPath();let first=true;for(let t=0;t<=1.0001;t+=.04){const x=ROVER.x+2+(CRATER.x-ROVER.x-2)*t+Math.sin(t*3)*4+off,z=ROVER.z+3+(CRATER.z-CRATER.R-ROVER.z-3)*t;const s=projPt(cam,[x,0,z]);if(!s)continue;first?ctx.moveTo(s[0],s[1]):ctx.lineTo(s[0],s[1]);first=false}ctx.stroke()}
+  // big dark crater: inner bowl seen through the rim opening, then outer slopes
+  {const {x,z,R}=CRATER,k=36,rimH=1.4,depth=8,ring=(rr,y)=>{const p=[];for(let i=0;i<k;i++){const a=i/k*2*Math.PI;p.push([x+Math.cos(a)*rr,y,z+Math.sin(a)*rr])}return p};
+    const rim=ring(R,rimH),floor=ring(R*.5,-depth),outer=ring(R*1.25,0);
+    ctx.save();if(pathWorld(ctx,cam,rim)){ctx.clip();
+      const inner=[];for(let i=0;i<k;i++){const j=(i+1)%k;inner.push(mkFace([rim[i],rim[j],floor[j],floor[i]],[110,118,140]))}
+      orient(inner,[x,depth*3,z]);
+      inner.map(f=>({f,d:toCam(cam,f.c)[2]})).sort((a,b)=>b.d-a.d).forEach(({f})=>{if(dot(f.n,sub(cam.C,f.c))<0)return;if(pathWorld(ctx,cam,f.p)){ctx.fillStyle=rgb(shadeCol(Object.assign({},f,{noSun:true}),f.n,L,false,.14));ctx.fill()}});
+      if(pathWorld(ctx,cam,floor)){ctx.fillStyle='#070a16';ctx.fill()}}
+    ctx.restore();
+    const os=[];for(let i=0;i<k;i++){const j=(i+1)%k;os.push(mkFace([outer[i],outer[j],rim[j],rim[i]],REG))}orient(os,[x,-5,z]);
+    os.map(f=>({f,d:toCam(cam,f.c)[2]})).sort((a,b)=>b.d-a.d).forEach(({f})=>{if(dot(f.n,sub(cam.C,f.c))<0)return;if(pathWorld(ctx,cam,f.p)){ctx.fillStyle=rgb(shadeCol(f,f.n,L,sunUp,.12));ctx.fill()}})}
+  // long shadows (cast onto the ground along the sunlight)
+  if(sunUp){const sh=document.createElement('canvas');sh.width=ctx.canvas.width;sh.height=ctx.canvas.height;const sc=sh.getContext('2d');sc.setTransform(ctx.getTransform());sc.fillStyle='#04060f';
+    for(const o of SCENE.objs)for(const f of o.f){if(f.decal)continue;const p=f.p.map(q=>[q[0]-L[0]*q[1]/L[1],0,q[2]-L[2]*q[1]/L[1]]);if(pathWorld(sc,cam,p))sc.fill()}
+    ctx.save();ctx.setTransform(1,0,0,1,0,0);ctx.globalAlpha=.5;ctx.drawImage(sh,0,0);ctx.restore()}
+  // objects, far to near
+  const objs=SCENE.objs.map(o=>({o,d:toCam(cam,o.ctr)[2]})).filter(x=>x.d>.5).sort((a,b)=>b.d-a.d);
+  for(const {o} of objs){
+    const fs=o.f.map(f=>({f,d:toCam(cam,f.c)[2]})).sort((a,b)=>(a.f.decal-b.f.decal)||(b.d-a.d));
+    for(const {f} of fs){let n=f.n;if(dot(n,sub(cam.C,f.c))<0){if(f.two)n=mul(n,-1);else continue}
+      if(!pathWorld(ctx,cam,f.p))continue;
+      ctx.fillStyle=f.emis?(sunUp?'#ffd58a':'#ffe2a0'):rgb(shadeCol(f,n,L,sunUp,.22));ctx.fill();
+      if(!px&&!f.emis){ctx.strokeStyle=ctx.fillStyle;ctx.lineWidth=.6;ctx.stroke()}}}
+  // light pools from windows (warm, like the campfire in the reference)
+  ctx.save();ctx.globalCompositeOperation='lighter';
+  for(const gp of SCENE.glows){const s=projPt(cam,gp);if(!s)continue;const d=toCam(cam,gp)[2],rad=Math.min(160,(gp[3]?260:900)/d*(sunUp?.7:1.2));
+    const gr=ctx.createRadialGradient(s[0],s[1],0,s[0],s[1],rad);const c=gp[3]?'255,70,60':'255,180,90';gr.addColorStop(0,`rgba(${c},${sunUp?.35:.6})`);gr.addColorStop(1,`rgba(${c},0)`);ctx.fillStyle=gr;ctx.fillRect(s[0]-rad,s[1]-rad,2*rad,2*rad)}
+  ctx.restore();
+  if(!px){const vg=ctx.createRadialGradient(W/2,H*.45,H*.35,W/2,H*.5,H*.95);vg.addColorStop(0,'rgba(0,0,0,0)');vg.addColorStop(1,'rgba(0,0,0,.45)');ctx.fillStyle=vg;ctx.fillRect(0,0,W,H)}
+  return cam;
+}
+
+/* ---- 16-bit look: draw at 320x180, snap to a fixed palette with ordered dithering ---- */
+const PAL=['#03050b','#070b18','#0c1428','#13203a','#1c2a4a','#1c1b22','#2a2930','#3a3941','#4c4a53','#615e68','#7a7681','#96929c','#b5b1ba','#d6d3da','#f2f0f4','#ffffff',
+ '#3f3a35','#5e5850','#8a8178','#a89f94','#ffe9b0','#ffc86b','#f39a3c','#c8612a','#7a3a20','#e04a3a','#1e3a78','#2f5fb3','#4f8fe0','#8cc4ff','#3a9a5c','#2a2a5a','#a29ea8','#85818b','#6e6a74','#57545e','#46434c']
+ .map(h=>[parseInt(h.slice(1,3),16),parseInt(h.slice(3,5),16),parseInt(h.slice(5,7),16)]);
+const BAYER=[0,8,2,10,12,4,14,6,3,11,1,9,15,7,13,5];
+function quantize(c){const im=c.getContext('2d',{willReadFrequently:true}).getImageData(0,0,c.width,c.height),d=im.data;
+  for(let y=0;y<c.height;y++)for(let x=0;x<c.width;x++){const i=(y*c.width+x)*4,t=(BAYER[(y&3)*4+(x&3)]/16-.5)*12;
+    const r=d[i]+t,g=d[i+1]+t,b=d[i+2]+t;let best=0,bd=1e9;for(let k=0;k<PAL.length;k++){const p=PAL[k],e=(r-p[0])**2*.9+(g-p[1])**2*1.2+(b-p[2])**2*.8;if(e<bd){bd=e;best=k}}
+    d[i]=PAL[best][0];d[i+1]=PAL[best][1];d[i+2]=PAL[best][2]}
+  c.getContext('2d').putImageData(im,0,0)}
+
+
+/* ======================= UI v2 ======================= */
+const VIC={
+  bolt:'<svg class="ic" viewBox="0 0 24 24"><path d="M13.5 2 4 14h6.5L9.5 22 20 9.5h-6.5z" fill="currentColor"/></svg>',
+  o2:'<svg class="ic" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="2.4"/><text x="12" y="15.6" font-size="9.5" text-anchor="middle" fill="currentColor" font-weight="800" font-family="sans-serif">O2</text></svg>',
+  dose:'<svg class="ic" viewBox="0 0 24 24"><g fill="currentColor"><circle cx="12" cy="12" r="2.2"/>'+[0,120,240].map(a=>{const p=(r,t)=>[12+r*Math.cos((t-90)*D2R),12+r*Math.sin((t-90)*D2R)];const A=p(3.6,a-30),B=p(10,a-30),C=p(10,a+30),D=p(3.6,a+30);return `<path d="M${A}L${B}A10 10 0 0 1 ${C}L${D}A3.6 3.6 0 0 0 ${A}z"/>`}).join('')+'</g></svg>',
+  heart:'<svg class="ic" viewBox="0 0 24 24"><path d="M12 21s-7.5-4.6-9.6-9.2A5.2 5.2 0 0 1 12 6.3a5.2 5.2 0 0 1 9.6 5.5C19.5 16.4 12 21 12 21z" fill="currentColor"/></svg>',
+  sunw:'<svg class="ic" viewBox="0 0 24 24"><g stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9 7 7M17 17l2.1 2.1M4.9 19.1 7 17M17 7l2.1-2.1"/></g><circle cx="12" cy="12" r="4.5" fill="currentColor"/></svg>',
+  help:'<svg class="ic" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" fill="none" stroke="currentColor" stroke-width="2.2"/><path d="M9.2 9.3a2.9 2.9 0 1 1 4.2 2.6c-.9.5-1.4 1.1-1.4 2.1" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/><circle cx="12" cy="17.3" r="1.3" fill="currentColor"/></svg>',
+  gear:'<svg class="ic" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3.4" fill="none" stroke="currentColor" stroke-width="2.2"/><path d="M12 2.5v3M12 18.5v3M2.5 12h3M18.5 12h3M5.3 5.3l2.1 2.1M16.6 16.6l2.1 2.1M5.3 18.7l2.1-2.1M16.6 7.4l2.1-2.1" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg>',
+  shield:'<svg class="ic" viewBox="0 0 24 24"><path d="M12 2.5l8 3v6c0 5-3.4 8.6-8 10.5-4.6-1.9-8-5.5-8-10.5v-6z" fill="currentColor"/></svg>',
+  hab:'<svg class="ic" viewBox="0 0 24 24"><rect x="2.5" y="8" width="19" height="10" rx="5" fill="currentColor"/><path d="M6 18v3M18 18v3" stroke="currentColor" stroke-width="2"/></svg>',
+  solar:'<svg class="ic" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2"><rect x="5" y="2.5" width="14" height="12" rx="1"/><path d="M5 8.5h14M12 2.5v12M12 14.5v7M8 21.5h8"/></g></svg>',
+  rover:'<svg class="ic" viewBox="0 0 24 24"><path d="M3 15l2-6h10l2 3h4v3z" fill="currentColor"/><circle cx="7" cy="17.5" r="2.4" fill="currentColor"/><circle cx="17" cy="17.5" r="2.4" fill="currentColor"/></svg>',
+  ice:'<svg class="ic" viewBox="0 0 24 24"><g stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 2v20M3.3 7l17.4 10M3.3 17L20.7 7M9 3.5l3 2.5 3-2.5M9 20.5l3-2.5 3 2.5"/></g></svg>',
+  dish:'<svg class="ic" viewBox="0 0 24 24"><path d="M4 9a10 10 0 0 0 11 11z" fill="currentColor"/><path d="M9.5 14.5 16 8M16 8a3 3 0 0 1 3 3M16 4a7 7 0 0 1 7 7" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round"/></svg>',
+};
+const ROBOT_SVG=`<svg viewBox="0 0 100 100" width="100%" height="100%"><rect width="100" height="100" fill="#0b2a3a"/><circle cx="50" cy="50" r="46" fill="#12384c"/>
+ <line x1="50" y1="14" x2="50" y2="26" stroke="#cfd8e0" stroke-width="3"/><circle cx="50" cy="12" r="5" fill="#ff9a4a"/>
+ <rect x="22" y="24" width="56" height="44" rx="18" fill="#eef3f7"/><rect x="29" y="31" width="42" height="28" rx="12" fill="#0b1a2a"/>
+ <ellipse cx="41" cy="45" rx="5" ry="6.5" fill="#5ee0e8"/><ellipse cx="59" cy="45" rx="5" ry="6.5" fill="#5ee0e8"/>
+ <path d="M44 53q6 4 12 0" stroke="#5ee0e8" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+ <path d="M18 100 q4-26 32-26 q28 0 32 26z" fill="#e3e9ee"/><rect x="42" y="82" width="16" height="10" rx="3" fill="#ff9a4a"/></svg>`;
+
+const JOBS={
+  solar:{t:'Solar arrays',s:'Tall panels turn to follow the low Sun.',j:[{n:'Log sunlight & shadows',tm:1,c:'⚡ −2',tag:'LIGHT'},{n:'Clean dust off panels',tm:2,c:'O₂ −2 · dose +1',out:1},{n:'Repair a fault',tm:2,c:'⚡ −10'}]},
+  hab:{t:'Habitat',s:'Home for the crew of 4.',j:[{n:'Tune the air system',tm:1,c:'⚡ −20 · O₂ +30'},{n:'Measure radiation',tm:1,c:'⚡ −4',tag:'RADIATION'},{n:'Power-saving mode',tm:1,c:'stamina −10 · base uses half power'},{n:'Rest (2 crew)',tm:2,c:'O₂ −1 · stamina +20'}]},
+  shelter:{t:'Shelter',s:'Moon soil blocks space radiation.',j:[{n:'Pile soil on shelter',tm:4,c:'⚡ −10 · O₂ −4 · dose +2',out:1,tag:'SHELTER'},{n:'Shelter during peak',tm:4,c:'⚡ +5 · storm days only',tag:'SHELTER'}]},
+  rover:{t:'Rover & drone',s:'The dark crater is never sunlit and as cold as −414°F. Ice may hide there.',j:[{n:'Scout with hop-drone',tm:1,c:'⚡ −15 · maps the crater',tag:'ICE'},{n:'Rover to dark crater',tm:4,c:'⚡ −50 · O₂ −8 · dose +4',out:1,tag:'ICE'}]},
+  crater:{t:'Dark crater',s:'Never sunlit. As cold as −414°F.',j:[{n:'Rover to dark crater',tm:4,c:'⚡ −50 · O₂ −8 · dose +4',out:1,tag:'ICE'}]},
+  earth:{t:'Earth link',s:'Radio to Mission Control.',j:[{n:'Call Mission Control',tm:1,c:'⚡ −5 · 2-day storm forecast'}]},
+};
+const PINS={
+  solar:{lab:'Solar arrays',ic:'solar',a:()=>[MASTS[1][0],13.2,MASTS[1][1]]},
+  hab:{lab:'Habitat',ic:'hab',a:()=>[HAB.x+1,HAB.cy+HAB.r+.2,HAB.z]},
+  shelter:{lab:'Shelter',ic:'shield',a:()=>[SHEL.x,3.5,SHEL.z]},
+  rover:{lab:'Rover · crater trips',ic:'rover',a:()=>[ROVER.x,2.4,ROVER.z]},
+  earth:{lab:'Earth link',ic:'dish',dir:EARTH},
+};
+const METERS=sun=>[['bolt','Power',sun?72:38,'#ffd34d'],['o2','Oxygen',61,'#7fe3ff'],['dose','Dose',18,'#c59bff'],['heart','Stamina',74,'#ff7b8f']];
+const ic=(k,col)=>VIC[k].replace('<svg','<svg style="color:'+(col||'currentColor')+'"');
+const dots=(now,sun)=>Array.from({length:7},(_,i)=>`<i class="${i<now-1?'past':i===now-1?'now':''} ${(i===4||i===5)&&sun?'f':''}"></i>`).join('');
+const say=sun=>sun?'A big solar flare just went off. A particle storm may reach us tomorrow!':'The Sun is behind the hills for 2 days, and Earth has set. Save power!';
+const tags=sun=>sun?'<span class="badge b-arch">✓ NASA DONKI · ARCHIVE</span><span class="badge b-ai">AI story</span>':'<span class="badge b-sim">~ SIMULATED</span><span class="badge b-ai">AI story</span>';
+const bubble=sun=>`<div class="bub panel"><div class="who">BASE BOT</div><p>${say(sun)}</p><div class="tags">${tags(sun)}</div></div>`;
+const lightPill=sun=>sun?`<span class="pill sun">☀ Sunlight</span>`:`<span class="pill dark">◐ Long shadow · no Earth link</span>`;
+const starPill=`<span class="pill star" data-rep>★ 3 / 12</span>`;
+const crewChips=`<div class="crew">${['out','out','out','out','in','','',''].map(c=>`<i class="${c}"></i>`).join('')}</div>`;
+
+const LAYOUTS={
+  L1:{name:'1 · Bottom tray', note:'everything you touch lives in one strip; the sky stays empty',
+    html:sun=>`
+      <div class="ui day"><div class="t1">Day ${sun?2:5}<small>of 7</small></div><div class="dots">${dots(sun?2:5,sun)}</div><div class="chips2">${lightPill(sun)}${starPill}</div></div>
+      <div class="ui tools"><div class="ibtn">${ic('sunw','#ffc24a')}${sun?'<span class="dot"></span>':''}</div><div class="ibtn">${ic('help')}</div><div class="ibtn">${ic('gear')}</div></div>
+      <div class="ui tray">
+        <div class="face">${ROBOT_SVG}</div>${bubble(sun)}
+        <div class="meters">${METERS(sun).map(([k,n,v,c])=>`<div class="m">${ic(k,c)}<div class="tr"><i style="width:${v}%;background:${c}"></i></div><span class="v">${v}</span><span></span><span class="lb">${n}</span></div>`).join('')}</div>
+        <div class="endw">${crewChips}<div class="endbtn">End day ▶</div></div>
+      </div>`,
+    pop:{rep:[28,170]}},
+  L2:{name:'2 · Corners', note:'four quiet corners, the middle is all scene',
+    html:sun=>`
+      <div class="ui day"><div class="t1">Day ${sun?2:5}<small>of 7</small></div><div class="t2">Shackleton Ridge</div><div class="chips2">${lightPill(sun)}${starPill}<span class="pill star">${ic('sunw','#ffc24a').replace('class="ic"','class="ic" style="width:16px;height:16px;color:#ffc24a"')} SunWatch${sun?' !':''}</span></div></div>
+      <div class="ui gauges">${METERS(sun).map(([k,n,v,c])=>{const r=25,C=2*Math.PI*r;return `<div class="g"><svg viewBox="0 0 62 62"><circle cx="31" cy="31" r="${r}" fill="rgba(6,26,36,.75)" stroke="rgba(255,255,255,.12)" stroke-width="6"/><circle cx="31" cy="31" r="${r}" fill="none" stroke="${c}" stroke-width="6" stroke-linecap="round" stroke-dasharray="${C*v/100} ${C}" transform="rotate(-90 31 31)"/><foreignObject x="19" y="12" width="24" height="24"><div xmlns="http://www.w3.org/1999/xhtml" style="color:${c}">${VIC[k]}</div></foreignObject><text x="31" y="47" text-anchor="middle" font-size="11" font-weight="800" fill="#e6fbff" font-family="Nunito">${v}</text></svg><div class="lb">${n}</div></div>`}).join('')}</div>
+      <div class="ui botl"><div class="face">${ROBOT_SVG}</div>${bubble(sun)}</div>
+      <div class="ui endw"><div class="lbl">Crew time · 5 of 8 planned</div>${crewChips}<div class="endbtn">End day ▶</div></div>`,
+    pop:{rep:[28,190]}},
+  L3:{name:'3 · Side rail', note:'meters live in a slim rail; End day is a ring that fills with crew time',
+    html:sun=>{const segs=['#ffc24a','#ffc24a','#ffc24a','#ffc24a','#5ee0e8','rgba(94,224,232,.25)','rgba(94,224,232,.25)','rgba(94,224,232,.25)'];
+      const arc=(i)=>{const a0=(i*45+3-90)*D2R,a1=((i+1)*45-3-90)*D2R,r=60,c=66;return `<path d="M${c+r*Math.cos(a0)} ${c+r*Math.sin(a0)}A${r} ${r} 0 0 1 ${c+r*Math.cos(a1)} ${c+r*Math.sin(a1)}" stroke="${segs[i]}" stroke-width="9" fill="none" stroke-linecap="round"/>`};
+      return `
+      <div class="ui rail panel">${METERS(sun).map(([k,n,v,c])=>`<div class="rm" title="${n}">${ic(k,c)}<div class="vb"><i style="height:${v}%;background:${c}"></i></div><span class="v">${v}</span></div>`).join('')}
+        <hr><div class="rstar" data-rep>★<br>3/12</div><hr><div class="ibtn">${ic('sunw','#ffc24a')}${sun?'<span class="dot"></span>':''}</div><div class="ibtn">${ic('help')}</div></div>
+      <div class="ui top panel"><span class="d">Day ${sun?2:5} <small style="font-size:14px;opacity:.7">of 7</small></span><div class="dots">${dots(sun?2:5,sun)}</div>${lightPill(sun)}</div>
+      <div class="ui botc"><div class="face">${ROBOT_SVG}</div>${bubble(sun)}</div>
+      <div class="ui ring"><div class="btn"><svg viewBox="0 0 132 132">${segs.map((_,i)=>arc(i)).join('')}</svg><div class="in">End<br>day ▶</div></div><div class="lbl">5 of 8 crew time</div></div>`},
+    pop:{rep:[118,300]}},
+};
+
+function makeMock(root, key){
+  const L=LAYOUTS[key], st={view:'low', light:'sun', sel:null, rep:false};
+  root.innerHTML=`<div class="bar"><b>${L.name}</b><span class="note">${L.note}</span>
+    <div class="seg" data-k="light"><button data-v="sun">Day 2 · Sunlight</button><button data-v="dark">Day 5 · Long shadow</button></div></div>
+    <div class="frame ${key}"><div class="stage"><canvas class="scene"></canvas><svg class="lines" viewBox="0 0 1280 720"></svg>
+      <div data-hud></div><div data-pins></div><div class="ui pop panel" data-pop></div><div class="ui rep panel" data-repc></div></div></div>`;
+  const frame=root.querySelector('.frame'), stage=root.querySelector('.stage'), cv=root.querySelector('canvas.scene');
+  const fit=()=>{stage.style.transform=`scale(${frame.clientWidth/1280})`};new ResizeObserver(fit).observe(frame);fit();
+  root.querySelector('.seg').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;st.light=b.dataset.v;st.sel=null;render()});
+  function render(){
+    const sun=st.light==='sun';
+    root.querySelectorAll('.seg button').forEach(b=>b.classList.toggle('on',b.dataset.v===st.light));
+    const dpr=Math.min(2,window.devicePixelRatio||1)*Math.max(.6,frame.clientWidth/1280);cv.width=Math.round(1280*dpr);cv.height=Math.round(720*dpr);
+    const c=cv.getContext('2d');c.setTransform(dpr,0,0,dpr,0,0);const cam=drawScene(c,st,false);
+    root.querySelector('[data-hud]').innerHTML=L.html(sun);
+    root.querySelectorAll('[data-rep]').forEach(el=>el.onclick=()=>{st.rep=!st.rep;st.sel=null;render()});
+    // pins
+    let html='',lines='';const pos={};
+    for(const [k,p] of Object.entries(PINS)){
+      if(k==='earth'&&!sun)continue;
+      const s=p.dir?projDir(cam,p.dir):projPt(cam,p.a());if(!s)continue;
+      const up=k==='earth'?34:30, py=s[1]-up; pos[k]=[s[0],py];
+      html+=`<div class="ui pin ${st.sel===k?'sel':''}" data-p="${k}" style="left:${s[0]}px;top:${py}px"><div class="o">${ic(p.ic)}</div><div class="nm">${p.lab}</div></div>`;
+      const y2=k==='earth'?py:py;lines+=`<line x1="${s[0]}" y1="${k==='earth'?s[1]-20:s[1]}" x2="${s[0]}" y2="${y2}" stroke="#5ee0e8" stroke-width="2" opacity=".6"/>${k==='earth'?'':`<circle cx="${s[0]}" cy="${s[1]}" r="3.5" fill="#5ee0e8"/>`}`;
+    }
+    root.querySelector('[data-pins]').innerHTML=html;root.querySelector('svg.lines').innerHTML=lines;
+    root.querySelectorAll('.pin').forEach(el=>el.onclick=()=>{st.sel=st.sel===el.dataset.p?null:el.dataset.p;st.rep=false;render()});
+    // job popover next to the tapped pin
+    const pop=root.querySelector('[data-pop]');
+    if(st.sel){const J=JOBS[st.sel];pop.style.display='block';
+      pop.innerHTML=`<div class="hd"><span class="h" style="font-size:15px">${J.t}</span><span class="x">✕</span></div><div class="sub">${J.s}</div>`+
+        J.j.map(j=>`<div class="job"><div><div class="n">${j.n}${j.tag?`<span class="tag">★ ${j.tag}</span>`:''}</div><div class="c">${j.c}${j.out?' · <b class="out">outside</b>':''}</div></div><div class="t">${Array.from({length:j.tm},()=>`<i class="${j.out?'o':''}"></i>`).join('')}</div></div>`).join('');
+      const [x,y]=pos[st.sel];let left=x+30,top=y-60;const h=pop.offsetHeight;if(left+310>1250)left=x-340;top=Math.max(90,Math.min(top,560-h));pop.style.left=left+'px';pop.style.top=top+'px';
+      pop.querySelector('.x').onclick=()=>{st.sel=null;render()};
+    }else pop.style.display='none';
+    // report card popover (main goal first, then 2 bonus goals; D-021)
+    const rep=root.querySelector('[data-repc]');
+    if(st.rep){rep.style.display='block';rep.style.left=L.pop.rep[0]+'px';rep.style.top=L.pop.rep[1]+'px';
+      rep.innerHTML=`<div class="hd" style="display:flex;justify-content:space-between"><span class="h" style="font-size:15px">Site report</span><span class="x" style="cursor:pointer">✕</span></div>`+
+        [['Light',2],['Radiation',1],['Shelter',0],['Ice',0]].map(([n,s])=>`<div class="r"><span>${n}</span><span>${'★'.repeat(s)}${'☆'.repeat(3-s)}</span></div>`).join('')+
+        `<div class="goal">Goal: SITE APPROVED = 11 stars, a star on every question, crew healthy.</div>`;
+      rep.querySelector('.x').onclick=()=>{st.rep=false;render()};
+    }else rep.style.display='none';
+  }
+  render();
+  if(document.fonts&&document.fonts.ready)document.fonts.ready.then(render);
+}
+const host=document.getElementById('mocks');
+for(const k of Object.keys(LAYOUTS)){const d=document.createElement('div');d.className='mock';host.appendChild(d);makeMock(d,k)}
+</script>
+</body>
+</html>

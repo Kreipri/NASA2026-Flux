@@ -84,3 +84,27 @@ The three styles split cleanly, which is what we want. Confirm with a seeded bot
 - **Numbers are hand-tuned.** Without a bot sim, one cheap dominant strategy may exist (e.g. spamming Log sunlight). Mitigation: diminishing returns (each repeat in a day gives half science) if the sim shows it.
 - **Dose meter vs real limits:** kids may read "100 = deadly". Copy must say "plan", and the debrief says "the crew went home to stay safe".
 - **Two-slot jobs** (rover, regolith) may feel slow. If playtests show boredom, make the rover 1 slot + 1 shift away.
+
+---
+
+# v1.1: bot-sim results and tuning (2026-11-14, session 2)
+Engine built (`src/engine/engine.ts`, numbers in `src/config/moon.json`). Run `npm run sim` (full) or `node --no-warnings src/sim/bots.ts slice 500`. 500 seeded games per bot.
+
+**Changes the sim forced:**
+- **Power emergency was a death spiral** (idle player died 91% of the time: no air tuning + oxygen -10/shift). Emergency oxygen drain is now **-6/shift**.
+- **Log spamming beat real play** (idle bot out-scored careful on science). Sunlight logs and quiet-day radiation measurements now give full points for the first 3, then 1 point. Eclipse logs and storm measurements always pay full.
+- Full game long shadow is **4-6 shifts** (was 4-8) so it doesn't overlap the comms-drop storm too often.
+- The slice has **7 actions** (added Log sunlight, the main "light" evidence). Earlier plan said 6.
+
+**Full game (28 turns), after tuning:**
+| Bot | Completes | Fails (O2 / dose) | Power emergency | Avg dose | Stars /12 |
+|---|---|---|---|---|---|
+| Careful | 100% | 0 / 0 | 23% | 51 | 10.3 |
+| Greedy (blind rover trips, no cleaning) | 0% | 100 / 0 | 100% | 36 | 5.4 |
+| Reckless (works outside in storms) | 45% | 9 / 45 | 100% | 95 | 4.8 |
+| Idle (logs + rest only) | 52% | 48 / 0 | 99% | 56 | 5.2 |
+| Random clicks | 21% | 6 / 72 | 23% | 96 | 3.0 |
+
+**Read:** styles split cleanly, and no lazy strategy wins. **Watch:** random clicking fails 79% (mostly dose). Real kids aren't random, but a first-timer who ignores storm alerts will fail. Playtest whether Mission Control's alerts are loud enough before softening storm numbers. Greedy always loses, which may feel harsh; the debrief must make the cause obvious ("you ran out of power in the dark").
+
+**Slice (10 turns):** every bot completes. Stars still separate careful (10.6) from reckless (5.5), but there's **no real danger in the slice**. It's good for learning the controls and the storm moment, not for testing tension. Use the full game for that.

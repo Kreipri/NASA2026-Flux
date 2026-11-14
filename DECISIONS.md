@@ -7,19 +7,58 @@ Status: `decided` | `proposed` | `open` | `superseded`
 ---
 
 ## Open Questions
+- [ ] **UI style (2026-11-14):** Bea's references point to a Walkr-like cyan console (speech bubble + portrait, resource stack) and a low-camera illustrated scene. Does this replace D-002's green-terminal look? (Vector chosen, see D-022.) Drafts: `ideas/ui-screens-v1.md`, `ideas/ui-mockups/main-screen.html`.
+- [x] ~~Ice mechanic accuracy~~ -> resolved in D-020: ice is site-survey evidence (option 1 of `ideas/ice-science-check.md`); the air-power discount is removed.
 - [x] ~~Site~~ -> decided, see D-005 (Moon first, Mars later).
 - [x] ~~Core resources~~ -> decided, see D-007 (revisitable).
 - [x] ~~Teaching goal / one real constraint~~ -> decided, see D-010: "Light is a resource. Where you work decides your power, cold, and radiation risk."
 - [x] ~~How AI is used~~ -> decided, see D-004.
 - [x] ~~Story objective~~ -> decided, see D-013 (site report card). Story draft: `ideas/story-and-core-loop-v1.md` (awaiting Bea's full review).
 - [x] ~~Action list and costs~~ -> decided v1, see D-015 + D-018 (`ideas/balance-pass-v1.md`). Bot sim done; needs kid playtest.
-- [ ] **Crew names and mascot:** fictional, original, not Fallout.
+- [ ] **Crew names and mascot:** fictional, original, not Fallout. Crew is 4: you (commander) + engineer, doctor, geologist (D-019).
 - [x] ~~Tech stack~~ -> see D-016 (Vite + TS + React, plain-TS engine).
 - [ ] **Data plan:** DONKI can be called from the browser (verified). RadLab needs bundled snapshots. Decide live-vs-archive mix and the fallback. (Prototype: ARCHIVE only.)
 - [x] ~~Source Shackleton's size and distance from the pole~~ -> verified, see D-014 and `ideas/research-setting-facts.md` (verification pass).
 - [~] **Verify snippet-only facts:** most done (D-014). Still open: Chang'e-4 (non-NASA), Orion 150 mSv, ISS 6-month dose, 1.3 s delay, "Centennial" 10 cm.
 
 ---
+
+## Proposed: Experience arc (intro story -> mission -> ending praise -> optional replay) + fun facts
+**Status:** proposed (Bea's direction 2026-11-14, awaiting OK on details)
+- Draft in `ideas/experience-arc-v1.md`. Endings for every tier praise the player's own choices. Fun facts are triggered by events, max 1 a day. Source labels extend D-008 with `[✎ Story]`; facts are never AI-generated or invented.
+
+## D-022: Vector art style; base screen must be uncluttered
+**Status:** decided (Bea, 2026-11-14)
+- Vector (flat shapes, soft glow), not 16-bit pixel. First drafts were "too cluttered": the scene is the hero, few panels at once. Drafts: `ideas/ui-screens-v1.md`, `ideas/ui-mockups/`.
+
+## D-021: Main goals + bonus goals; stamina costs raised
+**Status:** decided (Bea). Refines D-020's objective.
+- Each question has 1 **main goal** (first star) and 2 **bonus goals**. All 4 main goals + crew healthy = **SITE PROMISING**. 11 stars = **APPROVED**, 12 = **GOLD**. Shown on screen as a checklist (`[x]` main, `+[x]` bonus).
+- Main goals: log sun 2x, measure once, shelter in a storm, rover sample. Skipping shelter or the crater trip means "not proven".
+- Stamina was never binding (bots stayed at 74%+). Work costs raised: outside -6 and inside -2 per crew time (were -4 and -1). Now overworking outside drops crews to ~40% (lost crew time); paced play stays above 60%.
+- Power left as is: it's already the tightest meter (good players still hit an emergency 45% of the time). If playtests find power too loose, raise **job** costs (keeps choices sharp), not daily upkeep (which punishes everyone the same and mostly bites in the dark).
+- Low dose (under 25%) is reachable: planner 100%, careful 76%. It competes with a second crater sample.
+
+## D-020: 7-day mission with one overarching objective: SITE APPROVED
+**Status:** decided (Bea asked for 7 days, an overarching objective, and a real challenge). The 14-day game stays available as `full`; `week` is the default.
+- **Objective:** "Prove this ridge can host a Moon base." SITE APPROVED = **11+ of 12 report-card stars, at least 1 on every question, whole crew healthy**. GOLD = 12. Below that: "not approved yet" with what was missing.
+- **Week timeline:** day 1 arrive (possible short eclipse), day 2 real flare alert (May 8 2024), days 3-4 real storm (May 9 building, May 10 strong), days 5-6 long shadow, days 5-7 Earth below the horizon (forecast 3 days ahead, explained in game), 50% chance of an unannounced simulated storm on day 6 or 7 (onboard alarm only). Start power 60, oxygen 70.
+- **Ice = survey evidence** (adopts option 1 of `ideas/ice-science-check.md`): no air-power discount. ICE stars: rover sample / drone map before it / ice found or 2 samples. A drone alone doesn't answer the ice question, so the core trade-off (leave the light for the dark crater) is required.
+- Harder 3rd stars: RADIATION needs 4 measurements; SHELTER needs final dose under 25%.
+- **Sim (1,000 games):** planner wins 81% (gold 30%), careful 61%, greedy / reckless / idle / random 0%. Details in `ideas/balance-pass-v2.md` (7-day addendum).
+- Earth link blackout grounded in NASA/JPL: polar base sites see Earth only about half of each month (`ideas/research-setting-facts.md`).
+
+## D-019: Day-based loop with crew time, stamina, grouped jobs, visible report card
+**Status:** decided (from Bea's first terminal playtest feedback). Supersedes D-015's "2 shifts a day" pacing and the job list in D-018 (engine entry); replaces the Science points meter (D-007) with the on-screen report card (D-013).
+- 1 turn = 1 day, 14 turns. Crew of 4 (FICTION, matches NASA's Base Camp concept of up to 4) = **8 crew time** a day; jobs cost 1/2/4. Unused time rests the crew.
+- **Stamina** meter sets tomorrow's crew time (8/6/4). Outside work tires 4x more than inside.
+- Jobs grouped GOAL / KEEP BASE ALIVE / KEEP CREW SAFE; goal jobs tagged with their report-card entry. Removed rock samples and daily report. Added Power-saving mode.
+- Power emergency: shows a "how to recover" box with a sun countdown; cleaning allowed; cost is cold (stamina) not faster oxygen loss.
+- Details and sim results: `ideas/balance-pass-v2.md`. Crew facts verified in `ideas/research-setting-facts.md`.
+
+## Proposed: Short task branches and pull requests
+**Status:** proposed (2026-11-14; recommendation, no repository settings changed)
+- Keep `main` runnable; push work to short task branches and merge small, verified changes through PRs. See `ideas/git-workflow.md` for options and trade-offs.
 
 ## D-018: No agent collaborator or co-author attribution
 **Status:** decided (Bea)
@@ -132,3 +171,7 @@ A single short, meaningful narrative arc is preferred over open-ended content. A
 - AI output must be validated against a schema and can't invent resource values freely.
 - **Offline fallback is mandatory:** a bundled set of pre-written events so the demo works with no API or network during judging.
 - Why: keeps replayability high without letting AI break accuracy or the "no free choice" rule.
+
+## Advisory: Inspect other branches in a separate worktree
+**Status:** proposed (2026-11-14)
+- For local testing while current edits remain in place, use a separate worktree. Commands and alternatives: `ideas/checking-other-branches.md`. No Git state changed.

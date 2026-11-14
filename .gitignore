@@ -12,3 +12,6 @@ coverage/
 # OS and diagnostic files
 .DS_Store
 *.log
+
+# Local chat-play game state
+.run/
