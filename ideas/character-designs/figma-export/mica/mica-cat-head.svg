@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 170" width="200" height="170"><g id="mica-cat-head"><g id="head">
+      <path d="M58 96 L56 52 L90 74Z" fill="#2F2E3B"/><path d="M142 96 L144 52 L110 74Z" fill="#2F2E3B"/>
+      <path d="M63 86 L62 62 L82 76Z" fill="#FFAFC0"/><path d="M137 86 L138 62 L118 76Z" fill="#FFAFC0"/>
+      <ellipse cx="100" cy="110" rx="48" ry="42" fill="#2F2E3B" />
+      <path d="M96 70 Q100 66 104 70 L112 110 Q100 106 88 110Z" fill="#FFFFFF"/>
+      <ellipse cx="89" cy="128" rx="15" ry="12" fill="#FFFFFF" /><ellipse cx="111" cy="128" rx="15" ry="12" fill="#FFFFFF" /><ellipse cx="100" cy="138" rx="12" ry="9" fill="#FFFFFF" />
+      <ellipse cx="81" cy="108" rx="7" ry="8" fill="#CFE87A" /><ellipse cx="81" cy="109" rx="3.6" ry="5.5" fill="#2B1F1A" /><circle cx="83" cy="105" r="1.6" fill="#fff"/><ellipse cx="119" cy="108" rx="7" ry="8" fill="#CFE87A" /><ellipse cx="119" cy="109" rx="3.6" ry="5.5" fill="#2B1F1A" /><circle cx="121" cy="105" r="1.6" fill="#fff"/>
+      <ellipse cx="68" cy="124" rx="7" ry="4.5" fill="#FF8FA0" opacity=".6"/><ellipse cx="132" cy="124" rx="7" ry="4.5" fill="#FF8FA0" opacity=".6"/>
+      <path d="M95 121 h10 q-1.5 5 -5 6 q-3.5 -1 -5 -6Z" fill="#FF8FA6"/><path d="M93 130 Q96.5 135 100 130 Q103.5 135 107 130" stroke="#2B1F1A" stroke-width="2.6" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+      <path d="M60 128 h-14 M61 134 l-13 4 M140 128 h14 M139 134 l13 4" stroke="#C9C9D3" stroke-width="1.8" fill="none" stroke-linecap="round" stroke-linejoin="round"/></g></g></svg>

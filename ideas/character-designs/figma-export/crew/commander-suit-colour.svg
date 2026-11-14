@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 240" width="200" height="240"><g id="commander-suit-colour"><g id="legs"><rect x="78" y="186" width="20" height="28" rx="10" fill="#FFDCC4" stroke="#E1DCD1" stroke-width="2"/>
+    <rect x="78" y="198" width="20" height="5" fill="#FF8A3D"/><rect x="75" y="211" width="26" height="14" rx="7" fill="#2A3A66"/><rect x="102" y="186" width="20" height="28" rx="10" fill="#FFDCC4" stroke="#E1DCD1" stroke-width="2"/>
+    <rect x="102" y="198" width="20" height="5" fill="#FF8A3D"/><rect x="99" y="211" width="26" height="14" rx="7" fill="#2A3A66"/></g><g id="suit-body"><rect x="56" y="146" width="88" height="56" rx="18" fill="#E1DCD1"/>
+    <rect x="64" y="140" width="72" height="68" rx="28" fill="#FFDCC4"/>
+    <clipPath id="t72"><rect x="68" y="140" width="64" height="66" rx="27"/></clipPath><g clip-path="url(#t72)"><rect x="60" y="186" width="80" height="22" fill="#FF8A3D"/></g>
+    <rect x="84" y="168" width="32" height="18" rx="6" fill="#E1DCD1"/>
+    <circle cx="92" cy="177" r="3" fill="#FFB838"/><circle cx="100" cy="177" r="3" fill="#2DAAB5"/><circle cx="108" cy="177" r="3" fill="#FF8A3D"/></g><g id="helmet"><ellipse cx="100" cy="152" rx="36" ry="9" fill="#2A3A66" /><g fill="#BDEBF5" opacity=".45"><circle cx="100" cy="104" r="57"/></g><ellipse cx="100" cy="100" rx="49" ry="45" fill="#2A1D16" /><ellipse cx="55" cy="114" rx="8.5" ry="9" fill="#B9794C" /><ellipse cx="145" cy="114" rx="8.5" ry="9" fill="#B9794C" />
+    <ellipse cx="100" cy="112" rx="44" ry="41" fill="#B9794C" /><path d="M56 106 Q52 62 100 60 Q148 62 144 104 Q136 84 116 86 Q106 76 92 88 Q72 84 56 106Z" fill="#2A1D16"/>
+    <ellipse cx="83" cy="113" rx="4.6" ry="5.6" fill="#2B1F1A" /><ellipse cx="117" cy="113" rx="4.6" ry="5.6" fill="#2B1F1A" /><ellipse cx="72" cy="127" rx="7" ry="4.5" fill="#FF8FA0" opacity=".55"/><ellipse cx="128" cy="127" rx="7" ry="4.5" fill="#FF8FA0" opacity=".55"/><path d="M93 128 Q100 135 107 128" stroke="#2B1F1A" stroke-width="2.8" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+    <g fill="none" stroke="#fff" stroke-width="4.5" opacity=".95"><circle cx="100" cy="104" r="57"/></g>
+    <path d="M56 88 Q62 62 86 54" stroke="#fff" stroke-width="5.5" fill="none" stroke-linecap="round" opacity=".9"/></g><g id="arm-left"><g transform="translate(75,160) rotate(18)">
+    <rect x="-8.5" y="-6" width="17" height="32" rx="8.5" fill="#2A3A66"/>
+    <rect x="-9" y="-6" width="18" height="32" rx="9" fill="#FFDCC4" stroke="#E1DCD1" stroke-width="2.5"/>
+    <rect x="-9" y="6" width="18" height="5" fill="#FF8A3D"/>
+    
+    <circle cx="0" cy="26" r="8.5" fill="#2A3A66"/></g></g><g id="arm-right"><g transform="translate(125,160) rotate(-18)">
+    <rect x="-8.5" y="-6" width="17" height="32" rx="8.5" fill="#2A3A66"/>
+    <rect x="-9" y="-6" width="18" height="32" rx="9" fill="#FFDCC4" stroke="#E1DCD1" stroke-width="2.5"/>
+    <rect x="-9" y="6" width="18" height="5" fill="#FF8A3D"/>
+    
+    <circle cx="0" cy="26" r="8.5" fill="#2A3A66"/></g></g></g></svg>

@@ -1,0 +1,379 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Title Screen Drafts</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;700&family=Lexend:wght@400;600;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#eef0fb; --mut:var(--muted-foreground,#aab0cf); --fg:var(--foreground,#eef0fb);
+    --amber:#ffb547; --amber-deep:#2a1a06; --teal:#5fd0c8; --line:#3a3f6e;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--background,#0a0e22);color:var(--fg);font-family:Lexend,system-ui,sans-serif;}
+  main{max-width:1120px;margin:0 auto;padding:4px 0 16px}
+  header h1{font-size:22px;margin:0 0 4px;font-weight:600}
+  header p{margin:0 0 28px;color:var(--muted);font-size:15px}
+  section{margin:0 0 44px}
+  .label{display:flex;gap:12px;align-items:baseline;margin:0 0 10px;flex-wrap:wrap}
+  .label b{font-size:17px;font-weight:600}
+  .label span{color:var(--mut);font-size:14px}
+  .label .tag{font-size:12px;padding:3px 8px;border-radius:99px;background:var(--amber);color:var(--amber-deep);font-weight:600}
+
+  .screen{position:relative;aspect-ratio:16/9;border-radius:14px;overflow:hidden;container-type:inline-size;background:#0d1433;box-shadow:0 0 0 1px var(--line)}
+  .screen > svg{position:absolute;inset:0;width:100%;height:100%;display:block}
+  .ui{position:absolute;inset:0;padding:3cqw 3.5cqw;display:flex;flex-direction:column}
+  .row{display:flex;align-items:center;justify-content:space-between}
+  .foot{margin-top:auto;font-size:1.25cqw;color:#c9cde6}
+  .foot a{color:var(--ink);text-decoration:underline;text-underline-offset:.2em}
+  .gear{width:3.2cqw;height:3.2cqw;border-radius:50%;display:grid;place-items:center;border:1px solid rgba(255,255,255,.25);background:rgba(10,14,34,.35)}
+  .gear svg{width:55%;height:55%}
+  .btn{font-family:Lexend;font-weight:600;font-size:1.5cqw;border-radius:99px;padding:1cqw 2.2cqw;display:inline-flex;gap:.7cqw;align-items:center;border:0;cursor:pointer}
+  .btn svg{width:1.3cqw;height:1.3cqw}
+  .btn.primary{background:var(--amber);color:var(--amber-deep);box-shadow:0 0 2.5cqw rgba(255,181,71,.45)}
+  .btn.ghost{background:rgba(10,14,34,.45);color:#c9cde6;border:1px solid rgba(201,205,230,.35)}
+
+  /* A */
+  .a-title{text-align:center;margin-top:1.5cqw}
+  .a-title h2{margin:0;font-weight:800;font-size:4.2cqw;letter-spacing:.32em;padding-left:.32em}
+  .a-title p{margin:.6cqw 0 0;color:var(--amber);font-size:1.4cqw;letter-spacing:.25em;text-transform:uppercase}
+  .a-btns{display:flex;justify-content:center;gap:1.4cqw;margin-top:auto;margin-bottom:1.6cqw}
+
+  /* B */
+  .b-title{text-align:center}
+  .b-title h2{margin:0;font-family:Fredoka;font-weight:700;font-size:5.4cqw;line-height:1;
+    background:linear-gradient(180deg,#ffe2a8 10%,#ffb547 55%,#ff8a7a);-webkit-background-clip:text;background-clip:text;color:transparent;
+    filter:drop-shadow(0 .4cqw 0 #3a1f6e)}
+  .b-title p{margin:.5cqw 0 0;font-family:Fredoka;font-weight:500;font-size:1.5cqw;color:#e6dcff}
+  .b-btns{position:absolute;left:0;right:0;bottom:3cqw;display:flex;flex-direction:column;align-items:center;gap:.8cqw}
+  .b-btns .btn.primary{font-size:1.8cqw;padding:1.1cqw 3cqw}
+  .b-btns small{font-size:1.15cqw;color:#bfc3e0;display:flex;gap:.5cqw;align-items:center}
+  .b-btns small svg{width:1.1cqw;height:1.1cqw}
+  .b-gear{position:absolute;left:3.5cqw;bottom:3cqw}
+  .b-data{position:absolute;right:3.5cqw;bottom:3.4cqw;font-size:1.25cqw;color:#c9cde6}
+
+  /* C */
+  .c-title h2{margin:0;font-weight:800;font-size:2.6cqw;letter-spacing:.18em}
+  .c-title p{margin:.3cqw 0 0;color:var(--teal);font-size:1.2cqw;letter-spacing:.2em;text-transform:uppercase}
+  .bot{display:flex;align-items:flex-end;gap:1.2cqw;margin-top:auto}
+  .bot .face{width:7cqw;height:7cqw;border-radius:50%;background:#1d2a55;border:.25cqw solid var(--teal);display:grid;place-items:center;flex:none}
+  .bot .face svg{width:70%;height:70%}
+  .bubble{position:relative;background:rgba(14,22,52,.88);border:1px solid rgba(95,208,200,.5);border-radius:1.2cqw;padding:1.2cqw 1.6cqw;font-size:1.45cqw;max-width:36cqw}
+  .bubble .name{position:absolute;top:-1.1cqw;left:1.2cqw;background:var(--teal);color:#0b2030;font-weight:600;font-size:1cqw;letter-spacing:.12em;padding:.25cqw .8cqw;border-radius:.5cqw}
+  .c-foot{margin-top:auto;display:flex;justify-content:space-between;align-items:flex-end}
+
+  /* motion */
+  .twinkle{animation:tw 3.5s ease-in-out infinite}
+  .bob{animation:bob 6s ease-in-out infinite}
+  .pulse{animation:pulse 2.4s ease-in-out infinite;transform-origin:800px 430px;transform-box:view-box}
+  @keyframes tw{0%,100%{opacity:.25}50%{opacity:1}}
+  @keyframes bob{0%,100%{transform:translateY(0)}50%{transform:translateY(-14px)}}
+  @keyframes pulse{0%,100%{opacity:.25;transform:scale(1)}50%{opacity:.8;transform:scale(1.05)}}
+  @media (prefers-reduced-motion: reduce){*{animation:none!important}}
+  .notes{color:var(--mut);font-size:14px;margin:10px 2px 0;line-height:1.5}
+</style>
+</head>
+<body>
+<!-- shared symbols -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <path id="spark" d="M0,-10 C1.5,-2 2,-1.5 10,0 C2,1.5 1.5,2 0,10 C-1.5,2 -2,1.5 -10,0 C-2,-1.5 -1.5,-2 0,-10Z"/>
+    <symbol id="astro" viewBox="-14 -14 28 50" overflow="visible">
+      <rect x="-10" y="2" width="20" height="24" rx="8" fill="#d4d8ea"/>
+      <rect x="-9" y="24" width="7" height="11" rx="3" fill="#bfc4da"/>
+      <rect x="2" y="24" width="7" height="11" rx="3" fill="#bfc4da"/>
+      <rect x="-14" y="5" width="5" height="9" rx="2.5" fill="#bfc4da"/>
+      <circle cx="0" cy="-5" r="10" fill="#e6e9f5"/>
+      <ellipse cx="2.5" cy="-5" rx="6" ry="4.5" fill="#1a1f40"/>
+      <ellipse cx="5" cy="-6" rx="2.2" ry="1.6" fill="#ffcf6e"/>
+    </symbol>
+    <symbol id="bot" viewBox="-20 -30 40 52" overflow="visible">
+      <line x1="0" y1="-18" x2="0" y2="-27" stroke="#9aa0bd" stroke-width="2"/>
+      <circle cx="0" cy="-28" r="3" fill="#ffb547"/>
+      <rect x="-15" y="-18" width="30" height="24" rx="9" fill="#e6e9f5"/>
+      <rect x="-10" y="-12" width="20" height="10" rx="5" fill="#1a1f40"/>
+      <circle cx="-4.5" cy="-7" r="2.4" fill="#5fd0c8"/><circle cx="4.5" cy="-7" r="2.4" fill="#5fd0c8"/>
+      <rect x="-11" y="7" width="22" height="9" rx="4" fill="#bfc4da"/>
+      <circle cx="-7" cy="18" r="3.5" fill="#6b7196"/><circle cx="7" cy="18" r="3.5" fill="#6b7196"/>
+    </symbol>
+    <symbol id="i-lock" viewBox="0 0 24 24"><rect x="5" y="11" width="14" height="10" rx="2" fill="none" stroke="currentColor" stroke-width="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3" fill="none" stroke="currentColor" stroke-width="2"/></symbol>
+    <symbol id="i-play" viewBox="0 0 24 24"><path d="M7 4.5v15l12-7.5z" fill="currentColor"/></symbol>
+    <symbol id="i-gear" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3.2" fill="none" stroke="#e6e9f5" stroke-width="2"/><path d="M12 2.5v3M12 18.5v3M2.5 12h3M18.5 12h3M5.3 5.3l2.1 2.1M16.6 16.6l2.1 2.1M5.3 18.7l2.1-2.1M16.6 7.4l2.1-2.1" stroke="#e6e9f5" stroke-width="2" stroke-linecap="round"/></symbol>
+  </defs>
+</svg>
+
+<main>
+
+<!-- ================= A ================= -->
+<section>
+  <div class="label"><span class="tag">Recommended</span><b>A · Lamp on the Ridge</b><span>The base is the warm light; the low Sun skims the horizon</span></div>
+  <div class="screen">
+    <svg viewBox="0 0 1600 900" preserveAspectRatio="xMidYMid slice" role="img" aria-label="Crew of four and a robot beside a glowing habitat on a lunar ridge at low sun, Earth low in the sky">
+      <defs>
+        <linearGradient id="a-sky" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0" stop-color="#2a1856"/><stop offset=".45" stop-color="#1c1d4f"/><stop offset=".72" stop-color="#16224a"/><stop offset="1" stop-color="#0e1733"/>
+        </linearGradient>
+        <linearGradient id="a-dusk" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0" stop-color="#ff9f8a" stop-opacity="0"/><stop offset="1" stop-color="#ff9f8a" stop-opacity=".22"/>
+        </linearGradient>
+        <radialGradient id="a-sun"><stop offset="0" stop-color="#fff3d6" stop-opacity=".9"/><stop offset=".15" stop-color="#ffd59a" stop-opacity=".45"/><stop offset="1" stop-color="#ffb08a" stop-opacity="0"/></radialGradient>
+        <radialGradient id="a-glow"><stop offset="0" stop-color="#ffb547" stop-opacity=".6"/><stop offset="1" stop-color="#ffb547" stop-opacity="0"/></radialGradient>
+        <radialGradient id="a-scrim" cx=".5" cy="0" r=".6"><stop offset="0" stop-color="#0a0e22" stop-opacity=".55"/><stop offset="1" stop-color="#0a0e22" stop-opacity="0"/></radialGradient>
+        <linearGradient id="a-hab" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#e3e6f2"/><stop offset="1" stop-color="#8e94b4"/></linearGradient>
+        <linearGradient id="a-comet" x1="0" x2="1"><stop offset="0" stop-color="#fff" stop-opacity="0"/><stop offset="1" stop-color="#fff" stop-opacity=".8"/></linearGradient>
+        <clipPath id="a-earth"><circle cx="1330" cy="500" r="34"/></clipPath>
+        <filter id="a-blur"><feGaussianBlur stdDeviation="6"/></filter>
+      </defs>
+      <rect width="1600" height="900" fill="url(#a-sky)"/>
+      <g class="stars" data-n="120" data-h="600"></g>
+      <rect y="480" width="1600" height="200" fill="url(#a-dusk)"/>
+      <line x1="1370" y1="330" x2="1500" y2="290" stroke="url(#a-comet)" stroke-width="3" stroke-linecap="round"/>
+      <!-- Sun skimming horizon -->
+      <circle cx="250" cy="640" r="330" fill="url(#a-sun)"/>
+      <circle cx="250" cy="632" r="24" fill="#fff6e0"/>
+      <!-- Earth -->
+      <g clip-path="url(#a-earth)">
+        <circle cx="1330" cy="500" r="34" fill="#2f7fc0"/>
+        <path d="M1305 488 q10 -10 22 -2 q6 8 -4 14 q-12 2 -18 -12z" fill="#5fd0a0"/>
+        <circle cx="1352" cy="496" r="34" fill="#0e1733" opacity=".72"/>
+      </g>
+      <!-- far hills -->
+      <path d="M0,650 L120,622 220,640 340,604 470,630 600,612 760,640 900,616 1050,640 1200,620 1350,645 1480,626 1600,640 V900 H0Z" fill="#2b2a5c"/>
+      <path d="M0,650 L120,622 220,640 340,604 470,630" fill="none" stroke="#ffd9b0" stroke-opacity=".45" stroke-width="2"/>
+      <!-- mid ridge -->
+      <path d="M0,722 C200,692 380,702 560,706 C760,712 900,690 1100,700 C1300,710 1450,696 1600,705 V900H0Z" fill="#363c6a"/>
+      <path d="M0,722 C200,692 380,702 560,706 C760,712 900,690 1100,700" fill="none" stroke="#c9c6e6" stroke-opacity=".5" stroke-width="2"/>
+      <!-- foreground -->
+      <path d="M0,792 C300,762 600,772 900,766 C1200,760 1400,776 1600,770 V900H0Z" fill="#1f2448"/>
+      <!-- glow -->
+      <ellipse cx="1090" cy="772" rx="330" ry="60" fill="url(#a-glow)"/>
+      <!-- long shadows (away from low Sun) -->
+      <g fill="#0d102a" opacity=".55">
+        <ellipse cx="900" cy="770" rx="70" ry="4"/><ellipse cx="945" cy="770" rx="70" ry="4"/>
+        <ellipse cx="985" cy="769" rx="70" ry="4"/><ellipse cx="1025" cy="769" rx="70" ry="4"/>
+        <ellipse cx="865" cy="770" rx="60" ry="4"/>
+      </g>
+      <!-- solar panel mast facing the Sun -->
+      <line x1="1310" y1="770" x2="1310" y2="628" stroke="#9aa0bd" stroke-width="4"/>
+      <rect x="1268" y="596" width="84" height="44" rx="3" fill="#33509c" stroke="#9fbcff" stroke-width="2"/>
+      <path d="M1296 596v44M1324 596v44" stroke="#9fbcff" stroke-width="1" opacity=".6"/>
+      <!-- habitat -->
+      <rect x="1060" y="686" width="210" height="84" rx="42" fill="url(#a-hab)"/>
+      <rect x="1220" y="716" width="80" height="54" rx="27" fill="url(#a-hab)"/>
+      <path d="M1068 700 q80 -18 190 0" fill="none" stroke="#fff" stroke-opacity=".5" stroke-width="3"/>
+      <g fill="#ffcf6e">
+        <circle cx="1110" cy="726" r="10"/><circle cx="1155" cy="726" r="10"/><circle cx="1200" cy="726" r="10"/>
+      </g>
+      <g fill="#ffb547" filter="url(#a-blur)" opacity=".9">
+        <circle cx="1110" cy="726" r="14"/><circle cx="1155" cy="726" r="14"/><circle cx="1200" cy="726" r="14"/>
+      </g>
+      <line x1="1240" y1="686" x2="1240" y2="650" stroke="#9aa0bd" stroke-width="3"/>
+      <path d="M1228 650 a12 8 0 0 0 24 0z" fill="#d4d8ea"/>
+      <!-- crew + bot -->
+      <use href="#bot" x="836" y="728" width="40" height="52"/>
+      <use href="#astro" x="880" y="722" width="28" height="50"/>
+      <use href="#astro" x="922" y="720" width="28" height="50"/>
+      <use href="#astro" x="962" y="721" width="28" height="50"/>
+      <use href="#astro" x="1002" y="719" width="28" height="50"/>
+      <rect width="1600" height="420" fill="url(#a-scrim)"/>
+    </svg>
+    <div class="ui">
+      <div class="a-title"><h2>MISSION: OUTPOST</h2><p>Junior Astronaut Training</p></div>
+      <div class="a-btns">
+        <button class="btn primary"><svg><use href="#i-play"/></svg>Mission 1 · Moon</button>
+        <button class="btn ghost" aria-disabled="true"><svg><use href="#i-lock"/></svg>Mission 2 · Mars</button>
+      </div>
+      <div class="row foot">
+        <span class="gear" aria-label="Settings"><svg><use href="#i-gear"/></svg></span>
+        <span>Uses real NASA data · <a href="#">Data sources</a></span>
+      </div>
+    </div>
+  </div>
+  <p class="notes">Teaches before reading: the habitat's lit windows and the Sun-facing panel are the only light, and the crew huddles in it. Long shadows come from the real low polar Sun. Cuts straight into the 3D base, which has the same palette and camera height.</p>
+</section>
+
+<!-- ================= B ================= -->
+<section>
+  <div class="label"><b>B · Moon Slice</b><span>A floating cut-away: sunny ridge on top, shadowed crater inside</span></div>
+  <div class="screen">
+    <svg viewBox="0 0 1600 900" preserveAspectRatio="xMidYMid slice" role="img" aria-label="A floating slice of the lunar south pole: base on a sunlit ridge, a dark crater cut away on the side with a question-mark ice sparkle">
+      <defs>
+        <linearGradient id="b-sky" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0" stop-color="#3a1d6c"/><stop offset=".5" stop-color="#211f58"/><stop offset="1" stop-color="#0d1433"/>
+        </linearGradient>
+        <linearGradient id="b-side" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#4c5082"/><stop offset="1" stop-color="#1c1e42"/></linearGradient>
+        <linearGradient id="b-top" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#d3d6e6"/><stop offset="1" stop-color="#9ea3c0"/></linearGradient>
+        <radialGradient id="b-sun"><stop offset="0" stop-color="#fff3d6" stop-opacity=".9"/><stop offset=".2" stop-color="#ffd59a" stop-opacity=".3"/><stop offset="1" stop-color="#ffd59a" stop-opacity="0"/></radialGradient>
+        <radialGradient id="b-under"><stop offset="0" stop-color="#8a4fd0" stop-opacity=".35"/><stop offset="1" stop-color="#8a4fd0" stop-opacity="0"/></radialGradient>
+        <filter id="b-neb"><feGaussianBlur stdDeviation="60"/></filter>
+        <filter id="b-soft"><feGaussianBlur stdDeviation="4"/></filter>
+        <clipPath id="b-sideclip"><path d="M440,430 A360,110 0 0 0 1160,430 L1144,512 1104,556 1090,616 1030,654 990,716 912,746 846,806 784,770 722,742 664,700 604,664 566,612 504,566 470,500Z"/></clipPath>
+        <clipPath id="b-earth"><circle cx="1390" cy="250" r="36"/></clipPath>
+      </defs>
+      <rect width="1600" height="900" fill="url(#b-sky)"/>
+      <g filter="url(#b-neb)">
+        <ellipse cx="320" cy="300" rx="380" ry="150" fill="#8a3fb0" opacity=".3"/>
+        <ellipse cx="1300" cy="680" rx="420" ry="170" fill="#2bb5b0" opacity=".14"/>
+      </g>
+      <g class="stars" data-n="140" data-h="900"></g>
+      <circle cx="170" cy="190" r="200" fill="url(#b-sun)"/>
+      <circle cx="170" cy="190" r="34" fill="#fff6e0"/>
+      <g clip-path="url(#b-earth)">
+        <circle cx="1390" cy="250" r="36" fill="#2f7fc0"/>
+        <path d="M1368 236 q12 -10 24 -1 q6 9 -5 15 q-13 1 -19 -14z" fill="#5fd0a0"/>
+        <circle cx="1414" cy="246" r="36" fill="#0d1433" opacity=".72"/>
+      </g>
+      <ellipse cx="800" cy="850" rx="420" ry="60" fill="url(#b-under)"/>
+      <g class="bob">
+        <!-- floating chunks -->
+        <path d="M540 760 l30 -14 26 10 -6 26 -32 8z" fill="#4a4e7a"/><path d="M540 760 l30 -14 26 10z" fill="#7e83b0"/>
+        <path d="M1070 790 l22 -10 18 8 -5 18 -22 4z" fill="#4a4e7a"/>
+        <path d="M1200 600 l26 -12 22 10 -6 22 -28 6z" fill="#4a4e7a"/><path d="M1200 600 l26 -12 22 10z" fill="#7e83b0"/>
+        <!-- side -->
+        <path d="M440,430 A360,110 0 0 0 1160,430 L1144,512 1104,556 1090,616 1030,654 990,716 912,746 846,806 784,770 722,742 664,700 604,664 566,612 504,566 470,500Z" fill="url(#b-side)"/>
+        <g clip-path="url(#b-sideclip)" fill="none" stroke="#7a7eae" stroke-opacity=".35" stroke-width="3">
+          <path d="M440,480 A360,110 0 0 0 1160,480"/><path d="M440,550 A360,110 0 0 0 1160,550"/><path d="M440,630 A360,110 0 0 0 1160,630"/>
+          <!-- crater cut -->
+          <path d="M818,520 C840,640 1000,640 1030,505 Z" fill="#12152f" stroke="none"/>
+        </g>
+        <!-- sunlit left rim on side -->
+        <path d="M440,430 L470,500 504,566 566,612 604,664 664,700 722,742 784,770 846,806" fill="none" stroke="#ffd9b0" stroke-opacity=".35" stroke-width="3"/>
+        <!-- top -->
+        <ellipse cx="800" cy="430" rx="360" ry="110" fill="url(#b-top)"/>
+        <!-- crater on the front edge, permanently shadowed -->
+        <ellipse cx="924" cy="486" rx="108" ry="32" fill="#161a38"/>
+        <path d="M816 486 a108 32 0 0 1 216 0" fill="none" stroke="#6b7099" stroke-width="3"/>
+        <!-- ridge bump + long shadow -->
+        <ellipse cx="820" cy="420" rx="200" ry="28" fill="#5a5f8c" opacity=".35"/>
+        <path d="M500,440 Q600,360 700,388 Q760,372 820,400 Q760,440 600,452Z" fill="#e3e5f1"/>
+        <path d="M500,440 Q600,360 700,388" fill="none" stroke="#fff" stroke-opacity=".7" stroke-width="3"/>
+        <!-- base on ridge -->
+        <rect x="610" y="362" width="64" height="26" rx="13" fill="#f0f2fa"/>
+        <circle cx="630" cy="375" r="4" fill="#ffb547"/><circle cx="648" cy="375" r="4" fill="#ffb547"/>
+        <circle cx="639" cy="375" r="18" fill="#ffb547" opacity=".25" filter="url(#b-soft)"/>
+        <line x1="694" y1="388" x2="694" y2="346" stroke="#9aa0bd" stroke-width="2"/>
+        <rect x="680" y="334" width="28" height="16" fill="#33509c" stroke="#9fbcff" stroke-width="1.5"/>
+        <!-- ice? sparkle in the crater cut -->
+        <use href="#spark" x="0" y="0" transform="translate(918 585) scale(1.4)" fill="#7ff0e6" class="twinkle"/>
+        <text x="944" y="592" font-family="Fredoka" font-weight="700" font-size="26" fill="#7ff0e6">?</text>
+        <!-- labels -->
+        <g font-family="Lexend" font-size="18" fill="#d9dcf0">
+          <line x1="600" y1="355" x2="560" y2="300" stroke="#d9dcf0" stroke-opacity=".5"/>
+          <text x="470" y="292">sunny ridge</text>
+          <line x1="1040" y1="600" x2="1110" y2="650" stroke="#d9dcf0" stroke-opacity=".5"/>
+          <text x="1118" y="660">shadowed crater · ice?</text>
+        </g>
+      </g>
+    </svg>
+    <div class="ui">
+      <div class="b-title"><h2>Mission: Outpost</h2><p>Junior Astronaut Training</p></div>
+      <div class="b-btns">
+        <button class="btn primary"><svg><use href="#i-play"/></svg>Play Mission 1 · Moon</button>
+        <small><svg><use href="#i-lock"/></svg>Mission 2 · Mars, coming soon</small>
+      </div>
+      <span class="gear b-gear" aria-label="Settings"><svg><use href="#i-gear"/></svg></span>
+      <span class="b-data">Real NASA data · <a href="#" style="color:#eef0fb">Sources</a></span>
+    </div>
+  </div>
+  <p class="notes">The most "toy" of the three: big rounded logo, gentle floating bob. Shows sunny ground vs. the dark crater at a glance. Most art to make, and the cut-away must keep the ice as a "?".</p>
+</section>
+
+<!-- ================= C ================= -->
+<section>
+  <div class="label"><b>C · Training Path</b><span>Earth (done) → Moon (play) → Mars (locked)</span></div>
+  <div class="screen">
+    <svg viewBox="0 0 1600 900" preserveAspectRatio="xMidYMid slice" role="img" aria-label="A dotted path from Earth to a glowing Moon with a play button, continuing to a locked Mars">
+      <defs>
+        <linearGradient id="c-sky" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0" stop-color="#271c5c"/><stop offset=".55" stop-color="#142552"/><stop offset="1" stop-color="#0c2c3c"/>
+        </linearGradient>
+        <radialGradient id="c-moon" cx=".38" cy=".38" r=".7"><stop offset="0" stop-color="#e2e5f0"/><stop offset="1" stop-color="#9ca2bf"/></radialGradient>
+        <radialGradient id="c-halo"><stop offset=".6" stop-color="#ffb547" stop-opacity=".0"/><stop offset=".75" stop-color="#ffb547" stop-opacity=".35"/><stop offset="1" stop-color="#ffb547" stop-opacity="0"/></radialGradient>
+        <clipPath id="c-earth"><circle cx="300" cy="580" r="72"/></clipPath>
+        <clipPath id="c-mars"><circle cx="1310" cy="540" r="60"/></clipPath>
+        <clipPath id="c-moonc"><circle cx="800" cy="430" r="130"/></clipPath>
+        <filter id="c-neb"><feGaussianBlur stdDeviation="70"/></filter>
+      </defs>
+      <rect width="1600" height="900" fill="url(#c-sky)"/>
+      <g filter="url(#c-neb)"><ellipse cx="1200" cy="200" rx="360" ry="140" fill="#7b3fb0" opacity=".25"/></g>
+      <g class="stars" data-n="130" data-h="900"></g>
+      <!-- path -->
+      <path d="M300,580 C430,420 640,370 800,430" fill="none" stroke="#ffcf6e" stroke-width="7" stroke-linecap="round" stroke-dasharray="1 18"/>
+      <path d="M800,430 C960,490 1150,420 1310,540" fill="none" stroke="#9fb4ff" stroke-opacity=".45" stroke-width="7" stroke-linecap="round" stroke-dasharray="1 18"/>
+      <!-- Earth -->
+      <g clip-path="url(#c-earth)">
+        <circle cx="300" cy="580" r="72" fill="#2f7fc0"/>
+        <path d="M250 550 q30 -24 56 -6 q14 20 -10 34 q-30 6 -46 -28z M310 610 q24 -8 36 8 q-6 20 -30 14z" fill="#5fd0a0"/>
+        <path d="M232 590 q40 -10 80 4 M260 530 q30 -8 70 6" stroke="#fff" stroke-opacity=".55" stroke-width="6" fill="none" stroke-linecap="round"/>
+        <circle cx="336" cy="570" r="72" fill="#0c1a3a" opacity=".55"/>
+      </g>
+      <circle cx="356" cy="522" r="20" fill="#5fd0c8"/>
+      <path d="M347 522 l6 6 l12 -12" fill="none" stroke="#0b2030" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+      <!-- Moon -->
+      <circle cx="800" cy="430" r="190" fill="url(#c-halo)" class="pulse"/>
+      <g clip-path="url(#c-moonc)">
+        <circle cx="800" cy="430" r="130" fill="url(#c-moon)"/>
+        <g fill="#a3a9c4"><circle cx="740" cy="380" r="22"/><circle cx="860" cy="360" r="14"/><circle cx="870" cy="500" r="26"/><circle cx="730" cy="490" r="12"/><circle cx="800" cy="320" r="9"/></g>
+        <circle cx="860" cy="430" r="130" fill="#141a3c" opacity=".35"/>
+      </g>
+      <circle cx="800" cy="430" r="50" fill="#ffb547"/>
+      <path d="M786 404 v52 l42 -26z" fill="#2a1a06"/>
+      <!-- Mars (locked) -->
+      <g clip-path="url(#c-mars)" opacity=".75">
+        <circle cx="1310" cy="540" r="60" fill="#9a6a6e"/>
+        <path d="M1270 520 q30 -10 60 4 M1280 560 q24 6 50 -2" stroke="#7a5058" stroke-width="8" fill="none" stroke-linecap="round"/>
+        <circle cx="1340" cy="530" r="60" fill="#141a3c" opacity=".45"/>
+      </g>
+      <circle cx="1356" cy="490" r="22" fill="#232857" stroke="#9fb4ff" stroke-width="2"/>
+      <use href="#i-lock" x="1344" y="478" width="24" height="24" color="#c9d4ff"/>
+      <!-- labels -->
+      <g font-family="Lexend" text-anchor="middle">
+        <text x="300" y="690" font-size="24" font-weight="600" fill="#eef0fb">Training base</text>
+        <text x="300" y="720" font-size="18" fill="#5fd0c8">Done</text>
+        <text x="800" y="608" font-size="30" font-weight="600" fill="#eef0fb">Mission 1 · The Moon</text>
+        <text x="800" y="642" font-size="20" fill="#ffcf6e">South pole · 7 days</text>
+        <text x="1310" y="636" font-size="24" font-weight="600" fill="#c3c8e6">Mission 2 · Mars</text>
+        <text x="1310" y="666" font-size="18" fill="#9aa0c8">Coming soon</text>
+      </g>
+    </svg>
+    <div class="ui">
+      <div class="row">
+        <div class="c-title"><h2>MISSION: OUTPOST</h2><p>Junior Astronaut Training</p></div>
+        <span class="gear" aria-label="Settings"><svg><use href="#i-gear"/></svg></span>
+      </div>
+      <div class="c-foot">
+        <div class="bot">
+          <div class="face"><svg viewBox="-20 -32 40 54"><use href="#bot" x="-20" y="-30" width="40" height="52"/></svg></div>
+          <div class="bubble"><span class="name">BASE BOT</span>Ready, cadet? First stop: the Moon's south pole. Tap the Moon to start.</div>
+        </div>
+        <span class="foot">Uses real NASA data · <a href="#">Data sources</a></span>
+      </div>
+    </div>
+  </div>
+  <p class="notes">Clearest for a 7-year-old: one glowing button, and the Mars tease is built in. Cheapest to build. Weakest on the lesson, and the path reads like travel, so move between missions with a fade, not a flight.</p>
+</section>
+</main>
+
+<script>
+  // seeded starfield + sparkles
+  let s = 7; const r = () => (s = (s * 16807) % 2147483647) / 2147483647;
+  document.querySelectorAll('g.stars').forEach(g => {
+    const n = +g.dataset.n, h = +g.dataset.h, NS = 'http://www.w3.org/2000/svg';
+    for (let i = 0; i < n; i++) {
+      const c = document.createElementNS(NS, 'circle');
+      c.setAttribute('cx', (r() * 1600).toFixed(1)); c.setAttribute('cy', (r() * h).toFixed(1));
+      c.setAttribute('r', (r() * 1.6 + .5).toFixed(2)); c.setAttribute('fill', r() > .85 ? '#ffe2b0' : '#ffffff');
+      c.setAttribute('opacity', (r() * .6 + .3).toFixed(2)); g.appendChild(c);
+    }
+    for (let i = 0; i < 9; i++) {
+      const u = document.createElementNS(NS, 'use');
+      u.setAttribute('href', '#spark'); u.setAttribute('fill', i % 3 ? '#ffffff' : '#ffd59a');
+      u.setAttribute('transform', `translate(${(r()*1600).toFixed(0)} ${(r()*h*.8).toFixed(0)}) scale(${(r()*.9+.6).toFixed(2)})`);
+      u.setAttribute('class', 'twinkle'); u.style.animationDelay = (r() * 3).toFixed(2) + 's'; g.appendChild(u);
+    }
+  });
+</script>
+</body>
+</html>

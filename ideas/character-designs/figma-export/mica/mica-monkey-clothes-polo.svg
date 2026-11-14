@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 240" width="200" height="240"><g id="mica-monkey-clothes-polo"><g id="tail"><path d="M126 196 Q174 204 172 160 Q170 132 150 140" stroke="#9A6338" stroke-width="10" fill="none" stroke-linecap="round"/></g><g id="legs">
+    <rect x="80" y="190" width="16" height="28" rx="8" fill="#F3D2A8"/>
+    <rect x="80" y="188" width="16" height="26" rx="8" fill="#2A3A66"/>
+    
+    <ellipse cx="87" cy="220" rx="11.5" ry="7" fill="#fff" /><rect x="76" y="222" width="23" height="4" rx="2" fill="#34B97C"/>
+    <rect x="104" y="190" width="16" height="28" rx="8" fill="#F3D2A8"/>
+    <rect x="104" y="188" width="16" height="26" rx="8" fill="#2A3A66"/>
+    
+    <ellipse cx="113" cy="220" rx="11.5" ry="7" fill="#fff" /><rect x="102" y="222" width="23" height="4" rx="2" fill="#34B97C"/></g><g id="body"><g fill="#34B97C"><rect x="68" y="140" width="64" height="66" rx="27"/></g>
+        <path d="M86 146 L100 162 L94 166 L82 152Z M114 146 L100 162 L106 166 L118 152Z" fill="#fff"/>
+        <rect x="98.5" y="160" width="3" height="16" rx="1.5" fill="#23935F"/><circle cx="100" cy="166" r="1.8" fill="#fff"/><circle cx="100" cy="173" r="1.8" fill="#fff"/>
+        <circle cx="117" cy="180" r="7" fill="#fff"/><path transform="translate(117 180) scale(0.8)" d="M0 -6 l1.8 3.6 4 .5 -2.9 2.8 .7 4 -3.6 -1.9 -3.6 1.9 .7 -4 -2.9 -2.8 4 -.5Z" fill="#E08E12"/></g><g id="head">
+      <ellipse cx="52" cy="110" rx="15" ry="15" fill="#9A6338" /><ellipse cx="52" cy="110" rx="8" ry="8" fill="#F3D2A8" /><ellipse cx="148" cy="110" rx="15" ry="15" fill="#9A6338" /><ellipse cx="148" cy="110" rx="8" ry="8" fill="#F3D2A8" />
+      <ellipse cx="100" cy="108" rx="47" ry="43" fill="#9A6338" />
+      <path d="M100 98 Q90 82 78 88 Q60 96 64 120 Q68 146 100 148 Q132 146 136 120 Q140 96 122 88 Q110 82 100 98Z" fill="#F3D2A8"/>
+      <path d="M92 66 Q100 52 104 66 Q110 56 112 68" stroke="#9A6338" stroke-width="6" fill="none" stroke-linecap="round"/>
+      <ellipse cx="84" cy="110" rx="4.6" ry="5.6" fill="#2B1F1A" /><ellipse cx="116" cy="110" rx="4.6" ry="5.6" fill="#2B1F1A" /><ellipse cx="73" cy="126" rx="7" ry="4.5" fill="#FF8FA0" opacity=".55"/><ellipse cx="127" cy="126" rx="7" ry="4.5" fill="#FF8FA0" opacity=".55"/>
+      <circle cx="96" cy="124" r="1.8" fill="#7A4A2A"/><circle cx="104" cy="124" r="1.8" fill="#7A4A2A"/>
+      <path d="M90 132 Q100 141 110 132" stroke="#2B1F1A" stroke-width="2.8" fill="none" stroke-linecap="round" stroke-linejoin="round"/></g><g id="arms"><g transform="translate(75,160) rotate(16)">
+    <rect x="-8.5" y="-6" width="17" height="32" rx="8.5" fill="#F3D2A8"/>
+    <rect x="-9" y="-6" width="18" height="17" rx="9" fill="#34B97C" />
+    
+    
+    <circle cx="0" cy="26" r="8.5" fill="#F3D2A8"/></g><g transform="translate(125,160) rotate(-16)">
+    <rect x="-8.5" y="-6" width="17" height="32" rx="8.5" fill="#F3D2A8"/>
+    <rect x="-9" y="-6" width="18" height="17" rx="9" fill="#34B97C" />
+    
+    
+    <circle cx="0" cy="26" r="8.5" fill="#F3D2A8"/></g></g></g></svg>

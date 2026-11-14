@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 240" width="200" height="240"><g id="bram-suit-visor"><g id="legs"><rect x="78" y="186" width="20" height="28" rx="10" fill="#FBF9F4" stroke="#E1DCD1" stroke-width="2"/>
+    <rect x="78" y="198" width="20" height="5" fill="#4C7EF0"/><rect x="75" y="211" width="26" height="14" rx="7" fill="#2A3A66"/><rect x="102" y="186" width="20" height="28" rx="10" fill="#FBF9F4" stroke="#E1DCD1" stroke-width="2"/>
+    <rect x="102" y="198" width="20" height="5" fill="#4C7EF0"/><rect x="99" y="211" width="26" height="14" rx="7" fill="#2A3A66"/></g><g id="suit-body"><rect x="56" y="146" width="88" height="56" rx="18" fill="#E1DCD1"/>
+    <rect x="64" y="140" width="72" height="68" rx="28" fill="#FBF9F4"/>
+    
+    <rect x="84" y="168" width="32" height="18" rx="6" fill="#E1DCD1"/>
+    <circle cx="92" cy="177" r="3" fill="#FFB838"/><circle cx="100" cy="177" r="3" fill="#2DAAB5"/><circle cx="108" cy="177" r="3" fill="#4C7EF0"/></g><g id="helmet"><rect x="30" y="86" width="18" height="44" rx="9" fill="#E1DCD1"/><rect x="152" y="86" width="18" height="44" rx="9" fill="#E1DCD1"/><rect x="40" y="46" width="120" height="118" rx="56" fill="#FBF9F4"/>
+    <clipPath id="v63s"><rect x="40" y="46" width="120" height="118" rx="56"/></clipPath><rect x="40" y="58" width="120" height="7" fill="#4C7EF0" clip-path="url(#v63s)"/>
+    <rect x="90" y="48" width="20" height="8" rx="4" fill="#FFB838"/>
+    <clipPath id="v63"><rect x="52" y="68" width="96" height="84" rx="40"/></clipPath><g fill="#BDEBF5"><rect x="52" y="68" width="96" height="84" rx="40"/></g>
+    <g clip-path="url(#v63)"><g transform="translate(100 112) scale(.88) translate(-100 -110)"><ellipse cx="100" cy="108" rx="49" ry="43" fill="#F0A04F" /><ellipse cx="117" cy="101" rx="13" ry="12" fill="#D9852F" /><ellipse cx="100" cy="128" rx="22" ry="15" fill="#FFE6C4" />
+    <ellipse cx="83" cy="104" rx="4.6" ry="5.6" fill="#2B1F1A" /><ellipse cx="117" cy="104" rx="4.6" ry="5.6" fill="#2B1F1A" /><ellipse cx="70" cy="120" rx="7" ry="4.5" fill="#FF8FA0" opacity=".55"/><ellipse cx="130" cy="120" rx="7" ry="4.5" fill="#FF8FA0" opacity=".55"/><ellipse cx="100" cy="119" rx="7.5" ry="5.2" fill="#3A2418" /><path d="M93 128 Q96.5 133 100 128 Q103.5 133 107 128" stroke="#2B1F1A" stroke-width="2.6" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+    <ellipse cx="58" cy="110" rx="14" ry="26" fill="#A65A26" transform="rotate(14 58 110)"/><ellipse cx="142" cy="110" rx="14" ry="26" fill="#A65A26" transform="rotate(-14 142 110)"/></g></g>
+    <path d="M62 96 Q66 78 84 74" stroke="#fff" stroke-width="5" fill="none" stroke-linecap="round" opacity=".9"/>
+    <g fill="none" stroke="#E1DCD1" stroke-width="3"><rect x="52" y="68" width="96" height="84" rx="40"/></g></g><g id="arm-left"><g transform="translate(75,160) rotate(18)">
+    <rect x="-8.5" y="-6" width="17" height="32" rx="8.5" fill="#2A3A66"/>
+    <rect x="-9" y="-6" width="18" height="32" rx="9" fill="#FBF9F4" stroke="#E1DCD1" stroke-width="2.5"/>
+    <rect x="-9" y="6" width="18" height="5" fill="#4C7EF0"/>
+    
+    <circle cx="0" cy="26" r="8.5" fill="#2A3A66"/></g></g><g id="arm-right"><g transform="translate(125,160) rotate(-18)">
+    <rect x="-8.5" y="-6" width="17" height="32" rx="8.5" fill="#2A3A66"/>
+    <rect x="-9" y="-6" width="18" height="32" rx="9" fill="#FBF9F4" stroke="#E1DCD1" stroke-width="2.5"/>
+    <rect x="-9" y="6" width="18" height="5" fill="#4C7EF0"/>
+    
+    <circle cx="0" cy="26" r="8.5" fill="#2A3A66"/></g></g></g></svg>

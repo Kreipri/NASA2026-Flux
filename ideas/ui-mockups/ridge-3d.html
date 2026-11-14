@@ -1,0 +1,291 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Ridge 3D</title>
+<link href="https://fonts.googleapis.com/css2?family=Exo+2:wght@800&family=Nunito:wght@700;800&display=swap" rel="stylesheet">
+<style>
+  .bar { display:flex; flex-wrap:wrap; gap:8px; align-items:center; justify-content:space-between; margin:0 0 8px; }
+  .seg { display:inline-flex; border:1px solid var(--border, #444); border-radius: var(--radius, 8px); overflow:hidden; }
+  .seg button { font: 500 12px var(--font-sans, system-ui); padding:6px 10px; border:0; background:transparent; color: var(--muted-foreground, #aaa); cursor:pointer; }
+  .seg button.on { background: var(--secondary, #333); color: var(--foreground, #fff); }
+  .frame { position:relative; width:100%; aspect-ratio:16/9; border-radius: var(--radius, 8px); overflow:hidden; background:#02030a; touch-action:none; }
+  .frame canvas { position:absolute; inset:0; width:100% !important; height:100% !important; display:block; }
+  .lab { position:absolute; transform:translate(-50%,-100%); pointer-events:none; font-family:Nunito,system-ui; white-space:nowrap; }
+  .lab .box { transform:translateX(var(--dx,0px)); background:rgba(6,22,32,.72); backdrop-filter:blur(4px); border:1px solid rgba(94,224,232,.7); border-radius:10px; padding:5px 10px; color:#e6fbff; }
+  .lab.warm .box { border-color:#ffc24a; }
+  .lab .t { font-family:'Exo 2',system-ui; font-weight:800; font-size:12px; letter-spacing:.06em; }
+  .lab.warm .t { color:#ffd98a; }
+  .lab .s { font-weight:700; font-size:11px; opacity:.8; }
+  .lab .stem { width:1px; height:22px; background:rgba(94,224,232,.7); margin:0 auto; }
+  .lab .dot { width:7px; height:7px; border-radius:50%; background:#5ee0e8; margin:0 auto; box-shadow:0 0 10px #5ee0e8; }
+  .chip { position:absolute; left:12px; font: 800 11.5px Nunito,system-ui; color:#cfefff; background:rgba(6,22,32,.7); border:1px solid rgba(94,224,232,.5); border-radius:999px; padding:4px 10px; pointer-events:none; }
+  .chip.sun { bottom:12px; border-color:#ffc24a; color:#ffd98a; }
+  .chip.pole { top:12px; }
+  .hint { position:absolute; right:12px; bottom:12px; font: 700 11px Nunito,system-ui; color:#cfefff; opacity:.75; pointer-events:none; }
+  .err { position:absolute; inset:0; display:flex; align-items:center; justify-content:center; color:#cfefff; font: 600 14px system-ui; text-align:center; padding:20px; }
+  .desc { font: 13px/1.5 var(--font-sans, system-ui); color: var(--muted-foreground, #aaa); margin:8px 2px 0; }
+</style>
+<script type="importmap">
+{ "imports": {
+  "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+  "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
+} }
+</script>
+</head>
+<body>
+<div class="bar">
+  <div class="seg" data-k="view"><button data-v="base">Base · long lens</button><button data-v="site">Site · 5 km up</button></div>
+  <div class="seg" data-k="light"><button data-v="sun">Day 2 · Sunlight</button><button data-v="dark">Day 5 · Long shadow</button></div>
+</div>
+<div class="frame" id="frame">
+  <div id="labels"></div>
+  <div class="chip pole">← South Pole: on Shackleton’s rim</div>
+  <div class="chip sun" id="sunchip">☀ Sun: very low, behind you</div>
+  <div class="hint">drag to orbit · scroll to zoom</div>
+</div>
+<div class="desc">Real scale: base ≈ 50 m across, Shackleton 21 km wide and 4 km deep, ~13 km away. Terrain shadows are traced from the Sun (soft edges), the base casts real-time shadows. Layout read off the elevation map; distances are estimates.</div>
+
+<script type="module">
+import * as THREE from 'three';
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+import { RoundedBoxGeometry } from 'three/addons/geometries/RoundedBoxGeometry.js';
+import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
+import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
+import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
+import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
+
+const frame=document.getElementById('frame');
+/* ---------------- terrain model (metres; terrain coords: x right, z toward Shackleton) ---------------- */
+const D2R=Math.PI/180;
+function rng(s){return function(){s|=0;s=s+0x6D2B79F5|0;let t=Math.imul(s^s>>>15,1|s);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
+const dirAE=(az,el)=>[Math.sin(az*D2R)*Math.cos(el*D2R),Math.sin(el*D2R),Math.cos(az*D2R)*Math.cos(el*D2R)];
+const smooth=(a,b,x)=>{const t=Math.max(0,Math.min(1,(x-a)/(b-a)));return t*t*(3-2*t)};
+const RM=1737400, SH={x:2000,z:13000,R:10500};
+const PSRS=[[650,800,170,55],[950,1700,240,70],[-750,1300,200,60],[-300,2300,130,40]];
+const CRS=[...PSRS];{const R=rng(77);for(let i=0;i<60;i++){const x=(R()-.5)*34000,z=-3000+R()*42000,r=120+Math.pow(R(),2)*700;if(Math.hypot(x,z)<900)continue;if(Math.hypot(x-SH.x,z-SH.z)<SH.R*1.1)continue;CRS.push([x,z,r,r*.13])}}
+const SUN_AZ=-140;
+// far hills. The first one sits across the low Sun's path 30 km away: narrow along the sunbeam,
+// long across it, so on day 5 it blocks the Sun without lifting the ground near the base.
+const SUX=Math.sin(SUN_AZ*D2R),SUZ=Math.cos(SUN_AZ*D2R),BLOCK={x:45000*SUX,z:45000*SUZ,h:3300,along:3500,across:25000};
+const MASSIF=[[-9000,47000,2300,9000],[14000,52000,1800,8000],[30000,30000,1500,7000],[-26000,22000,1300,7000]];
+function hRaw(x,z){
+  const d0=Math.hypot(x,z);
+  let h=-280*smooth(-400,2600,z)-0.025*Math.max(0,-z)-680*(1-Math.exp(-((x/3300)**2)))-0.01*x;
+  const crest=Math.exp(-((x/2600)**2))*(1-smooth(2000,3200,z))*(1-smooth(-9000,-6000,-z));
+  h+=smooth(600,2500,d0)*(1-.97*crest)*(34*Math.sin(x/1400+z/1900)+22*Math.sin(z/1100-x/2300)+8*Math.sin(x/520+z/610));
+  const r=Math.hypot(x-SH.x,z-SH.z),R=SH.R;
+  if(r<R){const p=r<.32*R?1:Math.pow((R-r)/(.68*R),.85);h+=160*(1-p)-4100*p}else h+=160*Math.exp(-(((r-R)/1400)**2));
+  for(const [cx,cz,cr,cd] of CRS){const dx=x-cx,dz=z-cz;if(Math.abs(dx)>cr*1.8||Math.abs(dz)>cr*1.8)continue;const q=Math.hypot(dx,dz)/cr;h+=q<1?-cd*(1-q*q)+.12*cd:.12*cd*Math.exp(-(((q-1)/.35)**2))}
+  for(const [mx,mz,mh,mw] of MASSIF){const q=((x-mx)**2+(z-mz)**2)/(mw*mw);if(q<9)h+=mh*Math.exp(-q)}
+  {const dx=x-BLOCK.x,dz=z-BLOCK.z,u=dx*SUX+dz*SUZ,v=-dx*SUZ+dz*SUX,q=(u/BLOCK.along)**2+(v/BLOCK.across)**2;if(q<9)h+=BLOCK.h*Math.exp(-q)}
+  return h-(x*x+z*z)/(2*RM);
+}
+const H0=hRaw(0,0); const hT=(x,z)=>hRaw(x,z)-H0; // ridge crest at the base = 0 m
+const LIGHT={sun:dirAE(SUN_AZ,2.3),dark:dirAE(SUN_AZ,0.5)};
+const EARTH_D=dirAE(9,3.5);
+function rayLit(x,z,h0,L){const lh=Math.hypot(L[0],L[2]),ux=L[0]/lh,uz=L[2]/lh,t=L[1]/lh;let s=12,m=1e9;while(s<70000){const c=(h0+t*s+0.6-hT(x+ux*s,z+uz*s))/(0.0087*s+3);if(c<m)m=c;if(m<-1)return 0;s*=1.14}return Math.max(0,Math.min(1,.5+.5*m))}
+const W=(x,y,z)=>new THREE.Vector3(x,y,-z); // terrain coords -> three.js world (keeps Shackleton on the right)
+
+/* grid: dense near the base, sparse far away */
+const NZ=340,NX=300,GZ=[],GX=[];
+for(let j=0;j<=NZ;j++){const s=-0.625+1.625*j/NZ;GZ.push(45000*Math.sinh(4*s)/Math.sinh(4))} // from ~10 km behind the base to 45 km ahead
+for(let i=0;i<=NX;i++){const s=-1+2*i/NX;GX.push(28000*Math.sinh(3*s)/Math.sinh(3))}
+const NV=(NX+1)*(NZ+1),HV=new Float32Array(NV),NRM=new Float32Array(NV*3);
+for(let j=0;j<=NZ;j++)for(let i=0;i<=NX;i++){const k=j*(NX+1)+i,x=GX[i],z=GZ[j];HV[k]=hT(x,z);
+  const e=Math.max(4,Math.abs(GX[Math.min(i+1,NX)]-GX[Math.max(i-1,0)])/3),nx=-(hT(x+e,z)-hT(x-e,z))/(2*e),nz=-(hT(x,z+e)-hT(x,z-e))/(2*e),l=Math.hypot(nx,1,nz);NRM[k*3]=nx/l;NRM[k*3+1]=1/l;NRM[k*3+2]=nz/l}
+const BAKE={};
+const toLin=c=>Math.pow(c,2.2);
+function bake(mode){if(BAKE[mode])return BAKE[mode];const L=LIGHT[mode],col=new Float32Array(NV);
+  for(let j=0;j<=NZ;j++)for(let i=0;i<=NX;i++){const k=j*(NX+1)+i,x=GX[i],z=GZ[j],n=[NRM[k*3],NRM[k*3+1],NRM[k*3+2]];
+    const lit=rayLit(x,z,HV[k],L),ndl=Math.max(0,n[0]*L[0]+n[1]*L[1]+n[2]*L[2]),es=Math.max(0,n[0]*EARTH_D[0]+n[1]*EARTH_D[1]+n[2]*EARTH_D[2]);
+    col[k]=Math.min(1.2,lit*(.66+1.3*ndl))+.06*es}
+  // blur in grid space (3 passes): band edges become flowing shapes instead of cell zig-zags
+  const tmp=new Float32Array(NV);for(let pass=0;pass<3;pass++){for(let j=0;j<=NZ;j++)for(let i=0;i<=NX;i++){let sum=0,w=0;for(let dj=-1;dj<=1;dj++)for(let di=-1;di<=1;di++){const jj=j+dj,ii=i+di;if(jj<0||jj>NZ||ii<0||ii>NX)continue;const ww=(di||dj)?((di&&dj)?.5:1):2;sum+=col[jj*(NX+1)+ii]*ww;w+=ww}tmp[j*(NX+1)+i]=sum/w}col.set(tmp)}
+  BAKE[mode]=col;return col}
+// permanently shadowed ground (Shackleton's floor and walls, small polar craters): gets its own deep tone
+const COLD=new Float32Array(NV);for(let j=0;j<=NZ;j++)for(let i=0;i<=NX;i++){const x=GX[i],z=GZ[j];let c=1-smooth(.82,.97,Math.hypot(x-SH.x,z-SH.z)/SH.R);for(const [px,pz,pr] of PSRS)c=Math.max(c,1-smooth(.7,1,Math.hypot(x-px,z-pz)/pr));COLD[j*(NX+1)+i]=c}
+
+/* ---------------- three.js setup ---------------- */
+let renderer;
+try{renderer=new THREE.WebGLRenderer({antialias:true,logarithmicDepthBuffer:true,powerPreference:'high-performance'})}catch(e){frame.insertAdjacentHTML('beforeend','<div class="err">WebGL isn’t available here. Open this file in a desktop browser.</div>');throw e}
+renderer.setPixelRatio(Math.min(2,window.devicePixelRatio||1));
+renderer.toneMapping=THREE.NoToneMapping;
+renderer.shadowMap.enabled=true;renderer.shadowMap.type=THREE.PCFShadowMap;
+frame.prepend(renderer.domElement);
+const scene=new THREE.Scene();scene.background=new THREE.Color('#02030a');
+const camera=new THREE.PerspectiveCamera(14,16/9,0.5,400000);
+
+// terrain mesh (baked light, smooth interpolation, regolith detail texture)
+const pos=new Float32Array(NV*3),uv=new Float32Array(NV*2);
+for(let j=0;j<=NZ;j++)for(let i=0;i<=NX;i++){const k=j*(NX+1)+i;pos[k*3]=GX[i];pos[k*3+1]=HV[k];pos[k*3+2]=-GZ[j];uv[k*2]=GX[i]/38;uv[k*2+1]=GZ[j]/38}
+const idx=[];for(let j=0;j<NZ;j++)for(let i=0;i<NX;i++){const a=j*(NX+1)+i,b=a+1,c=a+NX+2,d=a+NX+1;idx.push(a,b,d,b,c,d)}
+const tg=new THREE.BufferGeometry();tg.setAttribute('position',new THREE.BufferAttribute(pos,3));tg.setAttribute('uv',new THREE.BufferAttribute(uv,2));tg.setIndex(idx);
+tg.setAttribute('cold',new THREE.BufferAttribute(COLD,1));
+function detailTex(){const c=document.createElement('canvas');c.width=c.height=512;const x=c.getContext('2d');x.fillStyle='#e4e4e4';x.fillRect(0,0,512,512);const R=rng(3);
+  for(let i=0;i<900;i++){const px=R()*512,py=R()*512,r=1+R()*R()*26,a=.05+R()*.12;x.fillStyle=R()<.5?`rgba(0,0,0,${a})`:`rgba(255,255,255,${a*.8})`;x.beginPath();x.arc(px,py,r,0,7);x.fill()}
+  for(let i=0;i<60;i++){const px=R()*512,py=R()*512,r=3+R()*R()*30;x.strokeStyle='rgba(255,255,255,.18)';x.lineWidth=1.5;x.beginPath();x.arc(px,py,r,0,7);x.stroke();x.fillStyle='rgba(0,0,0,.14)';x.beginPath();x.arc(px+r*.2,py+r*.2,r*.8,0,7);x.fill()}
+  const t=new THREE.CanvasTexture(c);t.wrapS=t.wrapT=THREE.RepeatWrapping;t.colorSpace=THREE.SRGBColorSpace;t.anisotropy=8;return t}
+// per-pixel light: height map on the GPU, shadows ray-marched toward the Sun for every pixel,
+// so shadow edges follow the real hills (not mesh cells). Colours blend smoothly through the palette.
+const HMX=1024,HMZ=1280,HDOM=[-36000,-40000,72000,90000]; // x0, z0, width, depth (covers the far blocking ridge)
+const hm=new Uint16Array(HMX*HMZ);
+for(let j=0;j<HMZ;j++){const z=HDOM[1]+(j+.5)/HMZ*HDOM[3];for(let i=0;i<HMX;i++){const x=HDOM[0]+(i+.5)/HMX*HDOM[2];hm[j*HMX+i]=THREE.DataUtils.toHalfFloat(hT(x,z))}}
+const hmTex=new THREE.DataTexture(hm,HMX,HMZ,THREE.RedFormat,THREE.HalfFloatType);hmTex.minFilter=hmTex.magFilter=THREE.LinearFilter;hmTex.needsUpdate=true;
+const RAMP_T=[0,.1,.26,.46,.72,1.0],RAMP_C=['#262e4c','#3a4264','#585e7c','#7a7e98','#a1a2b7','#cfced9'].map(c=>new THREE.Color(c));
+const terrainMat=new THREE.ShaderMaterial({uniforms:{hmap:{value:hmTex},hdom:{value:new THREE.Vector4(...HDOM)},tex:{value:new THREE.Vector2(HDOM[2]/HMX,HDOM[3]/HMZ)},
+    sunD:{value:new THREE.Vector3(...LIGHT.sun)},earthD:{value:new THREE.Vector3(...EARTH_D)},th:{value:RAMP_T},cols:{value:RAMP_C},deep:{value:new THREE.Color('#0a0e1e')}},
+  vertexShader:`attribute float cold;varying vec3 vT;varying float vC;
+    #include <common>
+    #include <logdepthbuf_pars_vertex>
+    void main(){vT=vec3(position.x,position.y,-position.z);vC=cold;gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.0);
+    #include <logdepthbuf_vertex>
+    }`,
+  fragmentShader:`uniform sampler2D hmap;uniform vec4 hdom;uniform vec2 tex;uniform vec3 sunD;uniform vec3 earthD;uniform float th[6];uniform vec3 cols[6];uniform vec3 deep;
+    varying vec3 vT;varying float vC;
+    #include <logdepthbuf_pars_fragment>
+    float H(vec2 p){vec2 uv=(p-hdom.xy)/hdom.zw;if(uv.x<0.0||uv.y<0.0||uv.x>1.0||uv.y>1.0)return -1e5;return texture2D(hmap,uv).r;}
+    void main(){
+    #include <logdepthbuf_fragment>
+      vec2 p0=vT.xz;
+      float hx=H(p0+vec2(tex.x,0.0))-H(p0-vec2(tex.x,0.0)),hz=H(p0+vec2(0.0,tex.y))-H(p0-vec2(0.0,tex.y));
+      vec3 n=normalize(vec3(-hx/(2.0*tex.x),1.0,-hz/(2.0*tex.y)));
+      vec2 Lh=normalize(sunD.xz);float tanE=sunD.y/length(sunD.xz);
+      float h0=H(p0)+2.0,m=1e9,s=30.0;
+      for(int i=0;i<320;i++){float t=H(p0+Lh*s);if(t<-9e4)break;m=min(m,(h0+tanE*s-t)/(0.0087*s+4.0));if(m<-1.0)break;s+=clamp(s*0.06,20.0,300.0);if(s>90000.0)break;} // small steps so thin rims are never skipped
+      float lit=clamp(0.5+0.5*m,0.0,1.0);
+      float v=min(1.2,lit*(0.66+1.3*max(0.0,dot(n,sunD))))+0.06*max(0.0,dot(n,earthD));
+      vec3 c=cols[0];for(int k=1;k<6;k++){c=mix(c,cols[k],clamp((v-th[k-1])/(th[k]-th[k-1]),0.0,1.0));}
+      c=mix(c,deep,vC*(1.0-smoothstep(0.02,0.25,v)));
+      gl_FragColor=vec4(c,1.0);}`});
+const terrain=new THREE.Mesh(tg,terrainMat);scene.add(terrain);
+// shadow catcher: same surface near the base, only shows the base's real-time shadows
+{const ii=[],jj=[];for(let i=0;i<=NX;i++)if(Math.abs(GX[i])<900)ii.push(i);for(let j=0;j<=NZ;j++)if(Math.abs(GZ[j])<900)jj.push(j);
+  const sp=[],si=[];jj.forEach(j=>ii.forEach(i=>{const k=j*(NX+1)+i;sp.push(GX[i],HV[k]+0.04,-GZ[j])}));const w=ii.length;
+  for(let a=0;a<jj.length-1;a++)for(let b=0;b<w-1;b++){const p=a*w+b;si.push(p,p+1,p+w,p+1,p+w+1,p+w)}
+  const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(sp,3));g.setIndex(si);g.computeVertexNormals();
+  const m=new THREE.Mesh(g,new THREE.ShadowMaterial({opacity:.55,color:'#0f1428'}));m.receiveShadow=true;scene.add(m)}
+
+// lights
+const sun=new THREE.DirectionalLight('#fff4e2',2.6);scene.add(sun,sun.target);
+sun.castShadow=true;sun.shadow.mapSize.set(4096,4096);const sc=sun.shadow.camera;sc.left=-260;sc.right=260;sc.top=260;sc.bottom=-260;sc.near=10;sc.far=3000;sun.shadow.bias=-0.0004;sun.shadow.normalBias=0.4;
+const hemi=new THREE.HemisphereLight('#8fb0ff','#1a1d2c',0.55);scene.add(hemi);
+const lamps=[];for(const p of [[2,2.6,-3.4],[-10,1.2,-5.6]]){const l=new THREE.PointLight('#ffb35c',0,60,2);l.position.copy(W(...p));scene.add(l);lamps.push(l)}
+
+/* ---------------- the base (real size, ~50 m across) ---------------- */
+const GRAD=(()=>{const d=new Uint8Array([70,150,255]);const t=new THREE.DataTexture(d,3,1,THREE.RedFormat);t.minFilter=t.magFilter=THREE.NearestFilter;t.needsUpdate=true;return t})();
+const M=(c,o={})=>{const m=new THREE.MeshToonMaterial({color:c,gradientMap:GRAD});if(o.side)m.side=o.side;return m};
+const OUTLINE=new THREE.ShaderMaterial({side:THREE.BackSide,uniforms:{w:{value:.09}},
+  vertexShader:`uniform float w;
+    #include <common>
+    #include <logdepthbuf_pars_vertex>
+    void main(){vec3 p=position+normal*w;gl_Position=projectionMatrix*modelViewMatrix*vec4(p,1.0);
+    #include <logdepthbuf_vertex>
+    }`,
+  fragmentShader:`
+    #include <logdepthbuf_pars_fragment>
+    void main(){
+    #include <logdepthbuf_fragment>
+    gl_FragColor=vec4(0.04,0.06,0.11,1.0);}`});
+const white=M('#e9edf1',{roughness:.45}),orange=M('#f08c3c',{roughness:.5}),grey=M('#9aa0aa',{metalness:.5,roughness:.4}),dark=M('#2b2f38',{roughness:.7}),
+  reg=M('#8f877d',{roughness:1}),panel=M('#1d3f8f',{metalness:.7,roughness:.25,envMapIntensity:1}),panelBack=M('#5d6370',{metalness:.4,roughness:.5}),
+  glow=new THREE.MeshBasicMaterial({color:'#ffd38a'}),red=new THREE.MeshBasicMaterial({color:'#ff5a4a'});
+const base=new THREE.Group();scene.add(base);
+const hull=m=>{if(m.material===glow||m.material===red)return;const h=new THREE.Mesh(m.geometry,OUTLINE);m.add(h)};
+const add=(geo,mat,x,y,z,o={})=>{const m=new THREE.Mesh(geo,mat);m.position.copy(W(x,y,z));if(o.rx)m.rotation.x=o.rx;if(o.ry)m.rotation.y=o.ry;if(o.rz)m.rotation.z=o.rz;if(o.s)m.scale.set(...o.s);m.castShadow=o.cast!==false;m.receiveShadow=true;base.add(m);hull(m);return m};
+// habitat
+add(new THREE.CylinderGeometry(2.3,2.3,10,64),white,2,2.9,-6,{rz:Math.PI/2});
+for(const x of [-2.6,6.6])add(new THREE.CylinderGeometry(2.36,2.36,.6,64),orange,x,2.9,-6,{rz:Math.PI/2});
+for(const x of [-.4,2,4.4])add(new RoundedBoxGeometry(.9,.9,.2,3,.12),glow,x,3.2,-3.75,{cast:false});
+for(const x of [-1,2,5])for(const z of [-7.4,-4.6])add(new THREE.CylinderGeometry(.12,.12,1,12),grey,x,.5,z);
+add(new RoundedBoxGeometry(2,3.2,2.4,4,.3),white,8,1.8,-6);add(new THREE.BoxGeometry(.8,2,.1),orange,8,1.6,-7.22);
+// shelter: regolith mound over a buried module
+{const g=new THREE.SphereGeometry(1,48,24,0,Math.PI*2,0,Math.PI/2);const p=g.attributes.position,R=rng(5);for(let i=0;i<p.count;i++){const y=p.getY(i),k=1+(Math.sin(p.getX(i)*7)+Math.cos(p.getZ(i)*6))*.025*(1-y)+ (R()-.5)*.02;p.setXYZ(i,p.getX(i)*k,y,p.getZ(i)*k)}g.computeVertexNormals();add(g,reg,-11,0,0,{s:[5.8,3.4,4.8]})}
+add(new RoundedBoxGeometry(2,2.1,2.4,4,.25),white,-10,1.05,-5.2);add(new THREE.BoxGeometry(1.1,1.5,.1),glow,-10,.95,-6.42,{cast:false});
+// vertical solar arrays turned toward the low Sun
+const sunH=Math.atan2(LIGHT.sun[0],-LIGHT.sun[2]);
+for(const [x,z] of [[-17,12],[-12.5,14],[-8,16]]){add(new THREE.CylinderGeometry(.22,.28,13,16),grey,x,6.5,z);
+  const pg=new THREE.Group();pg.position.copy(W(x,9.4,z));pg.rotation.y=sunH;base.add(pg);
+  const f=new THREE.Mesh(new THREE.BoxGeometry(3.6,6.4,.12),[panelBack,panelBack,panelBack,panelBack,panel,panelBack]);f.position.z=.35;f.castShadow=true;pg.add(f);hull(f)}
+add(new THREE.SphereGeometry(.22,12,8),red,-12.5,13.2,14,{cast:false});
+add(new RoundedBoxGeometry(3,1.6,2,3,.2),white,-4,.8,10,{ry:sunH});
+// rover
+{const rg=new THREE.Group();rg.position.copy(W(11,0,-9));rg.rotation.y=.35;base.add(rg);const part=(geo,mat,x,y,z)=>{const m=new THREE.Mesh(geo,mat);m.position.set(x,y,z);m.castShadow=true;m.receiveShadow=true;rg.add(m);hull(m);return m};
+  part(new RoundedBoxGeometry(3.4,1.1,2,4,.3),white,0,1.3,0);part(new RoundedBoxGeometry(1.5,.9,1.8,4,.25),white,.7,2.2,0);part(new THREE.BoxGeometry(.1,.55,1.4),glow,1.48,2.25,0);
+  for(const [x,z] of [[-1.2,1.1],[1.2,1.1],[-1.2,-1.1],[1.2,-1.1]]){const w=part(new THREE.CylinderGeometry(.45,.45,.35,24),dark,x,.45,z);w.rotation.x=Math.PI/2}}
+// comms dish aimed at Earth
+add(new THREE.CylinderGeometry(.12,.15,4.2,12),grey,8,2.1,4);
+{const d=new THREE.Mesh(new THREE.SphereGeometry(1.5,32,12,0,Math.PI*2,0,.9),M('#eef1f4',{side:THREE.DoubleSide,metalness:.2}));d.position.copy(W(8,4.6,4));d.lookAt(W(8+EARTH_D[0]*100,4.6-EARTH_D[1]*100*-1,4+EARTH_D[2]*100));d.rotateX(-Math.PI/2);d.castShadow=true;base.add(d)}
+// rocks
+{const R=rng(11),geo=new THREE.DodecahedronGeometry(1,0),inst=new THREE.InstancedMesh(geo,reg,160);const m4=new THREE.Matrix4(),q=new THREE.Quaternion(),e=new THREE.Euler();let n=0;
+  for(let i=0;i<400&&n<160;i++){const x=(R()-.5)*420,z=(R()-.5)*420;if(Math.abs(x)<26&&Math.abs(z)<22)continue;const s=.2+R()*R()*1.6;e.set(R()*3,R()*3,R()*3);q.setFromEuler(e);m4.compose(W(x,hT(x,z)+s*.25,z),q,new THREE.Vector3(s,s*.6,s));inst.setMatrixAt(n++,m4)}
+  inst.count=n;inst.castShadow=true;inst.receiveShadow=true;scene.add(inst)}
+
+/* ---------------- sky: stars + Earth ---------------- */
+{const R=rng(9),N=2500,p=new Float32Array(N*3);for(let i=0;i<N;i++){const u=R()*2-1,a=R()*Math.PI*2,r=300000,s=Math.sqrt(1-u*u);p[i*3]=r*s*Math.cos(a);p[i*3+1]=Math.abs(r*u);p[i*3+2]=r*s*Math.sin(a)}
+  const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.BufferAttribute(p,3));scene.add(new THREE.Points(g,new THREE.PointsMaterial({color:'#dfe8ff',size:1.3,sizeAttenuation:false,transparent:true,opacity:.75,toneMapped:false})))}
+{const c=document.createElement('canvas');c.width=c.height=256;const x=c.getContext('2d');x.beginPath();x.arc(128,128,120,0,7);x.clip();x.fillStyle='#3f7fd8';x.fillRect(0,0,256,256);
+  x.fillStyle='#3d9a5e';for(const [px,py,rx,ry] of [[150,150,40,55],[90,90,30,22],[175,80,22,30]]){x.beginPath();x.ellipse(px,py,rx,ry,.4,0,7);x.fill()}
+  x.strokeStyle='#f2f6ff';x.lineWidth=11;x.lineCap='round';for(const [a,b,r] of [[.2,1.4,80],[2.2,3.3,60],[3.8,5,95],[4.6,5.6,40]]){x.beginPath();x.arc(128,128,r,a,b);x.stroke()}
+  x.fillStyle='rgba(6,12,30,.9)';x.beginPath();x.arc(471,128,240,0,7);x.fill(); // thin night side: the Sun is behind us, so Earth looks nearly full
+  const tex=new THREE.CanvasTexture(c);tex.colorSpace=THREE.SRGBColorSpace;const sp=new THREE.Sprite(new THREE.SpriteMaterial({map:tex,toneMapped:false,depthWrite:false}));
+  const D=150000,r=D*Math.tan(.95*D2R);sp.position.copy(W(EARTH_D[0]*D,EARTH_D[1]*D,EARTH_D[2]*D));sp.scale.set(2*r,2*r,1);scene.add(sp)}
+
+/* ---------------- outlines: ridge crest, Shackleton rim, ice craters ---------------- */
+const lines=new THREE.Group();scene.add(lines);
+const loop=(pts,col,op,dash)=>{const g=new THREE.BufferGeometry().setFromPoints(pts);const m=dash?new THREE.LineDashedMaterial({color:col,transparent:true,opacity:op,dashSize:dash,gapSize:dash*.7,toneMapped:false}):new THREE.LineBasicMaterial({color:col,transparent:true,opacity:op,toneMapped:false});const l=new THREE.Line(g,m);if(dash)l.computeLineDistances();lines.add(l)};
+loop(Array.from({length:161},(_,k)=>{const a=k/160*Math.PI*2,x=SH.x+Math.cos(a)*SH.R,z=SH.z+Math.sin(a)*SH.R;return W(x,hT(x,z)+40,z)}),'#ffffff',.5);
+for(const [px,pz,pr] of PSRS)loop(Array.from({length:49},(_,k)=>{const a=k/48*Math.PI*2,x=px+Math.cos(a)*pr,z=pz+Math.sin(a)*pr;return W(x,hT(x,z)+8,z)}),'#9fdcff',.9,40);
+loop(Array.from({length:80},(_,k)=>{const z=-9000+k*140;return W(0,hT(0,z)+10,z)}),'#ffc24a',.9,160);
+
+/* ---------------- views + labels ---------------- */
+const VIEWS={
+  base:{pos:W(-16,hT(-16,-262)+6,-262),tgt:W(1,4.2,0),fov:10.5,lines:false},
+  site:{pos:W(-2500,5500,-14000),tgt:W(1400,-1400,5600),fov:30,lines:true},
+};
+const controls=new OrbitControls(camera,renderer.domElement);controls.enableDamping=true;controls.dampingFactor=.08;controls.minDistance=20;controls.maxDistance=60000;controls.maxPolarAngle=Math.PI*.497;
+const LABELS=[
+  {v:'site',p:()=>W(SH.x-1500,hT(SH.x-1500,SH.z+SH.R*.8)+300,SH.z+SH.R*.8),t:'SHACKLETON CRATER',s:'21 km wide · 4 km deep · floor never sunlit'},
+  {v:'site',p:()=>W(-750,hT(-750,1300)+30,1300),t:'DARK CRATERS · ice?',s:'permanently shadowed · 1–2 km away',dx:-120},
+  {v:'site',p:()=>W(0,hT(0,-4200)+20,-4200),t:'CONNECTING RIDGE',s:'high ground · sunlit most of the time',warm:true},
+  {v:'site',p:()=>W(0,12,0),t:'YOUR BASE',s:'≈50 m across · to scale',ring:true,dx:110},
+  {v:'base',p:()=>W(2,6.2,-6),t:'HABITAT',s:'crew of 4'},
+  {v:'base',p:()=>W(-11,3.6,0),t:'SHELTER',s:'soil blocks radiation'},
+  {v:'base',p:()=>W(-12.5,13.6,14),t:'SOLAR ARRAYS',s:'turn to follow the low Sun'},
+];
+const labHost=document.getElementById('labels');
+LABELS.forEach(l=>{const el=document.createElement('div');el.className='lab'+(l.warm?' warm':'');el.innerHTML=`<div class="box"><div class="t">${l.t}</div><div class="s">${l.s}</div></div><div class="stem"></div><div class="dot"></div>`;if(l.dx)el.style.setProperty('--dx',l.dx+'px');labHost.appendChild(el);l.el=el});
+const st={view:'base',light:'sun'};
+let anim=null;
+function setView(v,instant){const V=VIEWS[v];lines.visible=V.lines;
+  if(instant){camera.position.copy(V.pos);controls.target.copy(V.tgt);camera.fov=V.fov;camera.updateProjectionMatrix();return}
+  anim={t0:performance.now(),dur:1800,p0:camera.position.clone(),t0v:controls.target.clone(),f0:camera.fov,V}}
+function setLight(m){const L=LIGHT[m],up=m==='sun';terrainMat.uniforms.sunD.value.set(...L);
+  sun.position.copy(W(L[0]*1500,L[1]*1500,L[2]*1500));sun.target.position.set(0,0,0);sun.intensity=up?2.6:0;
+  hemi.intensity=up?.55:.3;lamps.forEach(l=>l.intensity=up?30:160);
+  document.getElementById('sunchip').textContent=up?'☀ Sun: very low, behind you':'☀ Sun: hidden behind far hills';}
+document.querySelectorAll('.seg').forEach(sg=>sg.addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;st[sg.dataset.k]=b.dataset.v;sync();if(sg.dataset.k==='view')setView(st.view);else setLight(st.light)}));
+function sync(){document.querySelectorAll('.seg').forEach(sg=>sg.querySelectorAll('button').forEach(b=>b.classList.toggle('on',st[sg.dataset.k]===b.dataset.v)))}
+
+/* ---------------- render loop ---------------- */
+const composer=new EffectComposer(renderer);composer.addPass(new RenderPass(scene,camera));
+const bloom=new UnrealBloomPass(new THREE.Vector2(1280,720),.35,.4,.95);composer.addPass(bloom);composer.addPass(new OutputPass());
+function resize(){const w=frame.clientWidth||728,h=Math.round(w*9/16);renderer.setSize(w,h,false);composer.setSize(w,h);camera.aspect=w/h;camera.updateProjectionMatrix()}
+new ResizeObserver(resize).observe(frame);resize();
+const ease=t=>t<.5?4*t*t*t:1-Math.pow(-2*t+2,3)/2;
+const v3=new THREE.Vector3();
+function tick(now){
+  if(anim){let t=Math.min(1,(now-anim.t0)/anim.dur),k=ease(t);
+    // fly out along a curve so the zoom feels like a real camera move
+    camera.position.lerpVectors(anim.p0,anim.V.pos,k);camera.position.y+=Math.sin(k*Math.PI)*800*(anim.V===VIEWS.site?1:.6);
+    controls.target.lerpVectors(anim.t0v,anim.V.tgt,k);camera.fov=anim.f0+(anim.V.fov-anim.f0)*k;camera.updateProjectionMatrix();if(t>=1)anim=null}
+  controls.update();composer.render();
+  const w=frame.clientWidth,h=frame.clientHeight,dist=camera.position.length();
+  for(const l of LABELS){const show=(l.v==='site')===(dist>2500);if(!show){l.el.style.display='none';continue}v3.copy(l.p()).project(camera);
+    if(v3.z>1||v3.x<-1.1||v3.x>1.1||v3.y<-1.1||v3.y>1.1){l.el.style.display='none';continue}l.el.style.display='block';l.el.style.left=((v3.x+1)/2*w)+'px';l.el.style.top=((1-v3.y)/2*h)+'px'}
+  requestAnimationFrame(tick)}
+sync();setLight('sun');setView('base',true);requestAnimationFrame(tick);
+</script>
+</body>
+</html>
