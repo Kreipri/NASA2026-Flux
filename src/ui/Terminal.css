@@ -1,34 +1,53 @@
 @import url("https://fonts.googleapis.com/css2?family=Nunito:wght@600;800;900&display=swap");
-body { margin: 0; background: #000; font-family: Nunito, system-ui, sans-serif; color: #e6f6ff; }
+html, body, #root { margin: 0; height: 100%; }
+body { background: #0b1020; font-family: Nunito, system-ui, sans-serif; color: #e6f6ff; overflow: hidden; }
 
-.game { position: relative; width: min(100vw, 1600px); aspect-ratio: 16 / 9; margin: auto;
-        overflow: hidden; border-radius: 16px; }
-.scene-svg { position: absolute; inset: 0; width: 100%; height: 100%; }
+/* ---------- Full-window game ---------- */
+.game { position: relative; width: 100vw; height: 100vh; height: 100dvh; overflow: hidden; }
 
-.hud-top { position: absolute; left: 3%; top: 4%; }
-.hud-top h1 { margin: 0; font-size: 44px; font-weight: 900; font-style: italic; }
-.hud-top h1 small { font-size: 20px; opacity: 0.7; }
+/* Stage: always 16:9, grows to cover the window, centred.
+   Scene + markers live here, so markers stay on their buildings. */
+.stage { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%);
+         width: max(100vw, calc(100dvh * 16 / 9));
+         height: max(100dvh, calc(100vw * 9 / 16)); }
+.scene-svg { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+
+/* ---------- Top HUD ---------- */
+.hud-top { position: absolute; left: clamp(12px, 3vw, 48px); top: clamp(12px, 3vh, 40px); z-index: 3; }
+.hud-top h1 { margin: 0; font-size: clamp(26px, 3.2vw, 52px); font-weight: 900; font-style: italic; }
+.hud-top h1 small { font-size: 0.45em; opacity: 0.7; }
 .day-dots { display: flex; gap: 8px; margin: 6px 0 12px; }
 .dd { width: 12px; height: 12px; border-radius: 50%; border: 2px solid #4fd1e0; }
 .dd.past { background: #4fd1e0; opacity: 0.6; }
 .dd.now { background: #a5f3fc; box-shadow: 0 0 8px #67e8f9; }
 .dd.shadow { border-style: dashed; border-color: #a78bfa; }
-.chips { display: flex; gap: 8px; }
+
+/* ---------- Chips / badges (D-008) ---------- */
+.chips { display: flex; gap: 8px; flex-wrap: wrap; }
 .chip { border: 2px solid #4fd1e0; border-radius: 999px; padding: 4px 12px; font-weight: 800;
-        font-size: 14px; background: #0b1220cc; }
+        font-size: clamp(11px, 1vw, 15px); background: #0b1220cc; }
 .chip-sun { border-color: #fcd34d; color: #fde68a; }
 .chip-archive { border-color: #fbbf24; color: #fde68a; border-radius: 4px; font-size: 12px; }
 .chip-sim { border-style: dashed; border-color: #94a3b8; color: #cbd5e1; border-radius: 4px; font-size: 11px; }
 
-.hotspot { position: absolute; transform: translate(-50%, -50%); display: flex; flex-direction: column; align-items: center; }
-.pin { width: 46px; height: 46px; border-radius: 50%; border: 2px solid #67e8f9; background: #0b1220dd;
-       font-size: 20px; cursor: pointer; position: relative; box-shadow: 0 0 12px #22d3ee88; }
+/* ---------- Hotspot markers (anchored to buildings) ---------- */
+.hotspot { position: absolute; transform: translate(-50%, -100%);
+           display: flex; flex-direction: column; align-items: center; z-index: 2; }
+.pin { width: clamp(36px, 2.8vw, 52px); height: clamp(36px, 2.8vw, 52px); border-radius: 50%;
+       border: 2px solid #67e8f9; background: #0b1220dd; font-size: clamp(16px, 1.3vw, 22px);
+       cursor: pointer; position: relative; box-shadow: 0 0 12px #22d3ee88; }
 .pin:hover, .pin-on { background: #155e75; }
 .pin-count { position: absolute; top: -6px; right: -6px; background: #fcd34d; color: #111;
-             border-radius: 50%; width: 20px; height: 20px; font-size: 12px; font-weight: 900; }
-.pin-line { width: 2px; height: 40px; background: #67e8f9; }
-.pop { position: absolute; top: 54px; left: 54px; width: 270px; background: #0b1220f2;
+             border-radius: 50%; width: 20px; height: 20px; font-size: 12px; font-weight: 900;
+             display: grid; place-items: center; }
+.pin-line { width: 2px; background: #67e8f9; box-shadow: 0 0 6px #22d3ee; }
+.pin-tip  { width: 8px; height: 8px; border-radius: 50%; background: #67e8f9;
+            box-shadow: 0 0 8px #22d3ee; margin-bottom: -4px; }
+
+/* ---------- Job popup ---------- */
+.pop { position: absolute; top: 0; left: 56px; width: min(270px, 70vw); background: #0b1220f2;
        border: 2px solid #67e8f9; border-radius: 14px; padding: 10px; z-index: 5; }
+.pop-left { left: auto; right: 56px; }
 .pop-title { font-weight: 900; margin-bottom: 6px; }
 .job { display: block; width: 100%; text-align: left; margin: 4px 0; padding: 8px 10px; border-radius: 10px;
        border: 1px solid #334155; background: #111a2e; color: inherit; font: inherit; cursor: pointer; }
@@ -36,30 +55,49 @@ body { margin: 0; background: #000; font-family: Nunito, system-ui, sans-serif; 
 .job.on { border-color: #fcd34d; background: #3a2f0b; }
 .job:disabled { opacity: 0.4; cursor: default; }
 
-.tray { position: absolute; left: 0; right: 0; bottom: 0; display: grid;
-        grid-template-columns: auto 1.4fr 1.2fr auto; gap: 20px; align-items: center;
-        padding: 18px 28px; background: linear-gradient(transparent, #060a14 40%); }
-.bot { width: 80px; height: 80px; border-radius: 50%; border: 3px solid #67e8f9; background: #0e2a3a;
-       display: grid; place-items: center; font-size: 40px; }
+/* ---------- Bottom tray (pinned to the window) ---------- */
+.tray { position: absolute; left: 0; right: 0; bottom: 0; z-index: 3; display: grid;
+        grid-template-columns: auto minmax(0, 1.4fr) minmax(0, 1.2fr) auto;
+        gap: clamp(10px, 1.5vw, 24px); align-items: center;
+        padding: clamp(10px, 2vh, 22px) clamp(12px, 2vw, 32px);
+        background: linear-gradient(transparent, #060a14 40%); }
+.bot { width: clamp(52px, 5vw, 84px); aspect-ratio: 1; border-radius: 50%; border: 3px solid #67e8f9;
+       background: #0e2a3a; display: grid; place-items: center; font-size: clamp(26px, 2.5vw, 42px); }
 .bubble { position: relative; border: 2px solid #67e8f9; border-radius: 14px; padding: 16px 18px 10px; background: #0b1220e6; }
-.bubble p { margin: 0 0 8px; font-size: 18px; font-weight: 800; }
+.bubble p { margin: 0 0 8px; font-size: clamp(14px, 1.2vw, 20px); font-weight: 800; }
 .bubble-tag { position: absolute; top: -12px; left: 16px; background: #67e8f9; color: #062030;
               font-size: 12px; font-weight: 900; padding: 2px 8px; border-radius: 4px; }
+
+/* Meters */
 .meters { display: grid; grid-template-columns: 1fr 1fr; gap: 10px 24px; }
 .bar { display: grid; grid-template-columns: 26px 1fr 30px; align-items: center; gap: 8px; }
-.bar small { opacity: 0.7; } .bar-icon { font-weight: 900; }
+.bar small { opacity: 0.7; }
+.bar-icon { font-weight: 900; }
 .track { height: 8px; border-radius: 4px; background: #1e293b; }
 .fill { height: 100%; border-radius: 4px; transition: width 0.5s; }
+
+/* Crew time + END DAY */
 .end-col { display: flex; flex-direction: column; gap: 12px; align-items: flex-end; }
-.crew-dots { display: flex; gap: 8px; }
-.dot { width: 18px; height: 18px; border-radius: 50%; border: 2px solid #67e8f9; }
+.crew-dots { display: flex; gap: clamp(4px, 0.5vw, 8px); }
+.dot { width: clamp(12px, 1.1vw, 20px); aspect-ratio: 1; border-radius: 50%; border: 2px solid #67e8f9; }
 .dot.used { background: #fcd34d; border-color: #fcd34d; }
 .dot.off { opacity: 0.2; }
 .end-btn { background: linear-gradient(#a5f3fc, #22d3ee); color: #062030; border: 0; border-radius: 14px;
-           padding: 14px 44px; font: inherit; font-size: 22px; font-weight: 900; letter-spacing: 2px;
-           cursor: pointer; box-shadow: 0 0 20px #22d3ee88; margin-top: 8px; }
+           padding: clamp(10px, 1.2vh, 16px) clamp(20px, 3vw, 48px); font: inherit;
+           font-size: clamp(16px, 1.5vw, 24px); font-weight: 900; letter-spacing: 2px;
+           cursor: pointer; box-shadow: 0 0 20px #22d3ee88; }
 .end-btn:disabled { opacity: 0.4; cursor: default; }
 .end-btn.alt { background: linear-gradient(#fde68a, #f59e0b); }
-.modal { position: absolute; inset: 0; background: #000b; display: grid; place-items: center; z-index: 10; }
-.modal-box { background: #0b1220; border: 2px solid #67e8f9; border-radius: 18px; padding: 28px;
-             max-width: 620px; display: flex; flex-direction: column; gap: 8px; }
+
+/* ---------- Modals ---------- */
+.modal { position: absolute; inset: 0; background: #000b; display: grid; place-items: center; z-index: 10; padding: 16px; }
+.modal-box { background: #0b1220; border: 2px solid #67e8f9; border-radius: 18px; padding: clamp(16px, 2vw, 28px);
+             max-width: min(620px, 92vw); max-height: 90dvh; overflow: auto;
+             display: flex; flex-direction: column; gap: 8px; }
+
+/* ---------- Narrow screens: tray stacks into 2 rows ---------- */
+@media (max-width: 900px) {
+  .tray { grid-template-columns: auto 1fr; }
+  .meters { grid-column: 1 / -1; }
+  .end-col { grid-column: 1 / -1; flex-direction: row; justify-content: space-between; align-items: center; }
+}
