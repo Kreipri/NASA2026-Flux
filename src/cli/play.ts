@@ -4,8 +4,8 @@
 //   node --no-warnings src/cli/play.ts act 1 4 7 | choose back|finish | show
 import { mkdirSync, readFileSync, writeFileSync, existsSync, appendFileSync } from 'node:fs';
 import {
-  newGame, step, menu, env, stormActive, blocksToday, blocksFor, totalDays, reportCard, checklist, verdict, totalStars, scenarioOf, daysUntilLink, forecastLines,
-  iceChance, powerCost, actionDef, validate, mealEffects, type State, type ActionId, type ScenarioId, type TripChoice, type Goal, type ActionDef, type MealMode,
+  newGame, step, menu, env, stormActive, blocksToday, blocksFor, totalDays, turnUnit, reportCard, checklist, verdict, totalStars, scenarioOf, daysUntilLink, forecastLines,
+  iceChance, powerCost, actionDef, validate, mealEffects, type State, type ActionId, type ScenarioId, type TripChoice, type AlertChoice, type Goal, type ActionDef, type MealMode,
 } from '../engine/engine.ts';
 import moon from '../config/moon.json' with { type: 'json' };
 import { missionControl, emergencyHelp } from '../content/lines.ts';
@@ -15,6 +15,8 @@ const load = (): State => {
   const s = JSON.parse(readFileSync(FILE, 'utf8')) as State;
   // Older saved runs predate the food meter.
   if (typeof s.food !== 'number') s.food = 100;
+  if (!s.keyMoments) s.keyMoments = [];
+  if (typeof s.evidence.longShadowLogged !== 'boolean') s.evidence.longShadowLogged = false;
   return s;
 };
 const save = (s: State) => { mkdirSync(new URL('../../.run/', import.meta.url), { recursive: true }); writeFileSync(FILE, JSON.stringify(s)); };
@@ -45,7 +47,7 @@ function effect(s: State, d: ActionDef): string {
     case 'powersave': return `saves ${moon.perDay.upkeepPower - moon.perDay.powerSaveUpkeep} power`;
     case 'shelter': return 'SHELTER: less dose';
     case 'rest': return 'stamina +20';
-    case 'call': return 'storm forecast';
+    case 'call': return s.scenario === 'solarMax' && s.turn >= 4 ? 'call home: stamina +5' : 'storm forecast';
     default: return '';
   }
 }
@@ -113,7 +115,7 @@ function taskResult(s: State, id: ActionId): string[] {
     case 'powersave': return ['TASK RESULT: the base will use less power today, but the crew will get colder.'];
     case 'shelter': return ['TASK RESULT: the crew will spend the day in the strongest shelter during the storm peak.'];
     case 'rest': return ['TASK RESULT: rest time assigned. The crew will recover stamina when the day resolves.', 'Rest does not refill today\'s crew time or remove accumulated radiation dose.'];
-    case 'call': return ['TASK RESULT: Mission Control sent the latest forecast.', ...forecastLines(s).slice(1)];
+    case 'call': return s.scenario === 'solarMax' && s.turn >= 4 ? ['TASK RESULT: Mission Control checked the crew by radio. Stamina +5 when the turn resolves.'] : ['TASK RESULT: Mission Control sent the latest forecast.', ...forecastLines(s).slice(1)];
     default: return ['TASK RESULT: task added to today’s plan.'];
   }
 }
@@ -176,7 +178,8 @@ function screen(s: State, planned: ActionId[] = [], meal: MealMode = 'normal'): 
   const displayFood = Math.max(0, projected.food);
   const displayDose = Math.min(100, projected.dose);
   const displayStamina = Math.max(0, projected.stamina);
-  L.push(row('SHACKLETON RIDGE OUTPOST'.padEnd(54) + `DAY ${s.turn + 1} / ${totalDays(s)}`.padStart(22)));
+  const unit = turnUnit(s).toUpperCase();
+  L.push(row('SHACKLETON RIDGE OUTPOST'.padEnd(54) + `${unit} ${s.turn + 1} / ${totalDays(s)}`.padStart(22)));
   L.push(line);
   const flag = (bad: boolean, w: string) => (bad ? ' ' + w : '');
   L.push(row(`BASE  POWER   ${bar(displayPower)} ${String(displayPower).padStart(3)}%${flag(displayPower <= 25, 'LOW!')}`.padEnd(40) + `OXYGEN ${bar(displayO2)} ${String(displayO2).padStart(3)}%${flag(displayO2 <= 25, 'LOW!')}`));
@@ -208,7 +211,7 @@ function screen(s: State, planned: ActionId[] = [], meal: MealMode = 'normal'): 
   L.push(row('MISSION CONTROL:'));
   for (const m of missionControl(s)) for (const w of wrap(m)) L.push(row('  ' + w));
   L.push(line);
-  L.push(row(`PLAN THE DAY: type job numbers, e.g. 1 3 4  (crew time ${bt}, unused = rest)`));
+  L.push(row(`PLAN THE ${unit}: type job numbers, e.g. 1 3 4  (crew time ${bt}, unused = rest)`));
   L.push(row('     job                   time  costs                  gives'));
   let n = 0;
   const m = menu(s);
@@ -261,6 +264,7 @@ function card(s: State): string {
     row(`  FOOD       ${s.food}% supply remaining`),
     row(`  ICE        ${stars(rc.ICE)}  drone maps ${ev.scouts}, rover samples ${ev.trips}, ice found ${ev.iceFound}, dry spots ${ev.mappedEmpty}`),
     row(`  MAIN ${v.mainDone}/4   BONUS ${v.bonus}/8   TOTAL ${v.stars}/12   (promising: 4 main, approved: ${w.minStars}, gold: ${w.gold})`),
+    ...(s.keyMoments.length ? [row('KEY MOMENTS:'), ...s.keyMoments.slice(-4).flatMap((m) => wrap('- ' + m).map((w) => row('  ' + w)))] : []),
     line, row('NEXT TIME, TRY:'), ...tips.slice(0, 3).flatMap((t) => wrap('- ' + t).map((w) => row('  ' + w))), line,
   ].join('\n');
 }
@@ -268,7 +272,11 @@ function card(s: State): string {
 function show(s: State, log: string[] = []) {
   if (log.length) console.log('\nWHAT HAPPENED:\n' + log.map((l) => (l.startsWith('  ') ? l : '- ' + l)).join('\n') + '\n');
   if (s.pending) {
-    console.log([line, row('!! PARTICLES ARRIVING WHILE THE ROVER IS OUT !!'), row(`  back   = turn back now: no sample, safe inside (pwr ${moon.trip.backPower}, O2 ${moon.trip.backO2})`), row('  finish = finish the trip: chance of ice, but extra storm dose outside'), line].join('\n'));
+    if (s.pending.type === 'tripChoice') console.log([line, row('!! PARTICLES ARRIVING WHILE THE ROVER IS OUT !!'), row(`  back   = turn back now: no sample, safe inside (pwr ${moon.trip.backPower}, O2 ${moon.trip.backO2})`), row('  finish = finish the trip: chance of ice, but extra storm dose outside'), line].join('\n'));
+    else {
+      const choices = s.pending.alert === 'storm' ? 'shelter = protect the crew   continue = keep working' : s.pending.alert === 'shadow' ? 'save = reduce power use   continue = keep everything on' : s.pending.alert === 'eclipse' ? 'save = reduce power use   carry = keep working normally' : s.pending.alert === 'dust' ? 'clean = clean panels now   later = wait' : s.pending.alert === 'sample' ? 'sample = try one more crater sample   later = head back' : 'continue = continue the mission';
+      console.log([line, row(`!! WEEKLY ALERT: ${s.pending.alert.toUpperCase()} !!`), row('Choose one response:'), ...wrap(choices, W - 4).map((w) => row('  ' + w)), line].join('\n'));
+    }
     return;
   }
   console.log(s.ended ? card(s) : screen(s));
@@ -281,7 +289,7 @@ console.log = (...a: unknown[]) => { print(...a); mkdirSync(new URL('../../.run/
 
 function handle(cmd: string | undefined, args: string[]) {
   if (cmd === 'new') {
-    const s = newGame((args[0] as ScenarioId) ?? 'week', Number(args[1] ?? Math.floor(Math.random() * 1e6)));
+    const s = newGame((args[0] as ScenarioId) ?? 'weeks7', Number(args[1] ?? Math.floor(Math.random() * 1e6)));
     console.log(`\n===== NEW GAME: ${s.scenario}, seed ${s.seed} =====`);
     save(s); show(s);
   } else if (cmd === 'note') {
@@ -316,8 +324,8 @@ function handle(cmd: string | undefined, args: string[]) {
   }
 }
 
-const HELP = `Type a job number to preview it, then type yes to add it to today's plan. You can select more jobs before the day ends.
-Type "meal light|normal|full" to choose food and stamina trade-offs, "end" to resolve the day, "fast" to toggle confirmations for testing, "back"/"finish" when a rover choice is asked, "note <text>" to jot playtest feedback, "show", "new week" (7 days) / "new full" (14 days), "help", or "quit".`;
+const HELP = `Type a job number to preview it, then type yes to add it to this week's plan. You can select more jobs before the week ends.
+Type "meal light|normal|full" to choose food and stamina trade-offs, "end" to resolve the turn, "fast" to toggle confirmations for testing, "shelter/save/continue" when an alert is waiting, "back"/"finish" for a rover choice, "note <text>", "show", "new weeks7" (7 weeks), "new solarMax", "new week" (legacy 7-day), "help", or "quit".`;
 
 async function interactive() {
   const { createInterface } = await import('node:readline');
@@ -350,7 +358,7 @@ async function interactive() {
     else print('Choose another task, or type end when you are ready to finish the day.');
   };
   print(HELP);
-  if (existsSync(FILE)) handle('show', []); else handle('new', ['week']);
+  if (existsSync(FILE)) handle('show', []); else handle('new', ['weeks7']);
   rl.prompt();
   for await (const raw of rl) {
     const input = raw.trim();
@@ -372,6 +380,15 @@ async function interactive() {
       }
       else if (w === 'no' || w === 'n') { proposed = null; print('Plan cancelled.'); }
       else if (w === 'end' || w === 'finishday') resolvePlannedDay();
+      else if (['shelter', 'continue', 'save', 'carry', 'clean', 'later', 'sample'].includes(w)) {
+        const current = load();
+        if (!current.pending || current.pending.type !== 'alertChoice') print('No weekly alert is waiting for that choice.');
+        else {
+          const r = step({ ...current, pending: null }, current.pending.actions, w as AlertChoice, meal);
+          save(r.state); show(r.state, r.log);
+          if (!r.state.pending) meal = 'normal';
+        }
+      }
       else if (w === 'back' || w === 'finish') {
         const current = load();
         if (current.pending) {
@@ -399,5 +416,5 @@ async function interactive() {
 }
 
 const [cmd, ...args] = process.argv.slice(2);
-if (!cmd || cmd === 'i') await interactive();
+  if (!cmd || cmd === 'i') await interactive();
 else handle(cmd, args);

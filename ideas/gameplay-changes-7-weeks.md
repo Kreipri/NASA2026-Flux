@@ -1,6 +1,6 @@
 # Gameplay Changes for the 7-Week Mission: build spec (2026-11-15)
 
-**For:** the next agent or Bea's collaborator. **Not started.** The engine and CLI still run the 7-day `week` scenario.
+**For:** the next agent or Bea's collaborator. **Status:** first playable pass implemented in the terminal. `weeks7` is now the default; `week` remains as the legacy 7-day scenario. Balance, story-copy wiring, and the complete archived storm deck still need follow-up.
 **Read first:** `DECISIONS.md` (D-027, D-028), `ideas/timeline-7-weeks-v1.md` (the design), `ideas/real-events-deck.md` (storms), `ideas/fact-sources.md` (fact IDs), `ideas/balance-pass-v2.md` (current numbers and sim targets).
 **Story owner:** the storyline is being finalized separately (`ideas/storyline-v2.md`). Use its text for briefs, crew asks and endings. Don't write new story copy in the engine.
 
@@ -36,7 +36,8 @@ These come from the finished story script. They are must-dos unless marked other
 | 20 | **Tappable words (UI/content):** lines mark hard words as `[[radiation]]`; a glossary file holds the pop-ups (script §6) | Not engine work |
 
 ## Still open (not final until these are done)
-- Per-week numbers and choice effects (#2, #14) need tuning with the sim (#9).
+- Per-week numbers and choice effects (#2, #14) need more tuning with the sim (#9); the first pass is playable but does not yet hit the old planner target.
+- The current engine uses a compact metadata deck/game-scaled profiles; bundle and wire all seven archived storm snapshots before calling every storm fully real.
 - No kid playtest of the 7-week loop yet.
 - Optional: on replays, start some runs in an Earth-down week.
 
@@ -47,6 +48,6 @@ These come from the finished story script. They are must-dos unless marked other
 
 ## Acceptance check
 - `npm run play` starts the 7-week mission and finishes in ~15 min. Alert days appear; no Mission Control lines during blackout weeks.
-- `npm run sim` prints the per-draw table and meets the targets in #9.
+- `npm run sim -- weeks7` and `npm run sim -- solarMax` print overall and per-draw results. Treat the current numbers as a tuning baseline, not final acceptance.
 - No fact or data line without a label (spot-check the CLI transcript `.run/playlog.txt`).
 - Update `ideas/balance-pass-v2.md` (or start v3) with the new numbers and sim results, and add a line to `HANDOFF.md`.

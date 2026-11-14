@@ -6,7 +6,13 @@ Status: `decided` | `proposed` | `open` | `superseded`
 
 ---
 
-## D-027: Food supply and faster terminal testing
+## D-034: First playable implementation of the 7-week mission
+**Status:** decided (2026-11-15; implementation pass).
+- `weeks7` is the terminal default: seven turns, one turn per week, 8 crew-time blocks per turn, food choice, Earth-link schedule, shadow/eclipses, storm alerts, alert choices, mission tiers, failure states, and key-moment logging.
+- `solarMax` is available as the harder replay with the false-alarm branch and `call` task. `week` remains available as the legacy 7-day scenario for comparison.
+- The implementation is intentionally terminal-only. Current sim results are a tuning baseline; complete archived storm coverage, final story copy, cue IDs, and kid playtesting remain open.
+
+## D-033: Food supply and faster terminal testing
 **Status:** decided (2026-11-15; user-requested playtest additions).
 - Add a FOOD SUPPLY bar as a simple base-support meter. It starts at 100. Each day the player chooses LIGHT meals (food -4, stamina -5), NORMAL meals (food -6, no stamina modifier), or FULL meals (food -8, stamina +5). It is a game abstraction, not a NASA ration limit.
 - Food reaching zero is a distinct Level 3 mission failure. Food is shown alongside Power, Oxygen, Dose, and Stamina in the terminal interface.

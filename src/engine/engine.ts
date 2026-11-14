@@ -7,9 +7,11 @@ import storm from '../data/storm-2024-05.json' with { type: 'json' };
 export type ActionId =
   | 'logsun' | 'measure' | 'scout' | 'rover' | 'regolith' | 'clean' | 'air'
   | 'repair' | 'powersave' | 'shelter' | 'rest' | 'call';
-export type ScenarioId = 'week' | 'slice' | 'full';
+export type ScenarioId = 'weeks7' | 'solarMax' | 'week' | 'slice' | 'full';
 export type StormLevel = 'none' | 'warning' | 'rising' | 'strong';
 export type TripChoice = 'back' | 'finish';
+export type AlertChoice = 'shelter' | 'continue' | 'save' | 'carry' | 'clean' | 'later' | 'sample';
+export type StepChoice = TripChoice | AlertChoice;
 export type MealMode = 'light' | 'normal' | 'full';
 export type Goal = 'LIGHT' | 'RADIATION' | 'SHELTER' | 'ICE';
 
@@ -26,11 +28,14 @@ export interface Env {
   stormSource: 'archive' | 'sim' | null;
   stormOnset: boolean;
   realDay: string | null;   // archive date this day replays (RadLab/DONKI)
+  stormName?: string;
+  stormScale?: number;
+  alert?: 'dust' | 'storm' | 'shadow' | 'eclipse' | 'sample' | null;
   link: boolean;
 }
 
 export interface Evidence {
-  sunLogs: number; eclipseLogged: boolean; measures: number; stormMeasures: number;
+  sunLogs: number; eclipseLogged: boolean; longShadowLogged: boolean; measures: number; stormMeasures: number;
   trips: number; scouts: number; iceFound: number; mappedEmpty: number;
   shelteredStormDays: number; outsideStormBlocks: number; powerHitZero: boolean;
 }
@@ -42,10 +47,11 @@ export interface State {
   faults: { panel: boolean; scrubber: boolean };
   emergency: boolean;
   evidence: Evidence;
+  keyMoments: string[];
   timeline: Env[];
-  pending: null | { type: 'tripChoice'; actions: ActionId[] };
+  pending: null | { type: 'tripChoice'; actions: ActionId[] } | { type: 'alertChoice'; actions: ActionId[]; alert: NonNullable<Env['alert']> };
   ended: null | { reason: 'complete' | 'oxygen' | 'food' | 'dose' };
-  history: { turn: number; actions: ActionId[]; choice?: TripChoice }[];
+  history: { turn: number; actions: ActionId[]; choice?: StepChoice }[];
 }
 
 export const ACTIONS = moon.actions as ActionDef[];
@@ -54,6 +60,7 @@ const SC = scenarios as Record<ScenarioId, any>;
 export const scenarioOf = (s: State) => SC[s.scenario];
 export const totalDays = (s: State): number => scenarioOf(s).days;
 export const day = (s: State, turn = s.turn) => turn + 1;
+export const turnUnit = (s: State): 'day' | 'week' => scenarioOf(s).turnUnit === 'week' ? 'week' : 'day';
 
 // --- seeded RNG (mulberry32) ---
 function next(st: number): [number, number] {
@@ -70,7 +77,8 @@ function makeRng(seed: number) {
 
 /** Max hourly CRaTER dose rate (uGy/h) for a real calendar day of the May 2024 storm. */
 export function realDayRate(date: string): number {
-  return Math.max(...storm.crater12h.filter((w) => w.start.startsWith(date)).map((w) => w.maxDoseRate));
+  const rates = storm.crater12h.filter((w) => w.start.startsWith(date)).map((w) => w.maxDoseRate);
+  return rates.length ? Math.max(...rates) : 0;
 }
 export const QUIET_RATE = realDayRate('2024-05-08');
 function levelFromRate(rate: number): StormLevel {
@@ -81,8 +89,43 @@ function buildTimeline(sc: any, seed: number): Env[] {
   const r = makeRng(seed ^ 0x9e3779b9);
   const n = sc.days;
   const tl: Env[] = Array.from({ length: n }, () => ({
-    sun: 'full', eclipse: 'none', storm: 'none', stormSource: null, stormOnset: false, realDay: null, link: true,
+    sun: 'full', eclipse: 'none', storm: 'none', stormSource: null, stormOnset: false, realDay: null, stormName: undefined, stormScale: 1, alert: null, link: true,
   }));
+  if (sc.turnUnit === 'week') {
+    const up = new Set<number>(sc.earth.upTurns ?? []);
+    for (let t = 0; t < n; t++) tl[t].link = up.has(t);
+    if (sc.longShadow) {
+      const len = r.int(sc.longShadow.length[0], sc.longShadow.length[1]);
+      for (let t = sc.longShadow.startTurn; t < Math.min(n, sc.longShadow.startTurn + len); t++) Object.assign(tl[t], { sun: 'dark', eclipse: 'long', alert: 'shadow' });
+    }
+    for (let i = 0; i < sc.shortEclipses.count; i++) {
+      const [a, b] = sc.shortEclipses.turnRanges[i % sc.shortEclipses.turnRanges.length];
+      const t = r.int(a, b);
+      if (tl[t].eclipse === 'none') Object.assign(tl[t], { sun: 'half', eclipse: 'short', alert: 'eclipse' });
+    }
+    if (n > 0) tl[0].alert = 'dust';
+    if (n > 5) tl[5].alert = 'sample';
+    const deck = [
+      { name: 'May 2024', realDay: '2024-05-10', level: 'strong' as StormLevel, scale: 1.0 },
+      { name: 'September 2017', realDay: null, level: 'strong' as StormLevel, scale: 1.25 },
+      { name: 'October 2021', realDay: null, level: 'rising' as StormLevel, scale: 0.75 },
+      { name: 'January 2022', realDay: null, level: 'rising' as StormLevel, scale: 0.45 },
+      { name: 'May 2012', realDay: null, level: 'strong' as StormLevel, scale: 1.1 },
+      { name: 'March 2012', realDay: null, level: 'strong' as StormLevel, scale: 1.5 },
+    ];
+    for (const slot of sc.stormSlots ?? []) {
+      if (slot.chance !== undefined && r.int(0, 999) >= slot.chance * 1000) continue;
+      if (slot.kind === 'false-alarm-or-small' && sc.mode === 'solarMax' && r.int(0, 1) === 0) {
+        Object.assign(tl[slot.turn], { storm: 'warning', stormSource: 'archive', stormName: 'February 2024 false alarm', alert: 'storm' });
+        continue;
+      }
+      const options = slot.kind === 'small-medium' ? deck.slice(2, 4) : slot.kind === 'sneaky-big' ? deck.slice(4) : deck.slice(0, 4);
+      let pick = options[r.int(0, options.length - 1)];
+      if (slot.turn === sc.longShadow?.startTurn && pick.name === 'March 2012') pick = deck[0];
+      Object.assign(tl[slot.turn], { storm: pick.level, stormSource: 'archive', stormOnset: true, realDay: pick.realDay, stormName: pick.name, stormScale: pick.scale, alert: 'storm' });
+    }
+    return tl;
+  }
   if (sc.longShadow) {
     const len = r.int(sc.longShadow.length[0], sc.longShadow.length[1]);
     for (let t = sc.longShadow.startTurn; t < Math.min(n, sc.longShadow.startTurn + len); t++) Object.assign(tl[t], { sun: 'dark', eclipse: 'long' });
@@ -117,7 +160,8 @@ export function newGame(scenario: ScenarioId, seed: number): State {
     ...moon.start, ...(SC[scenario].start ?? {}),
     dust: 0, shelterLevel: 0, iceSamples: 0, scoutBonus: 0,
     faults: { panel: false, scrubber: false }, emergency: false,
-    evidence: { sunLogs: 0, eclipseLogged: false, measures: 0, stormMeasures: 0, trips: 0, scouts: 0, iceFound: 0, mappedEmpty: 0, shelteredStormDays: 0, outsideStormBlocks: 0, powerHitZero: false },
+    evidence: { sunLogs: 0, eclipseLogged: false, longShadowLogged: false, measures: 0, stormMeasures: 0, trips: 0, scouts: 0, iceFound: 0, mappedEmpty: 0, shelteredStormDays: 0, outsideStormBlocks: 0, powerHitZero: false },
+    keyMoments: [],
     timeline: buildTimeline(SC[scenario], seed),
     pending: null, ended: null, history: [],
   };
@@ -203,10 +247,13 @@ const clamp = (v: number) => Math.max(0, Math.min(100, v));
  * Resolve one day. If a storm starts while the rover is out and no choice was given,
  * returns with pending set and nothing resolved: call again with a TripChoice.
  */
-export function step(s0: State, ids: ActionId[], choice?: TripChoice, meal: MealMode = 'normal'): { state: State; log: string[] } {
+export function step(s0: State, ids: ActionId[], choice?: StepChoice, meal: MealMode = 'normal'): { state: State; log: string[] } {
   const err = validate(s0, ids);
   if (err) return { state: s0, log: ['! ' + err] };
   const e = env(s0);
+  if (e.alert && !choice && (e.alert !== 'sample' || ids.includes('rover'))) {
+    return { state: { ...s0, pending: { type: 'alertChoice', actions: ids, alert: e.alert } }, log: [] };
+  }
   if (ids.includes('rover') && stormActive(e) && e.stormOnset && !choice) {
     return { state: { ...s0, pending: { type: 'tripChoice', actions: ids } }, log: [] };
   }
@@ -215,8 +262,12 @@ export function step(s0: State, ids: ActionId[], choice?: TripChoice, meal: Meal
   const log: string[] = [];
   const pd = moon.perDay;
   const st = moon.stamina;
-  let outsideBlocks = 0, insideBlocks = 0, sheltered = false, powerSave = false;
+  let outsideBlocks = 0, insideBlocks = 0, sheltered = choice === 'shelter', powerSave = choice === 'save';
   let doseFromJobs = 0;
+  if (e.storm === 'warning' && e.stormName?.includes('false alarm')) log.push('False-alarm wrap-up: the flare did not bring a particle storm. [✓ NASA ARCHIVE / game placement]');
+  if (choice === 'clean') { s.dust = 0; log.push('Alert choice: the crew cleaned the panels immediately.'); }
+  if (choice === 'later') log.push('Alert choice: the crew postponed the extra work and kept the base steady.');
+  if (choice === 'sample') { s.scoutBonus = Math.min(moon.ice.maxChance - moon.ice.baseChance, s.scoutBonus + 0.10); s.power -= 10; s.stamina -= 5; log.push('Alert choice: one more crater sample attempt. Power -10, stamina -5, ice chance improved.'); }
 
   for (const id of ids) {
     const a = actionDef(id);
@@ -234,6 +285,7 @@ export function step(s0: State, ids: ActionId[], choice?: TripChoice, meal: Meal
       case 'logsun': {
         s.evidence.sunLogs++;
         if (e.eclipse !== 'none') s.evidence.eclipseLogged = true;
+        if (e.eclipse === 'long') s.evidence.longShadowLogged = true;
         log.push(e.eclipse !== 'none' ? 'Logged the shadow: how long the ridge stays dark. Rare evidence! [LIGHT]' : 'Logged sunlight on the ridge. [LIGHT]');
         break;
       }
@@ -280,7 +332,13 @@ export function step(s0: State, ids: ActionId[], choice?: TripChoice, meal: Meal
       case 'powersave': powerSave = true; log.push(`Power-saving mode: heaters and instruments turned down. Base uses ${pd.powerSaveUpkeep} power instead of ${pd.upkeepPower}, but the crew gets cold (stamina ${st.powerSaveCold}).`); break;
       case 'shelter': sheltered = true; log.push('Whole crew sheltered in the most shielded room during the worst hours.'); break;
       case 'rest': log.push(`Two astronauts took a rest day. Stamina +${a.stamina}.`); break;
-      case 'call': log.push(...forecastLines(s)); break;
+      case 'call':
+        if (scenarioOf(s).mode === 'solarMax' && s.turn >= 4) {
+          s.stamina = clamp(s.stamina + 5);
+          s.keyMoments.push('The crew called home during Solar max and checked in safely.');
+          log.push('Call home completed: Mission Control checked the crew. Stamina +5.');
+        } else log.push(...forecastLines(s));
+        break;
     }
   }
 
@@ -311,7 +369,10 @@ export function step(s0: State, ids: ActionId[], choice?: TripChoice, meal: Meal
     const inside = sheltered ? moon.storm.shelterByLevel[s.shelterLevel] : moon.storm.habitat;
     const out = outsideBlocks * moon.storm.outsidePerBlock;
     dose = Math.ceil((inside + out) * f);
-    if (sheltered) s.evidence.shelteredStormDays++;
+    if (sheltered) {
+      s.evidence.shelteredStormDays++;
+      s.keyMoments.push(`Sheltered during ${e.stormName ?? e.realDay ?? 'a particle storm'}${e.link ? '' : ' without Earth link'}.`);
+    }
     s.evidence.outsideStormBlocks += outsideBlocks;
     log.push(`Particle storm (${e.storm === 'strong' ? 'strong' : 'building'}): ${sheltered ? 'crew sheltered for the peak' : 'crew stayed in the habitat, not the shelter'}${outsideBlocks ? `, and astronauts were OUTSIDE` : ''}. Dose +${dose}.`);
   } else {
@@ -343,6 +404,7 @@ export function step(s0: State, ids: ActionId[], choice?: TripChoice, meal: Meal
   if (s.power <= 0) {
     if (!s.emergency) log.push('POWER EMERGENCY: the batteries are empty.');
     s.power = 0; s.emergency = true; s.evidence.powerHitZero = true;
+    s.keyMoments.push('Batteries reached zero; the base entered power-saving emergency mode.');
   } else {
     s.power = clamp(s.power);
     if (s.emergency && s.power >= moon.emergencyExitPower) { s.emergency = false; log.push('Power restored! Emergency over.'); }
@@ -360,8 +422,9 @@ export function step(s0: State, ids: ActionId[], choice?: TripChoice, meal: Meal
 export function radiationReading(e: Env): string[] {
   if (e.stormSource === 'sim' && stormActive(e)) return ['  Reading: very high. [~ SIMULATED storm, not real data]'];
   const date = e.realDay ?? '2024-05-08';
-  const rate = realDayRate(date);
+  const rate = e.realDay ? realDayRate(date) : Math.round(QUIET_RATE * (e.stormScale ?? 1));
   const x = Math.round(rate / QUIET_RATE);
+  if (e.stormName && !e.realDay) return [`  Archive event profile: ${e.stormName} (game-scaled from the real storm deck, about ${x}x a quiet week).`, '  [✓ NASA DONKI + RadLab · ARCHIVE] Game-scaled profile; exact hourly snapshot is not shown in this prototype.'];
   return [
     `  Real peak reading for ${date}: ${rate.toLocaleString('en-US')} uGy/h${x > 1 ? ` (about ${x}x a quiet day)` : ' (a quiet day)'}.`,
     '  [✓ NASA RadLab · CRaTER on LRO · ARCHIVE May 2024] Measured in lunar orbit, not on the surface.',
@@ -389,6 +452,14 @@ export function checklist(s: State): Record<Goal, Check[]> {
   const ev = s.evidence;
   const started = s.turn > 0;
   const c = (label: string, done: boolean, main = false): Check => ({ label, done, main });
+  if (s.scenario === 'weeks7' || s.scenario === 'solarMax') {
+    return {
+      LIGHT: [c(`log sunlight in 2 weeks (${Math.min(ev.sunLogs, 2)}/2)`, ev.sunLogs >= 2, true), c('log through the long shadow', ev.longShadowLogged), c(`log 4+ weeks (${Math.min(ev.sunLogs, 4)}/4)`, ev.sunLogs >= 4)],
+      RADIATION: [c('measure during 1 storm', ev.stormMeasures >= 1, true), c('measure during 2 storms', ev.stormMeasures >= 2), c('measure a quiet week', ev.measures > ev.stormMeasures)],
+      SHELTER: [c('shelter during a storm', ev.shelteredStormDays >= 1, true), c(`dose under ${DOSE_STAR}%`, s.dose <= DOSE_STAR && started), c('add a regolith layer', s.shelterLevel >= 1)],
+      ICE: [c('rover sample', ev.trips >= 1, true), c('drone map before rover', ev.trips >= 1 && ev.scouts >= 1), c('sample 2 craters', ev.trips >= 2)],
+    };
+  }
   return {
     LIGHT: [c(`log sun 2x (${Math.min(ev.sunLogs, 2)}/2)`, ev.sunLogs >= 2, true), c('log in the dark', ev.eclipseLogged), c(ev.powerHitZero ? 'power ran out' : 'keep power on', !ev.powerHitZero && started)],
     RADIATION: [c('measure once', ev.measures >= 1, true), c('measure in a storm', ev.stormMeasures >= 1), c(`measure 4x (${Math.min(ev.measures, 4)}/4)`, ev.measures >= 4)],

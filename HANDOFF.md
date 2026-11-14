@@ -3,9 +3,9 @@
 **Read order for any new agent:** `CONTEXT.md` -> `DECISIONS.md` -> this file -> `ideas/story-and-core-loop-v1.md` -> `CLAUDE.md` / `AGENTS.md` for working rules.
 
 ## Current Phase
-Git is configured with `origin` at https://github.com/Kreipri/NASA2026-Flux on `main` (D-017). Commit `781a543` holds the day-based loop. **Uncommitted on disk:** the 7-day mission, main/bonus tiers, stamina tuning, Earth-blackout explanation and their docs (D-020, D-021), plus other agents' `ideas/ice-*.md` and `ideas/ui-base-overview-v1.md`. Commit only when Bea asks; no agent co-author trailers (D-018 attribution rule).
+Git is configured with `origin` at https://github.com/Kreipri/NASA2026-Flux on `main` (D-017). Commit `781a543` holds the day-based loop. **Uncommitted on disk:** the 7-week terminal implementation (D-034), food/testing updates, and related docs, plus other agents' `ideas/ice-*.md` and `ideas/ui-base-overview-v1.md`. Commit only when Bea asks; no agent co-author trailers (D-018 attribution rule).
 
-Prototyping. A playable **terminal prototype** exists (`npm run play`, 7-day mission by default). Rules engine + bot sim tune the numbers. The project is terminal-only for now; the D-023 browser UI remains a design specification, not an implementation target yet.
+Prototyping. A playable **terminal prototype** exists (`npm run play`, 7-week mission by default). Rules engine + bot sim tune the numbers. The project is terminal-only for now; the D-023 browser UI remains a design specification, not an implementation target yet.
 
 ## What's Decided (details in `DECISIONS.md`)
 - **Game:** kid-friendly (ages 7-12) survival resource-management game, browser-based, outpost management only (no launch/landing gameplay).
@@ -19,12 +19,12 @@ Prototyping. A playable **terminal prototype** exists (`npm run play`, 7-day mis
 - **Accuracy rule:** setting must match official NASA info; fiction (crew, story, mascot, dates) is clearly labeled (D-009).
 - **Source badges:** `LIVE` / `ARCHIVE` / `SIMULATED`, tap for a "where is this from?" card (D-008). AI text gets `[AI-written story]`, never a data badge.
 - **AI:** writes event flavor and situations; a deterministic rules engine owns all numbers; bundled offline events as fallback (D-004).
-- **7-day mission (D-020/D-021, default):** 4 main goals + crew healthy = SITE PROMISING; 11 stars = APPROVED; 12 = GOLD. Ice is survey evidence (no air discount). Earth blackout explained and forecast.
+- **7-week mission (D-028/D-034, default):** 4 main goals + crew healthy = SITE PROMISING; 11 stars = APPROVED; 12 = GOLD. Ice is survey evidence (no air discount). Earth blackout, shadow, eclipses, storm alerts, food, and key moments are shown in the terminal. The old 7-day `week` scenario remains available.
 - **Core loop v2 (D-019):** 1 turn a day (7-day `week` default, 14-day `full` kept), 8 crew time (crew of 4), stamina meter, 12 jobs grouped by purpose, report card on screen. Numbers + sim results: `ideas/balance-pass-v2.md` (v1 is history).
 - **Stack (D-016):** Vite + TS + React; engine in plain TS, seeded, with a bot sim. Plan: `ideas/tech-stack-and-prototype-plan.md`.
 - **Facts verified (D-014):** Shackleton 21 km wide / 4 km deep, pole on its rim; ridge ~17 km from pole (derived); worst-case dark 73-117 h storage, longer ground-level shadows possible.
 - **SunWatch:** our fictional outpost-console panel showing alerts relayed from Mission Control. Not a real device. DONKI is a research log of events, **never call it a warning or forecast service** (D-012).
-- **Planning UX (D-023/D-024/D-025/D-026/D-027):** before planning, the terminal shows an Environment Brief and a named daily scenario/main task. Selecting job numbers opens an Action Preview with expected resource changes, risk, opportunity cost, and a clear `YOU GAIN` / `YOU GIVE UP` pair. `yes` adds the task to today's plan and prints its immediate task result; `fast` skips repeated confirmation for testing. Players can add repeatable light tasks, heavy 4-block tasks are `ONCE/DAY`, and `end` resolves the day. Food is managed with `meal light|normal|full`. Browser implementation is deferred. Spec: `ideas/action-preview-and-mission-clarity-v1.md`.
+- **Planning UX (D-023/D-024/D-025/D-026/D-033):** before planning, the terminal shows an Environment Brief and a named daily scenario/main task. Selecting job numbers opens an Action Preview with expected resource changes, risk, opportunity cost, and a clear `YOU GAIN` / `YOU GIVE UP` pair. `yes` adds the task to today's plan and prints its immediate task result; `fast` skips repeated confirmation for testing. Players can add repeatable light tasks, heavy 4-block tasks are `ONCE/DAY`, and `end` resolves the day. Food is managed with `meal light|normal|full`. Browser implementation is deferred. Spec: `ideas/action-preview-and-mission-clarity-v1.md`.
 
 ## Key Files
 | File | What it holds |
@@ -70,7 +70,7 @@ Prototyping. A playable **terminal prototype** exists (`npm run play`, 7-day mis
 - **Run:** `npm run play` (interactive; type job numbers like `1 3 4`, `back`/`finish`, `note <text>`, `new week|full|slice`, `quit`). `npm run sim` for balance. Node 24+, no dependencies.
 - **Week timeline:** day 2 real flare alert, days 3-4 real storm (DONKI + CRaTER, ARCHIVE badges), days 5-6 long shadow, days 5-7 Earth below the horizon (forecast; onboard alarm only), 50% surprise simulated storm on day 6/7.
 - **Goal tiers (D-021):** 4 main goals + crew healthy = PROMISING; 11 stars = APPROVED; 12 = GOLD. Checklist shown every day.
-- **Open design items:** (1) shelter levels could also cut everyday cosmic-ray dose (more accurate; proposed in `ideas/balance-pass-v2.md`, not built). (2) The day 6/7 storm is SIMULATED; bundle another archived storm to make it real. (3) If kids find power too loose, raise job costs, not daily upkeep (D-021). (4) Bea hasn't played the 7-day version yet.
+- **Open design items:** (1) shelter levels could also cut everyday cosmic-ray dose (more accurate; proposed in `ideas/balance-pass-v2.md`, not built). (2) The seven-week engine currently uses a compact storm metadata deck; bundle the remaining archived snapshots to make every draw fully real. (3) If kids find power too loose, raise job costs, not daily upkeep (D-021). (4) The weekly sim needs tuning before kid playtesting.
 
 ## Verified by live test
 - **DONKI** (`https://ccmc.gsfc.nasa.gov/DONKI-API/get/<TYPE>?startDate=&endDate=`): works from browser JS, no key, CORS open, about 120 calls remaining per window. OpenAPI spec at `/DONKI-API/v3/api-docs`.
@@ -85,18 +85,16 @@ Prototyping. A playable **terminal prototype** exists (`npm run play`, 7-day mis
 - **Numbers are tuned by bots, not kids.** `npm run sim` (planner / careful / greedy / reckless / idle / random) must keep the split in `ideas/balance-pass-v2.md` (planner ~81% approved, careless styles 0%). Rerun it after any change to `src/config/*.json`.
 - Most OSDR studies are **mice or cells, not astronauts**. Label honestly.
 - Moon Trek, OSDR terms, and OSDR keyword results are **still unverified** (JS-only pages).
-- **Decision numbering:** D-018 remains duplicated (attribution / engine). Character decisions are D-024–D-026 and D-029; mission-fiction and seven-week decisions are D-027/D-028. Character art was explicitly renumbered from a colliding D-027 to D-029 at handoff. Next new decision is D-031 (D-030 = chibi character style).
+- **Decision numbering:** D-018 remains duplicated (attribution / engine). D-027 is mission-fiction; D-028 is the seven-week mission; D-030 is chibi style; D-031 is the Mission Control/Curio voice split; D-032 is Solar max difficulty; D-033 is food and terminal testing. Character art was explicitly renumbered from a colliding D-027 to D-029.
 - **Character draft is not a locked cast:** v3 is current; Bram/Remy/Mica and species/tributes remain proposals. Curio's helper-only role is confirmed. Do not apply v2's physical rover/recharge/sampling discussion to Curio. Its proposed rover-shaped avatar is fictional; field equipment stays separate. Attribute Soviet/Army animal missions to their actual programs; NASA hosting a history page doesn't make the flight NASA's. Do not repeat StarChild's incorrect broad "first living creatures to return" claim.
 - **Crew accuracy:** F23 rechecked with NASA training/biography sources; M4 text now uses backgrounds and shared duties. Existing HTML still uses old role shorthand and needs alignment if/when UI edits are requested. No dedicated-doctor requirement or one-person-only job restrictions.
 - The user wants **light usage**: concise text, no subagents or big workflows unless asked, no Figma/HTML builds in ideation (see `CLAUDE.md`).
 
 ## Next Steps (suggested order)
-1. **Build the 7-week mission (D-028)** from the spec `ideas/gameplay-changes-7-weeks.md` (12 must-dos: weekly turns, alert days, Earth cycle, real storm deck, new tasks, per-draw sim, key-moment log). Assigned to another agent or Bea's collaborator. The old 7-day playtest step is retired.
-1b. **Storyline (Bea + agent):** finalize in `ideas/storyline-v2.md`; the engine pulls its copy from there.
-2. **Playtest the current terminal flow** (`npm run play`): confirm the daily scenario, food choice, task previews, task ordering, projected resources, and mission outcome tiers with children. Use `new week` for a clean Day 1 run; read `.run/playlog.txt` and `note` lines.
-3. **Review the first character sheet:** `ideas/character-designs/crew-sheet-v1.png` against `ideas/character-concepts-v3.md`. Curio is the helper avatar, not field equipment; human commander is an example appearance. Settle species/names/proportions and optional tributes before production assets. User chose vector clip-art style; exact designs await feedback.
-4. **Build the 7-week mission (D-028)** from `ideas/gameplay-changes-7-weeks.md` (weekly turns, alert days, Earth cycle, real storm deck, new tasks, per-draw sim, key-moment log). The current engine/CLI still runs the 7-day `week` scenario until this is implemented.
-4b. **Storyline (Bea + agent):** finalize `ideas/storyline-v2.md`; the engine should pull its copy from there.
+1. **Playtest the current terminal flow** (`npm run play`): confirm the daily scenario, food choice, task previews, task ordering, projected resources, and mission outcome tiers with children. Use `new week` for a clean Day 1 run; read `.run/playlog.txt` and `note` lines.
+2. **Tune and playtest the 7-week mission (D-034)** from `ideas/gameplay-changes-7-weeks.md`; improve planner win rates, validate alert choices with children, and add the remaining archived storm snapshots.
+3. **Finalize the storyline** in `ideas/storyline-v2.md`; then align the engine's Mission Control copy and cue IDs with it.
+4. **Review the first character sheet:** `ideas/character-designs/crew-sheet-v1.png` against `ideas/character-concepts-v3.md`. Curio is the helper avatar, not field equipment; human commander is an example appearance. Settle species/names/proportions and optional tributes before production assets.
 5. **Data plan:** bundle more archived storms so the second storm can be real (ARCHIVE) instead of SIMULATED.
 6. Write the short **datasets explanation** for judges.
 
