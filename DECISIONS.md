@@ -7,6 +7,7 @@ Status: `decided` | `proposed` | `open` | `superseded`
 ---
 
 ## Open Questions
+- [ ] **UI style (2026-11-14):** Bea's references point to a Walkr-like cyan console (speech bubble + portrait, resource stack) and a low-camera illustrated scene. Does this replace D-002's green-terminal look? (Vector chosen, see D-022.) Drafts: `ideas/ui-screens-v1.md`, `ideas/ui-mockups/main-screen.html`.
 - [x] ~~Ice mechanic accuracy~~ -> resolved in D-020: ice is site-survey evidence (option 1 of `ideas/ice-science-check.md`); the air-power discount is removed.
 - [x] ~~Site~~ -> decided, see D-005 (Moon first, Mars later).
 - [x] ~~Core resources~~ -> decided, see D-007 (revisitable).
@@ -21,6 +22,14 @@ Status: `decided` | `proposed` | `open` | `superseded`
 - [~] **Verify snippet-only facts:** most done (D-014). Still open: Chang'e-4 (non-NASA), Orion 150 mSv, ISS 6-month dose, 1.3 s delay, "Centennial" 10 cm.
 
 ---
+
+## Proposed: Experience arc (intro story -> mission -> ending praise -> optional replay) + fun facts
+**Status:** proposed (Bea's direction 2026-11-14, awaiting OK on details)
+- Draft in `ideas/experience-arc-v1.md`. Endings for every tier praise the player's own choices. Fun facts are triggered by events, max 1 a day. Source labels extend D-008 with `[✎ Story]`; facts are never AI-generated or invented.
+
+## D-022: Vector art style; base screen must be uncluttered
+**Status:** decided (Bea, 2026-11-14)
+- Vector (flat shapes, soft glow), not 16-bit pixel. First drafts were "too cluttered": the scene is the hero, few panels at once. Drafts: `ideas/ui-screens-v1.md`, `ideas/ui-mockups/`.
 
 ## D-021: Main goals + bonus goals; stamina costs raised
 **Status:** decided (Bea). Refines D-020's objective.
@@ -162,3 +171,7 @@ A single short, meaningful narrative arc is preferred over open-ended content. A
 - AI output must be validated against a schema and can't invent resource values freely.
 - **Offline fallback is mandatory:** a bundled set of pre-written events so the demo works with no API or network during judging.
 - Why: keeps replayability high without letting AI break accuracy or the "no free choice" rule.
+
+## Advisory: Inspect other branches in a separate worktree
+**Status:** proposed (2026-11-14)
+- For local testing while current edits remain in place, use a separate worktree. Commands and alternatives: `ideas/checking-other-branches.md`. No Git state changed.

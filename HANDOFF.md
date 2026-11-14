@@ -27,12 +27,17 @@ Prototyping. A playable **terminal prototype** exists (`npm run play`, 7-day mis
 | File | What it holds |
 |---|---|
 | `CONTEXT.md` | Challenge brief, data-source links, judging lens |
+| `MILESTONES.md` | Hackathon goals, milestones, and the **submission checklist** (current focus) |
 | `DECISIONS.md` | Every decision (D-001 to D-021) and the open-questions list |
 | `ideas/story-and-core-loop-v1.md` | Story, characters (fiction), turn loop, 14-action table, tutorial mockup |
 | `ideas/research-data-sources.md` | DONKI, RadLab, OSDR, Trek, CSA findings, with live-test results |
 | `ideas/research-setting-facts.md` | Official south pole facts. **Verification pass table at the top overrides older lines** |
 | `ideas/balance-pass-v2.md` | **Current** loop, job table, report card rules, sim results |
 | `ideas/ui-base-overview-v1.md` | **Proposed** main screen: angled 3/4 base map with sky band + console (v1.1), wireframe, options |
+| `ideas/ui-screens-v1.md` | **Proposed** screen map (3 screens + base hub with overlays), wireframes, style recommendation |
+| `ideas/ui-mockups/base-styles.html` | Base view styles: side view / top-down / storybook / iso diorama / 3D→vector (bonus) |
+| `ideas/ui-mockups/main-screen-v2.html` | **Current** UI draft: 3 decluttered vector layouts (bottom tray / corners / side rail), 7-day mission |
+| `ideas/ui-mockups/main-screen.html` | Visual draft of the base screen: vector vs 16-bit pixel, 3 camera angles, sunlight/long-shadow toggle |
 | `ideas/balance-pass-v1.md` | Old shift-based version (history) |
 | `ideas/ice-science-check.md` | NASA check on what ice is for; option 1 (survey evidence) adopted in D-020 |
 | `ideas/ice-value-in-prototype.md` | Explains the old (now removed) ice air discount; history |
@@ -97,6 +102,14 @@ src/data/      Trimmed May 2024 storm data (built by scripts/build-storm-data.ts
 Add `docs/` for the judges' write-up.
 
 ## Session Log
+- 2026-11-14 (Team plan, Opus 5.5): Rewrote `MILESTONES.md` as the team plan: status, goals, M1-M10, 4 parallel lanes for the last ~45 min (repo, README+data write-up, form+demo, stretch story text) with T-minus checkpoints, post-hackathon phases P1-P6.
+- 2026-11-14 (UI): Bea is leaning toward F (3D long-lens side view) for the base screen. Not decided yet.
+- 2026-11-14 (UI 3D side views, Opus 5.5): Added side-on renders of the 3D model (long lens F, cutaway G) in `ideas/ui-mockups/side-3d.html` and as tabs in `base-styles.html`.
+- 2026-11-14 (Experience arc, Opus 5.5): Drafted Bea's intro -> mission -> ending -> replay arc, fun facts, and source labels in `ideas/experience-arc-v1.md` (proposed). Not built.
+- 2026-11-14 (UI base styles, Opus 5.5): Built 5 base view styles in `ideas/ui-mockups/base-styles.html` (notes: `ideas/ui-screens-v1.md` v3). Recommended A, the side-view cross-section, because it shows the light mechanism. Not decided.
+- 2026-11-14 (Milestones, Opus 5.5): At ~90% of the 8 h plan. Wrote `MILESTONES.md`: goals G1-G6 vs judging lens, milestones M1-M8, submission checklist (README, datasets write-up, form text, AI disclosure, demo, merge to main). Gaps: no README, no judge data write-up, no web UI (cut).
+- 2026-11-14 (UI drafts v2, Opus 5.5): Bea chose vector and called v1 too cluttered (D-022). Built 3 decluttered layouts in `ideas/ui-mockups/main-screen-v2.html`, notes in `ideas/ui-screens-v1.md` (v2 section). Recommended bottom tray. Open: report checklist hidden behind a star pill vs D-019/D-021 'shown every day'.
+- 2026-11-14 (UI drafts, Opus 5.5): Built a code-drawn base-screen draft (vector + 16-bit pixel, 3 camera angles, light toggle) from Bea's references (Walkr-style UI, low-camera campfire scene). Screen map + wireframes in `ideas/ui-screens-v1.md`. Recommended vector + low camera. Open: does the cyan console replace D-002's green terminal?
 - 2026-11-14 (UI draft, Opus 5.5): Proposed base-overview main screen (ridge side-view + console) with 4 options and extra UI suggestions in `ideas/ui-base-overview-v1.md`. Not decided; open question on target device.
 - 2026-11-14 (UI draft v1.1): Bea wants a visual UI, open to web/desktop, suggested angled top-down. Recommended webapp (brief + D-016) and an angled 3/4 SVG map with sky band (sun on horizon, Earth = comms). Two sky facts marked TO VERIFY. Not decided.
 - 2026-11-14 (Ice source check, Codex): Verified science, prospecting and resource-processing roles against NASA sources; withdrew prior recommendation to retain the permanent discount. Saved three replacement options in `ideas/ice-science-check.md`, logged proposed D-013 revision. No gameplay edits.
@@ -111,3 +124,5 @@ Add `docs/` for the judges' write-up.
 - 2026-11-14 (session 2, cont.): 7-day mission with SITE APPROVED objective (D-020), tuned to 11/12 stars by sim; ice made survey evidence (air discount removed); Earth blackout grounded in NASA/JPL study and forecast in game.
 - 2026-11-14 (session 2, cont.): Main/bonus goal tiers (PROMISING/APPROVED/GOLD) and stamina cost tuning (D-021). Checked low-dose star is reachable.
 - 2026-11-14 (session 2, end, Opus 5.5): Saved and handed off. Summary of session 2: verified facts (D-014), balance + stack (D-015/16), engine/sim/terminal play (D-018 engine), day loop (D-019), 7-day SITE APPROVED mission + ice as survey evidence + Earth blackout (D-020), main/bonus tiers + stamina (D-021). Work since commit 781a543 is uncommitted.
+
+- 2026-11-14 (branch inspection advice, Codex): Current branch is `cli-prototype` with local edits; `origin/new-ui` exists. Saved safe inspection options in `ideas/checking-other-branches.md`. No checkout, stash, commit, or push performed.
