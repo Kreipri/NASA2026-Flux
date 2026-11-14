@@ -21,6 +21,10 @@ Status: `decided` | `proposed` | `open` | `superseded`
 
 ---
 
+## Proposed: Short task branches and pull requests
+**Status:** proposed (2026-11-14; recommendation, no repository settings changed)
+- Keep `main` runnable; push work to short task branches and merge small, verified changes through PRs. See `ideas/git-workflow.md` for options and trade-offs.
+
 ## D-018: No agent collaborator or co-author attribution
 **Status:** decided (Bea)
 - Don't add agent accounts as GitHub collaborators or agent co-author trailers to commits. Use the user's configured Git identity.

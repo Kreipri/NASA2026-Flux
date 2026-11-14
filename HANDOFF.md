@@ -32,7 +32,7 @@ Prototyping. Rules engine, bot sim, and a **chat-play CLI** exist (`src/`). No w
 | `ideas/research-setting-facts.md` | Official south pole facts. **Verification pass table at the top overrides older lines** |
 | `ideas/balance-pass-v1.md` | Action cost table, background rates, storm/eclipse rules, fail states, sanity check |
 | `ideas/tech-stack-and-prototype-plan.md` | Stack choice, architecture, thin prototype scope and build order |
-| `src/` | Engine, configs, bot sim, chat CLI. Run: `npm run sim`, `node --no-warnings src/cli/play.ts new full 42`, then `act 1 4`, `choose back\|finish`, `show`. Game state in `.run/state.json` |
+| `src/` | Engine, configs, bot sim, chat CLI. Run: `npm run sim`; play interactively with `npm run play` (type job numbers; `note <text>` logs feedback). State in `.run/state.json`, full transcript in `.run/playlog.txt` |
 | `data/samples/` | Real archived May 2024 solar storm data (DONKI + RadLab CRaTER) with README |
 
 ## Verified by live test
@@ -78,6 +78,7 @@ data/samples/  Real archived NASA data snapshots + README
 Add `src/` and `docs/` when those phases begin.
 
 ## Session Log
+- 2026-11-14 (Git workflow advice, Codex): Saved a proposed branch/PR workflow in `ideas/git-workflow.md`. No branches, protection settings, commits, or pushes changed for this advice.
 - 2026-11-14 (Git attribution, Codex): Verified GitHub lists only `Kreipri` as collaborator and both initial commits use the user's Git identity with no co-authors. Saved the no-agent-collaborator/co-author rule in `AGENTS.md` and D-018.
 - 2026-11-14 (Git setup, Codex): Initialized `main`, connected the supplied GitHub repository, added `.gitignore`, and pushed the initial snapshot to `origin/main`. No gameplay changes made. Prototype files are being added concurrently; files created after staging are outside this snapshot.
 - 2026-11-14 (session 1, Sonnet 5.5): Set up context, decisions, and handoff structure. Researched all 7 provided links plus live API tests (DONKI, RadLab). Researched official south pole setting, radiation risk, and astronaut tools via research agents. Decided setting (Shackleton Ridge), badges, SunWatch, AI role, report-card objective. Drafted story, 14-action table, and tutorial mockup. Saved sample data. Nothing built in code.
