@@ -6,6 +6,20 @@
   "scripts": {
     "data": "node --no-warnings scripts/build-storm-data.ts",
     "sim": "node --no-warnings src/sim/bots.ts",
-    "play": "node --no-warnings src/cli/play.ts"
+    "play": "node --no-warnings src/cli/play.ts",
+    "dev": "vite",
+    "build": "vite build"
+  },
+  "dependencies": {
+    "react": "^19.3.1",
+    "react-dom": "^19.3.1"
+  },
+  "devDependencies": {
+    "@types/node": "^24.0.0",
+    "@types/react": "^19.3.0",
+    "@types/react-dom": "^19.3.0",
+    "@vitejs/plugin-react": "^6.3.0",
+    "typescript": "^7.0.2",
+    "vite": "^8.3.8"
   }
 }
