@@ -12,7 +12,7 @@ Status: `decided` | `proposed` | `open` | `superseded`
 - [x] ~~Teaching goal / one real constraint~~ -> decided, see D-010: "Light is a resource. Where you work decides your power, cold, and radiation risk."
 - [x] ~~How AI is used~~ -> decided, see D-004.
 - [x] ~~Story objective~~ -> decided, see D-013 (site report card). Story draft: `ideas/story-and-core-loop-v1.md` (awaiting Bea's full review).
-- [x] ~~Action list and costs~~ -> proposed v1, see D-015 (`ideas/balance-pass-v1.md`). Needs bot sim + playtest.
+- [x] ~~Action list and costs~~ -> decided v1, see D-015 + D-018 (`ideas/balance-pass-v1.md`). Bot sim done; needs kid playtest.
 - [ ] **Crew names and mascot:** fictional, original, not Fallout.
 - [x] ~~Tech stack~~ -> see D-016 (Vite + TS + React, plain-TS engine).
 - [ ] **Data plan:** DONKI can be called from the browser (verified). RadLab needs bundled snapshots. Decide live-vs-archive mix and the fallback. (Prototype: ARCHIVE only.)
@@ -20,6 +20,10 @@ Status: `decided` | `proposed` | `open` | `superseded`
 - [~] **Verify snippet-only facts:** most done (D-014). Still open: Chang'e-4 (non-NASA), Orion 150 mSv, ISS 6-month dose, 1.3 s delay, "Centennial" 10 cm.
 
 ---
+
+## D-018: No agent collaborator or co-author attribution
+**Status:** decided (Bea)
+- Don't add agent accounts as GitHub collaborators or agent co-author trailers to commits. Use the user's configured Git identity.
 
 ## D-017: Git repository
 **Status:** decided (Bea supplied the repository and requested setup)
@@ -32,8 +36,13 @@ Status: `decided` | `proposed` | `open` | `superseded`
 - Rejected: Phaser and Godot (canvas text hurts accessibility, heavier load), vanilla TS (UI state gets messy), Svelte (fewer people know it).
 - Thin prototype: 5 days x 2 shifts, 6 actions, one replayed May 2024 storm, one short eclipse, mini report card. Plan in `ideas/tech-stack-and-prototype-plan.md`.
 
+## D-018: Engine + bot sim built; tuning from sim results; chat-play prototype
+**Status:** decided (Bea approved starting step 1 and asked for chat-only play)
+- `src/engine/engine.ts` (deterministic, seeded), `src/config/moon.json` + `scenarios.json`, `src/sim/bots.ts`, chat CLI `src/cli/play.ts`. No dependencies, Node 24 runs the TS directly. React/Vite UI comes later (D-016).
+- Sim-driven changes: power-emergency oxygen drain 10 -> 6; diminishing returns on routine logs; full-game long shadow 4-6 shifts; slice has 7 actions (adds Log sunlight). Results in `ideas/balance-pass-v1.md` (v1.1).
+
 ## D-015: Balance v1 numbers, pacing of 2 shifts a day, spacewalk choice becomes an event
-**Status:** proposed (needs Bea's OK and a bot-sim check)
+**Status:** decided (Bea approved 2026-11-14); numbers stay tunable by sim and playtest
 - Full table in `ideas/balance-pass-v1.md`. Meters 0-100; all numbers SIMULATED, with real ratios where we have them (battery sized to the verified 73-117 h worst-case storage; ice odds 30% from "20-40% of Cabeus floor may be wet").
 - **Pacing:** 14 days x 2 shifts = 28 turns (~15 min). Replaces "3-4 shifts a day" (too long for ages 7-12).
 - **"Delay or end a spacewalk"** becomes an event prompt during a crater trip, not a menu button (13 pickable actions).

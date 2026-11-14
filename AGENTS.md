@@ -14,3 +14,4 @@ Project: NASA Space Apps 2026, Junior Astronaut Mission Trainer (kids 7-12, surv
 - Original art and mascot only. Don't copy Fallout or other IP.
 - Save work to files (`ideas/` for drafts), log decisions in `DECISIONS.md`, and update `HANDOFF.md` before you stop.
 - Don't spawn subagents or large workflows unless asked.
+- Git pushes: don't add agent accounts as repository collaborators or agent co-author trailers to commits. Use the user's configured Git identity.

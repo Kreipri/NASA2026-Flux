@@ -3,9 +3,9 @@
 **Read order for any new agent:** `CONTEXT.md` -> `DECISIONS.md` -> this file -> `ideas/story-and-core-loop-v1.md` -> `CLAUDE.md` / `AGENTS.md` for working rules.
 
 ## Current Phase
-Git is configured with `origin` at https://github.com/Kreipri/NASA2026-Flux on `main` (D-017). Existing prototype files are included in the initial snapshot; the phase description below predates those files and needs reconciliation by the prototype author.
+Git is configured with `origin` at https://github.com/Kreipri/NASA2026-Flux on `main` (D-017). The engine, sim and chat CLI in `src/` are uncommitted work from session 2 (commit when Bea asks).
 
-Ideation done, ready to prototype. Balance v1, verified facts, and the prototype plan exist. **No code yet** (ask Bea before starting `src/`).
+Prototyping. Rules engine, bot sim, and a **chat-play CLI** exist (`src/`). No web UI yet. Bea is playtesting in chat.
 
 ## What's Decided (details in `DECISIONS.md`)
 - **Game:** kid-friendly (ages 7-12) survival resource-management game, browser-based, outpost management only (no launch/landing gameplay).
@@ -17,7 +17,7 @@ Ideation done, ready to prototype. Balance v1, verified facts, and the prototype
 - **Accuracy rule:** setting must match official NASA info; fiction (crew, story, mascot, dates) is clearly labeled (D-009).
 - **Source badges:** `LIVE` / `ARCHIVE` / `SIMULATED`, tap for a "where is this from?" card (D-008). AI text gets `[AI-written story]`, never a data badge.
 - **AI:** writes event flavor and situations; a deterministic rules engine owns all numbers; bundled offline events as fallback (D-004).
-- **Balance v1 (proposed, D-015):** 28 turns (14 days x 2 shifts), 13 actions + 1 event choice, numbers in `ideas/balance-pass-v1.md`.
+- **Balance v1 (decided D-015, tuned D-018):** 28 turns (14 days x 2 shifts), 13 actions + 1 event choice, numbers in `ideas/balance-pass-v1.md`.
 - **Stack (D-016):** Vite + TS + React; engine in plain TS, seeded, with a bot sim. Plan: `ideas/tech-stack-and-prototype-plan.md`.
 - **Facts verified (D-014):** Shackleton 21 km wide / 4 km deep, pole on its rim; ridge ~17 km from pole (derived); worst-case dark 73-117 h storage, longer ground-level shadows possible.
 - **SunWatch:** our fictional outpost-console panel showing alerts relayed from Mission Control. Not a real device. DONKI is a research log of events, **never call it a warning or forecast service** (D-012).
@@ -32,6 +32,7 @@ Ideation done, ready to prototype. Balance v1, verified facts, and the prototype
 | `ideas/research-setting-facts.md` | Official south pole facts. **Verification pass table at the top overrides older lines** |
 | `ideas/balance-pass-v1.md` | Action cost table, background rates, storm/eclipse rules, fail states, sanity check |
 | `ideas/tech-stack-and-prototype-plan.md` | Stack choice, architecture, thin prototype scope and build order |
+| `src/` | Engine, configs, bot sim, chat CLI. Run: `npm run sim`, `node --no-warnings src/cli/play.ts new full 42`, then `act 1 4`, `choose back\|finish`, `show`. Game state in `.run/state.json` |
 | `data/samples/` | Real archived May 2024 solar storm data (DONKI + RadLab CRaTER) with README |
 
 ## Verified by live test
@@ -49,11 +50,11 @@ Ideation done, ready to prototype. Balance v1, verified facts, and the prototype
 - The user wants **light usage**: concise text, no subagents or big workflows unless asked, no Figma/HTML builds in ideation (see `CLAUDE.md`).
 
 ## Next Steps (suggested order)
-1. **Bea reviews** D-015 (balance v1, 2 shifts/day, spacewalk as event) and the story draft. Capture feedback in `DECISIONS.md`.
-2. **Get Bea's OK to start code**, then build step 1 of the prototype plan: engine + `moon.json` + bot sim. Check the careful/greedy/reckless split.
-3. **Name the crew and mascot** (original, fictional).
-4. **Data plan:** how many archived storms to bundle beyond May 2024; live DONKI later.
-5. Write the short **datasets explanation** for judges (DONKI, RadLab, NTRS/nasa.gov facts and why).
+1. **Finish Bea's chat playtest** (full game). Note what felt boring, confusing or unfair, then tune `src/config/moon.json` and rerun `npm run sim`.
+2. **Name the crew and mascot** (original, fictional).
+3. **Web UI** (D-016): Vite + React skin over the same engine. Ask Bea first.
+4. **Data plan:** bundle more archived storms so the second storm can be real (ARCHIVE) instead of SIMULATED.
+5. Write the short **datasets explanation** for judges.
 
 ## Handoff Protocol
 When you finish a chunk of work or stop:
@@ -77,6 +78,8 @@ data/samples/  Real archived NASA data snapshots + README
 Add `src/` and `docs/` when those phases begin.
 
 ## Session Log
+- 2026-11-14 (Git attribution, Codex): Verified GitHub lists only `Kreipri` as collaborator and both initial commits use the user's Git identity with no co-authors. Saved the no-agent-collaborator/co-author rule in `AGENTS.md` and D-018.
 - 2026-11-14 (Git setup, Codex): Initialized `main`, connected the supplied GitHub repository, added `.gitignore`, and pushed the initial snapshot to `origin/main`. No gameplay changes made. Prototype files are being added concurrently; files created after staging are outside this snapshot.
 - 2026-11-14 (session 1, Sonnet 5.5): Set up context, decisions, and handoff structure. Researched all 7 provided links plus live API tests (DONKI, RadLab). Researched official south pole setting, radiation risk, and astronaut tools via research agents. Decided setting (Shackleton Ridge), badges, SunWatch, AI role, report-card objective. Drafted story, 14-action table, and tutorial mockup. Saved sample data. Nothing built in code.
 - 2026-11-14 (session 2, Opus 5.5): Balance pass v1 (`ideas/balance-pass-v1.md`). Verified Shackleton size/pole position and most snippet-only facts on nasa.gov/NTRS pages (curl, exact wording); corrected eclipse hours, dropped -280 F and 5.6% ice. Picked stack (Vite+TS+React) and wrote thin prototype plan. Logged D-014 to D-016. No code.
+- 2026-11-14 (session 2, cont.): Bea approved D-015 and step 1. Built engine + bot sim + chat CLI, tuned from sim (D-018). Started chat playtest.
