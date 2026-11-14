@@ -1,0 +1,753 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>All Screens Mockup</title>
+<link href="https://fonts.googleapis.com/css2?family=Exo+2:ital,wght@0,700;0,800;1,800&family=Nunito:wght@600;700;800&display=swap" rel="stylesheet">
+<style>
+  .nav { display:flex; flex-direction:column; gap:6px; margin:0 0 8px; }
+  .navrow { display:flex; flex-wrap:wrap; gap:6px; align-items:center; }
+  .navrow .g { font: 600 11px var(--font-sans, system-ui); color: var(--muted-foreground,#999); width:58px; text-transform:uppercase; letter-spacing:.06em; }
+  .navrow button { font: 500 12px var(--font-sans, system-ui); padding:4px 9px; border:1px solid var(--border,#444); background:transparent; color: var(--muted-foreground,#aaa); border-radius: calc(var(--radius,8px) - 2px); cursor:pointer; }
+  .navrow button.on { background: var(--secondary,#333); color: var(--foreground,#fff); border-color: var(--ring,#777); }
+  .frame { position:relative; width:100%; aspect-ratio:16/9; border-radius: var(--radius, 8px); overflow:hidden; background:#02030a; touch-action:none; }
+  .frame > canvas { position:absolute; inset:0; width:100% !important; height:100% !important; display:block; }
+  .foot { display:flex; justify-content:space-between; align-items:center; gap:8px; margin-top:8px; font: 13px/1.45 var(--font-sans, system-ui); color: var(--muted-foreground,#aaa); }
+  .foot b { color: var(--foreground,#eee); font-weight:600; }
+  .foot .step button { font: 500 12px var(--font-sans, system-ui); padding:4px 10px; border:1px solid var(--border,#444); background:transparent; color: var(--foreground,#eee); border-radius: calc(var(--radius,8px) - 2px); cursor:pointer; }
+
+  /* ---------- 1280x720 stage (scaled) ---------- */
+  .stage { position:absolute; left:0; top:0; width:1280px; height:720px; transform-origin:0 0; pointer-events:none; color:#e6fbff; font-family:Nunito,system-ui,sans-serif; }
+  .stage * { box-sizing:border-box; }
+  .stage .ui, .stage button, .stage .pin, .stage .click { pointer-events:auto; }
+  .ui { position:absolute; }
+  .h { font-family:'Exo 2',sans-serif; font-weight:800; letter-spacing:.06em; text-transform:uppercase; }
+  .panel { background:rgba(6,22,32,.82); border:2px solid rgba(94,224,232,.75); border-radius:16px; box-shadow:0 0 18px rgba(94,224,232,.16); backdrop-filter:blur(6px); }
+  .dim { position:absolute; inset:0; background:rgba(2,4,12,.55); pointer-events:auto; }
+  .btn { min-height:44px; white-space:nowrap; display:inline-flex; align-items:center; justify-content:center; gap:8px; border-radius:12px; font-family:'Exo 2'; font-weight:800; letter-spacing:.08em; text-transform:uppercase; cursor:pointer; border:0; }
+  .btn.pri { background:linear-gradient(180deg,#7ff0f8,#3cc7d6); color:#062030; box-shadow:0 0 18px rgba(94,224,232,.45); }
+  .btn.sec { background:rgba(6,22,32,.7); color:#bff8ff; border:2px solid rgba(94,224,232,.7); }
+  .pill { font-size:14px; font-weight:800; padding:5px 12px; border-radius:999px; border:1.5px solid; white-space:nowrap; display:inline-flex; gap:6px; align-items:center; background:rgba(6,22,32,.6); }
+  .pill.sun { border-color:#ffc24a; color:#ffd98a; } .pill.dark { border-color:#7fb2ff; color:#cfe0ff; } .pill.star { border-color:rgba(94,224,232,.8); color:#bff8ff; } .pill.red { border-color:#ff7b6b; color:#ffb4a8; }
+  .badge { font-size:13px; font-weight:800; padding:2px 8px; border-radius:8px; white-space:nowrap; display:inline-block; }
+  .b-nasa, .b-arch { border:1.5px solid #ffc24a; color:#ffd98a; } .b-game { border:1.5px dashed rgba(230,251,255,.45); color:rgba(230,251,255,.75); } .b-story { border:1.5px solid #ff9f7a; color:#ffc2a8; }
+  .ibtn { width:44px; height:44px; border-radius:50%; display:flex; align-items:center; justify-content:center; position:relative; background:rgba(6,22,32,.72); border:2px solid rgba(94,224,232,.7); color:#bff8ff; font-size:18px; font-weight:800; }
+  .ibtn .dot { position:absolute; right:-3px; top:-3px; width:16px; height:16px; border-radius:50%; background:#ffc24a; border:2px solid #061a24; }
+  .face { width:84px; height:84px; border-radius:50%; overflow:hidden; border:3px solid #5ee0e8; box-shadow:0 0 18px rgba(94,224,232,.35); background:#0b2a3a; flex:none; }
+  .bub { padding:14px 18px 12px; position:relative; }
+  .bub .who { position:absolute; left:16px; top:-12px; font-family:'Exo 2'; font-weight:800; font-size:14px; letter-spacing:.08em; background:#5ee0e8; color:#062030; padding:2px 9px; border-radius:6px; }
+  .bub p { margin:0; font-size:18px; line-height:1.35; font-weight:700; }
+  .tags { display:flex; gap:6px; margin-top:7px; flex-wrap:wrap; }
+  /* HUD (bottom tray layout) */
+  .day { left:32px; top:26px; text-shadow:0 2px 12px rgba(0,0,0,.6); }
+  .day .t1 { font-family:'Exo 2'; font-style:italic; font-weight:800; font-size:38px; line-height:1; text-transform:uppercase; letter-spacing:.04em; }
+  .day .t1 small { font-size:19px; opacity:.7; margin-left:6px; }
+  .dots { display:flex; gap:7px; margin-top:10px; align-items:center; }
+  .dots i { width:12px; height:12px; border-radius:50%; border:2px solid rgba(94,224,232,.55); display:block; }
+  .dots i.past { background:rgba(94,224,232,.55); border-color:transparent; } .dots i.now { background:#5ee0e8; border-color:#c9fbff; box-shadow:0 0 10px #5ee0e8; width:16px; height:16px; } .dots i.f { border-style:dashed; border-color:#7fb2ff; }
+  .chips2 { display:flex; gap:8px; margin-top:12px; }
+  .tools { right:28px; top:26px; display:flex; gap:10px; }
+  .tray { left:0; right:0; bottom:0; height:150px; background:linear-gradient(180deg, rgba(3,10,18,0), rgba(3,10,18,.88) 42%); }
+  .tray .face { position:absolute; left:28px; bottom:22px; }
+  .tray .bub { position:absolute; left:126px; bottom:26px; width:500px; }
+  .meters { position:absolute; left:660px; bottom:28px; width:330px; display:grid; grid-template-columns:1fr 1fr; gap:10px 22px; }
+  .m { display:grid; grid-template-columns:22px 1fr 30px; gap:8px; align-items:center; }
+  .m .ic { font-size:16px; text-align:center; } .m .tr { height:9px; border-radius:99px; background:rgba(255,255,255,.12); overflow:hidden; } .m .tr i { display:block; height:100%; border-radius:99px; }
+  .m .v { font-weight:800; font-size:15px; text-align:right; } .m .lb { grid-column:2 / span 2; font-size:14px; opacity:.7; margin-top:-6px; font-weight:700; }
+  .endw { position:absolute; right:28px; bottom:26px; width:220px; }
+  .crew { display:flex; justify-content:space-between; margin-bottom:10px; } .crew i { width:18px; height:18px; border-radius:50%; border:2px solid rgba(94,224,232,.5); display:block; } .crew i.in { background:#5ee0e8; border-color:#5ee0e8; } .crew i.out { background:#ffc24a; border-color:#ffc24a; }
+  .endw .btn { width:100%; padding:12px 0; font-size:18px; }
+  .faded { opacity:.35; filter:saturate(.5); }
+  /* pins anchored to 3D */
+  .pin { position:absolute; transform:translate(-50%,-100%); display:flex; flex-direction:column; align-items:center; }
+  .pin .o { width:44px; height:44px; border-radius:50%; background:rgba(6,22,32,.85); border:2px solid #5ee0e8; display:flex; align-items:center; justify-content:center; color:#9ff6ff; font-size:16px; box-shadow:0 0 12px rgba(94,224,232,.35); }
+  .pin .stem { width:2px; height:18px; background:rgba(94,224,232,.7); } .pin .nm { position:absolute; left:42px; top:6px; white-space:nowrap; font-size:14px; font-weight:800; padding:3px 9px; border-radius:8px; background:rgba(6,22,32,.85); border:1.5px solid rgba(94,224,232,.6); }
+  .pin.sel .o { background:#5ee0e8; color:#062030; } .pin.ring .o { box-shadow:0 0 0 6px rgba(94,224,232,.25), 0 0 24px #5ee0e8; animation:pulse 1.6s infinite; }
+  @keyframes pulse { 50% { box-shadow:0 0 0 12px rgba(94,224,232,.08), 0 0 30px #5ee0e8; } }
+  .lab3 { position:absolute; transform:translate(-50%,-100%); text-align:center; white-space:nowrap; }
+  .lab3 .box { background:rgba(6,22,32,.78); border:1.5px solid rgba(94,224,232,.7); border-radius:8px; padding:5px 11px; } .lab3.warm .box { border-color:#ffc24a; }
+  .lab3 .t { font-family:'Exo 2'; font-weight:800; font-size:14px; letter-spacing:.06em; } .lab3.warm .t { color:#ffd98a; } .lab3 .s { font-size:14px; font-weight:700; opacity:.8; }
+  .lab3 .stem { width:1.5px; height:22px; background:rgba(94,224,232,.7); margin:0 auto; } .lab3 .dt { width:7px; height:7px; border-radius:50%; background:#5ee0e8; margin:0 auto; box-shadow:0 0 10px #5ee0e8; }
+  /* generic cards */
+  .modal { left:50%; top:50%; transform:translate(-50%,-50%); padding:24px 28px; }
+  .row { display:flex; justify-content:space-between; align-items:center; padding:7px 0; border-top:1px solid rgba(94,224,232,.16); font-size:16px; font-weight:700; }
+  .row:first-of-type { border-top:0; }
+  .delta.up { color:#8ff0a4; } .delta.down { color:#ffb4a8; }
+  .choice { display:flex; justify-content:space-between; align-items:center; gap:16px; padding:12px 14px; margin-top:10px; border-radius:12px; border:1.5px solid rgba(94,224,232,.55); background:rgba(94,224,232,.06); font-size:16px; font-weight:800; cursor:pointer; }
+  .choice span { font-size:14px; font-weight:700; opacity:.85; }
+  .x { position:absolute; right:10px; top:8px; width:44px; height:44px; display:flex; align-items:center; justify-content:center; border-radius:12px; font-size:22px; opacity:.8; cursor:pointer; }
+  .storyc { left:50%; bottom:34px; transform:translateX(-50%); width:820px; display:flex; gap:16px; align-items:flex-end; }
+  .storyc .bub { flex:1; } .storyc .bub p { font-size:21px; }
+  .sdots { display:flex; gap:6px; } .sdots i { width:10px; height:10px; border-radius:50%; background:rgba(230,251,255,.25); display:block; } .sdots i.on { background:#5ee0e8; }
+  .coach { padding:12px 16px; font-size:17px; font-weight:800; }
+  .goal { display:grid; grid-template-columns:120px 1fr; gap:4px 12px; padding:9px 0; border-top:1px solid rgba(94,224,232,.16); font-size:14.5px; }
+  .goal:first-of-type { border-top:0; }
+  .goal .q { font-family:'Exo 2'; font-weight:800; letter-spacing:.05em; text-transform:uppercase; font-size:14px; padding-top:2px; }
+  .goal .ok { color:#8ff0a4; } .goal .no { color:rgba(230,251,255,.55); }
+  .tier { display:flex; gap:8px; margin-top:12px; } .tier span { flex:1; text-align:center; padding:7px 0; border-radius:12px; border:1.5px solid rgba(94,224,232,.4); font-size:14px; font-weight:800; } .tier span.on { background:rgba(94,224,232,.2); border-color:#5ee0e8; }
+  .tog { display:flex; justify-content:space-between; align-items:center; padding:11px 0; border-top:1px solid rgba(94,224,232,.16); font-size:16px; font-weight:700; }
+  .tog:first-of-type { border-top:0; }
+  .sw { width:44px; height:24px; border-radius:99px; background:rgba(255,255,255,.15); position:relative; } .sw.on { background:#3cc7d6; } .sw::after { content:''; position:absolute; top:3px; left:3px; width:18px; height:18px; border-radius:50%; background:#fff; } .sw.on::after { left:23px; }
+  .segm { display:inline-flex; border:1.5px solid rgba(94,224,232,.6); border-radius:12px; overflow:hidden; } .segm span { min-height:44px; display:inline-flex; align-items:center; padding:0 16px; font-size:14px; font-weight:800; } .segm span.on { background:#5ee0e8; color:#062030; }
+  .artl { position:absolute; inset:0; pointer-events:none; }
+  .artl svg { display:block; }
+  .tw { animation: tw 3.2s ease-in-out infinite; } @keyframes tw { 50% { opacity:.15; } }
+  .dr1 { animation: dr 18s ease-in-out infinite alternate; } .dr2 { animation: dr 24s ease-in-out infinite alternate-reverse; } .dr3 { animation: dr 14s ease-in-out infinite alternate; }
+  @keyframes dr { from { transform:translateX(-6px); } to { transform:translateX(6px); } }
+  .flow { animation: flow 1.6s linear infinite; } @keyframes flow { to { stroke-dashoffset:-34; } }
+  .pulse { animation: pulse 1.6s infinite; }
+  .hl { box-shadow:0 0 0 3px #5ee0e8, 0 0 26px rgba(94,224,232,.8) !important; border-radius:14px; animation:pulse 1.6s infinite; }
+  .meters.hl { padding:6px 10px; margin:-6px -10px; } .crew.hl { padding:4px; }
+  .tutc { left:50%; top:22px; transform:translateX(-50%); width:860px; display:flex; gap:14px; align-items:flex-start; }
+  .tutc .bub { flex:1; } .tutc .bub p { font-size:19px; }
+  .gi { display:inline-flex; vertical-align:-0.18em; width:1.05em; height:1.05em; } .gi svg { width:100%; height:100%; display:block; }
+  .gi.star, .gi.stare { color:#ffc24a; } .m .ic .gi { width:20px; height:20px; } .ibtn .gi { width:22px; height:22px; } .pill .gi { width:16px; height:16px; }
+  .stage [data-go]:focus-visible, .stage [data-toggle]:focus-visible { outline:3px solid #ffd34d; outline-offset:3px; }
+  .stage .reset { right:28px; top:84px; min-height:44px; padding:0 16px 0 12px; display:flex; align-items:center; gap:8px; border-radius:999px; background:rgba(6,22,32,.8); border:2px solid rgba(94,224,232,.7); color:#bff8ff; font:800 15px Nunito,system-ui,sans-serif; cursor:pointer; opacity:0; transform:translateY(-6px); transition:opacity .2s, transform .2s; pointer-events:none; }
+  .stage .reset.show { opacity:1; transform:none; pointer-events:auto; }
+  .stage .reset svg { width:20px; height:20px; }
+  .stage .reset:focus-visible { outline:3px solid #ffd34d; outline-offset:3px; }
+  #fade { position:absolute; inset:0; background:#04061a; opacity:0; transition:opacity .28s; pointer-events:none; z-index:5; }
+  .rm .tw, .rm .dr1, .rm .dr2, .rm .dr3, .rm .flow, .rm .pulse, .rm .hl, .rm .pin.ring .o { animation:none !important; } .rm .reset { transition:none; }
+  @media (prefers-reduced-motion: reduce) { .tw, .dr1, .dr2, .dr3, .flow, .pulse, .hl, .pin.ring .o { animation:none !important; } #fade { transition:none; } }
+</style>
+<script type="importmap">
+{ "imports": {
+  "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+  "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
+} }
+</script>
+</head>
+<body>
+<div class="nav" id="nav"></div>
+<div class="frame" id="frame"><div class="stage" id="stage"></div><div id="fade"></div></div>
+<div class="foot"><div id="note"></div><div class="step"><button id="prev">◀</button> <button id="next">▶</button></div></div>
+<script type="module">
+
+import * as THREE from 'three';
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+import { RoundedBoxGeometry } from 'three/addons/geometries/RoundedBoxGeometry.js';
+import { mergeVertices } from 'three/addons/utils/BufferGeometryUtils.js';
+import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
+import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
+import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
+import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
+
+const frame=document.getElementById('frame');
+/* ---------------- terrain model (metres; terrain coords: x right, z toward Shackleton) ---------------- */
+const D2R=Math.PI/180;
+function rng(s){return function(){s|=0;s=s+0x6D2B79F5|0;let t=Math.imul(s^s>>>15,1|s);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
+const dirAE=(az,el)=>[Math.sin(az*D2R)*Math.cos(el*D2R),Math.sin(el*D2R),Math.cos(az*D2R)*Math.cos(el*D2R)];
+const smooth=(a,b,x)=>{const t=Math.max(0,Math.min(1,(x-a)/(b-a)));return t*t*(3-2*t)};
+const RM=1737400, SH={x:2000,z:13000,R:10500};
+const PSRS=[[650,800,170,55],[950,1700,240,70],[-750,1300,200,60],[-300,2300,130,40]];
+const CRS=[...PSRS];{const R=rng(77);for(let i=0;i<60;i++){const x=(R()-.5)*34000,z=-3000+R()*42000,r=120+Math.pow(R(),2)*700;if(Math.hypot(x,z)<900)continue;if(Math.hypot(x-SH.x,z-SH.z)<SH.R*1.1)continue;CRS.push([x,z,r,r*.13])}}
+const SUN_AZ=-140;
+// far hills. The first one sits across the low Sun's path 30 km away: narrow along the sunbeam,
+// long across it, so on day 5 it blocks the Sun without lifting the ground near the base.
+const SUX=Math.sin(SUN_AZ*D2R),SUZ=Math.cos(SUN_AZ*D2R),BLOCK={x:45000*SUX,z:45000*SUZ,h:3300,along:3500,across:25000};
+const MASSIF=[[-9000,47000,2300,9000],[14000,52000,1800,8000],[30000,30000,1500,7000],[-26000,22000,1300,7000]];
+function hRaw(x,z){
+  const d0=Math.hypot(x,z);
+  let h=-280*smooth(-400,2600,z)-0.025*Math.max(0,-z)-680*(1-Math.exp(-((x/3300)**2)))-0.01*x;
+  const crest=Math.exp(-((x/2600)**2))*(1-smooth(2000,3200,z))*(1-smooth(-9000,-6000,-z));
+  h+=smooth(600,2500,d0)*(1-.97*crest)*(34*Math.sin(x/1400+z/1900)+22*Math.sin(z/1100-x/2300)+8*Math.sin(x/520+z/610));
+  const r=Math.hypot(x-SH.x,z-SH.z),R=SH.R;
+  if(r<R){const p=r<.32*R?1:Math.pow((R-r)/(.68*R),.85);h+=160*(1-p)-4100*p}else h+=160*Math.exp(-(((r-R)/1400)**2));
+  for(const [cx,cz,cr,cd] of CRS){const dx=x-cx,dz=z-cz;if(Math.abs(dx)>cr*1.8||Math.abs(dz)>cr*1.8)continue;const q=Math.hypot(dx,dz)/cr;h+=q<1?-cd*(1-q*q)+.12*cd:.12*cd*Math.exp(-(((q-1)/.35)**2))}
+  for(const [mx,mz,mh,mw] of MASSIF){const q=((x-mx)**2+(z-mz)**2)/(mw*mw);if(q<9)h+=mh*Math.exp(-q)}
+  {const dx=x-BLOCK.x,dz=z-BLOCK.z,u=dx*SUX+dz*SUZ,v=-dx*SUZ+dz*SUX,q=(u/BLOCK.along)**2+(v/BLOCK.across)**2;if(q<9)h+=BLOCK.h*Math.exp(-q)}
+  return h-(x*x+z*z)/(2*RM);
+}
+const H0=hRaw(0,0); const hT=(x,z)=>hRaw(x,z)-H0; // ridge crest at the base = 0 m
+const LIGHT={sun:dirAE(SUN_AZ,2.3),dark:dirAE(SUN_AZ,0.5)};
+const EARTH_D=dirAE(9,2.4); // low over the far hills: from the pole Earth stays near the horizon and bobs with libration (F20)
+function rayLit(x,z,h0,L){const lh=Math.hypot(L[0],L[2]),ux=L[0]/lh,uz=L[2]/lh,t=L[1]/lh;let s=12,m=1e9;while(s<70000){const c=(h0+t*s+0.6-hT(x+ux*s,z+uz*s))/(0.0087*s+3);if(c<m)m=c;if(m<-1)return 0;s*=1.14}return Math.max(0,Math.min(1,.5+.5*m))}
+const W=(x,y,z)=>new THREE.Vector3(x,y,-z); // terrain coords -> three.js world (keeps Shackleton on the right)
+
+/* grid: dense near the base, sparse far away */
+const NZ=340,NX=300,GZ=[],GX=[];
+for(let j=0;j<=NZ;j++){const s=-0.625+1.625*j/NZ;GZ.push(45000*Math.sinh(4*s)/Math.sinh(4))} // from ~10 km behind the base to 45 km ahead
+for(let i=0;i<=NX;i++){const s=-1+2*i/NX;GX.push(28000*Math.sinh(3*s)/Math.sinh(3))}
+const NV=(NX+1)*(NZ+1),HV=new Float32Array(NV),NRM=new Float32Array(NV*3);
+for(let j=0;j<=NZ;j++)for(let i=0;i<=NX;i++){const k=j*(NX+1)+i,x=GX[i],z=GZ[j];HV[k]=hT(x,z);
+  const e=Math.max(4,Math.abs(GX[Math.min(i+1,NX)]-GX[Math.max(i-1,0)])/3),nx=-(hT(x+e,z)-hT(x-e,z))/(2*e),nz=-(hT(x,z+e)-hT(x,z-e))/(2*e),l=Math.hypot(nx,1,nz);NRM[k*3]=nx/l;NRM[k*3+1]=1/l;NRM[k*3+2]=nz/l}
+const BAKE={};
+const toLin=c=>Math.pow(c,2.2);
+function bake(mode){if(BAKE[mode])return BAKE[mode];const L=LIGHT[mode],col=new Float32Array(NV);
+  for(let j=0;j<=NZ;j++)for(let i=0;i<=NX;i++){const k=j*(NX+1)+i,x=GX[i],z=GZ[j],n=[NRM[k*3],NRM[k*3+1],NRM[k*3+2]];
+    const lit=rayLit(x,z,HV[k],L),ndl=Math.max(0,n[0]*L[0]+n[1]*L[1]+n[2]*L[2]),es=Math.max(0,n[0]*EARTH_D[0]+n[1]*EARTH_D[1]+n[2]*EARTH_D[2]);
+    col[k]=Math.min(1.2,lit*(.66+1.3*ndl))+.06*es}
+  // blur in grid space (3 passes): band edges become flowing shapes instead of cell zig-zags
+  const tmp=new Float32Array(NV);for(let pass=0;pass<3;pass++){for(let j=0;j<=NZ;j++)for(let i=0;i<=NX;i++){let sum=0,w=0;for(let dj=-1;dj<=1;dj++)for(let di=-1;di<=1;di++){const jj=j+dj,ii=i+di;if(jj<0||jj>NZ||ii<0||ii>NX)continue;const ww=(di||dj)?((di&&dj)?.5:1):2;sum+=col[jj*(NX+1)+ii]*ww;w+=ww}tmp[j*(NX+1)+i]=sum/w}col.set(tmp)}
+  BAKE[mode]=col;return col}
+// permanently shadowed ground (Shackleton's floor and walls, small polar craters): gets its own deep tone
+const COLD=new Float32Array(NV);for(let j=0;j<=NZ;j++)for(let i=0;i<=NX;i++){const x=GX[i],z=GZ[j];let c=1-smooth(.82,.97,Math.hypot(x-SH.x,z-SH.z)/SH.R);for(const [px,pz,pr] of PSRS)c=Math.max(c,1-smooth(.7,1,Math.hypot(x-px,z-pz)/pr));COLD[j*(NX+1)+i]=c}
+
+/* ---------------- three.js setup ---------------- */
+let renderer;
+try{renderer=new THREE.WebGLRenderer({antialias:true,logarithmicDepthBuffer:true,powerPreference:'high-performance'})}catch(e){frame.insertAdjacentHTML('beforeend','<div class="err">WebGL isn’t available here. Open this file in a desktop browser.</div>');throw e}
+renderer.setPixelRatio(Math.min(2,window.devicePixelRatio||1));
+renderer.toneMapping=THREE.NoToneMapping;
+renderer.shadowMap.enabled=true;renderer.shadowMap.type=THREE.PCFShadowMap;
+frame.prepend(renderer.domElement);
+const scene=new THREE.Scene();{const c=document.createElement('canvas');c.width=4;c.height=256;const x=c.getContext('2d'),g=x.createLinearGradient(0,0,0,256);g.addColorStop(0,'#04061a');g.addColorStop(1,'#10163a');x.fillStyle=g;x.fillRect(0,0,4,256);const t=new THREE.CanvasTexture(c);t.colorSpace=THREE.SRGBColorSpace;scene.background=t}
+const camera=new THREE.PerspectiveCamera(14,16/9,0.5,400000);
+
+// terrain mesh (baked light, smooth interpolation, regolith detail texture)
+const pos=new Float32Array(NV*3),uv=new Float32Array(NV*2);
+for(let j=0;j<=NZ;j++)for(let i=0;i<=NX;i++){const k=j*(NX+1)+i;pos[k*3]=GX[i];pos[k*3+1]=HV[k];pos[k*3+2]=-GZ[j];uv[k*2]=GX[i]/38;uv[k*2+1]=GZ[j]/38}
+const idx=[];for(let j=0;j<NZ;j++)for(let i=0;i<NX;i++){const a=j*(NX+1)+i,b=a+1,c=a+NX+2,d=a+NX+1;idx.push(a,b,d,b,c,d)}
+const tg=new THREE.BufferGeometry();tg.setAttribute('position',new THREE.BufferAttribute(pos,3));tg.setAttribute('uv',new THREE.BufferAttribute(uv,2));tg.setIndex(idx);
+tg.setAttribute('cold',new THREE.BufferAttribute(COLD,1));
+function detailTex(){const c=document.createElement('canvas');c.width=c.height=512;const x=c.getContext('2d');x.fillStyle='#e4e4e4';x.fillRect(0,0,512,512);const R=rng(3);
+  for(let i=0;i<900;i++){const px=R()*512,py=R()*512,r=1+R()*R()*26,a=.05+R()*.12;x.fillStyle=R()<.5?`rgba(0,0,0,${a})`:`rgba(255,255,255,${a*.8})`;x.beginPath();x.arc(px,py,r,0,7);x.fill()}
+  for(let i=0;i<60;i++){const px=R()*512,py=R()*512,r=3+R()*R()*30;x.strokeStyle='rgba(255,255,255,.18)';x.lineWidth=1.5;x.beginPath();x.arc(px,py,r,0,7);x.stroke();x.fillStyle='rgba(0,0,0,.14)';x.beginPath();x.arc(px+r*.2,py+r*.2,r*.8,0,7);x.fill()}
+  const t=new THREE.CanvasTexture(c);t.wrapS=t.wrapT=THREE.RepeatWrapping;t.colorSpace=THREE.SRGBColorSpace;t.anisotropy=8;return t}
+// per-pixel light: height map on the GPU, shadows ray-marched toward the Sun for every pixel,
+// so shadow edges follow the real hills (not mesh cells). Colours blend smoothly through the palette.
+const HMX=1024,HMZ=1280,HDOM=[-36000,-40000,72000,90000]; // x0, z0, width, depth (covers the far blocking ridge)
+const hm=new Uint16Array(HMX*HMZ);
+for(let j=0;j<HMZ;j++){const z=HDOM[1]+(j+.5)/HMZ*HDOM[3];for(let i=0;i<HMX;i++){const x=HDOM[0]+(i+.5)/HMX*HDOM[2];hm[j*HMX+i]=THREE.DataUtils.toHalfFloat(hT(x,z))}}
+const hmTex=new THREE.DataTexture(hm,HMX,HMZ,THREE.RedFormat,THREE.HalfFloatType);hmTex.minFilter=hmTex.magFilter=THREE.LinearFilter;hmTex.needsUpdate=true;
+const RAMP_T=[0,.12,.3,.52,.8,1.6],RAMP_C=['#2e3444','#3e4556','#5a6172','#7c818e','#a7aab2','#a7aab2'].map(c=>new THREE.Color(c));
+const terrainMat=new THREE.ShaderMaterial({uniforms:{hmap:{value:hmTex},hdom:{value:new THREE.Vector4(...HDOM)},tex:{value:new THREE.Vector2(HDOM[2]/HMX,HDOM[3]/HMZ)},
+    sunD:{value:new THREE.Vector3(...LIGHT.sun)},earthD:{value:new THREE.Vector3(...EARTH_D)},th:{value:RAMP_T},cols:{value:RAMP_C},deep:{value:new THREE.Color('#0b0f1c')}},
+  vertexShader:`attribute float cold;varying vec3 vT;varying float vC;
+    #include <common>
+    #include <logdepthbuf_pars_vertex>
+    void main(){vT=vec3(position.x,position.y,-position.z);vC=cold;gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.0);
+    #include <logdepthbuf_vertex>
+    }`,
+  fragmentShader:`uniform sampler2D hmap;uniform vec4 hdom;uniform vec2 tex;uniform vec3 sunD;uniform vec3 earthD;uniform float th[6];uniform vec3 cols[6];uniform vec3 deep;
+    varying vec3 vT;varying float vC;
+    #include <logdepthbuf_pars_fragment>
+    float H(vec2 p){vec2 uv=(p-hdom.xy)/hdom.zw;if(uv.x<0.0||uv.y<0.0||uv.x>1.0||uv.y>1.0)return -1e5;return texture2D(hmap,uv).r;}
+    void main(){
+    #include <logdepthbuf_fragment>
+      vec2 p0=vT.xz;
+      float hx=H(p0+vec2(tex.x,0.0))-H(p0-vec2(tex.x,0.0)),hz=H(p0+vec2(0.0,tex.y))-H(p0-vec2(0.0,tex.y));
+      vec3 n=normalize(vec3(-hx/(2.0*tex.x),1.0,-hz/(2.0*tex.y)));
+      vec2 Lh=normalize(sunD.xz);float tanE=sunD.y/length(sunD.xz);
+      float h0=H(p0)+2.0,m=1e9,s=30.0;
+      for(int i=0;i<320;i++){float t=H(p0+Lh*s);if(t<-9e4)break;m=min(m,(h0+tanE*s-t)/(0.0087*s+4.0));if(m<-1.0)break;s+=clamp(s*0.06,20.0,300.0);if(s>90000.0)break;} // small steps so thin rims are never skipped
+      float lit=clamp(0.5+0.5*m,0.0,1.0);
+      float v=min(1.2,lit*(0.66+1.3*max(0.0,dot(n,sunD))))+0.06*max(0.0,dot(n,earthD));
+      float fw=fwidth(v)*0.8+0.003;vec3 c=cols[0];for(int k=1;k<6;k++){c=mix(c,cols[k],smoothstep(th[k]-fw,th[k]+fw,v));}
+      c=mix(c,deep,vC*(1.0-smoothstep(0.1-fw,0.1+fw,v)));
+      gl_FragColor=vec4(c,1.0);}`});
+const terrain=new THREE.Mesh(tg,terrainMat);scene.add(terrain);
+// shadow catcher: same surface near the base, only shows the base's real-time shadows
+{const ii=[],jj=[];for(let i=0;i<=NX;i++)if(Math.abs(GX[i])<900)ii.push(i);for(let j=0;j<=NZ;j++)if(Math.abs(GZ[j])<900)jj.push(j);
+  const sp=[],si=[];jj.forEach(j=>ii.forEach(i=>{const k=j*(NX+1)+i;sp.push(GX[i],HV[k]+0.04,-GZ[j])}));const w=ii.length;
+  for(let a=0;a<jj.length-1;a++)for(let b=0;b<w-1;b++){const p=a*w+b;si.push(p,p+1,p+w,p+1,p+w+1,p+w)}
+  const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(sp,3));g.setIndex(si);g.computeVertexNormals();
+  const m=new THREE.Mesh(g,new THREE.ShadowMaterial({opacity:.5,color:'#1a2030'}));m.receiveShadow=true;scene.add(m)}
+
+// lights
+const sun=new THREE.DirectionalLight('#f7f8ff',2.1); // neutral-cool, so whites stay clip-art whitescene.add(sun,sun.target);
+sun.castShadow=true;sun.shadow.mapSize.set(4096,4096);const sc=sun.shadow.camera;sc.left=-110;sc.right=110;sc.top=110;sc.bottom=-110;sc.near=10;sc.far=3000;sun.shadow.bias=-0.0004;sun.shadow.radius=4;sun.shadow.normalBias=0.4;
+const hemi=new THREE.HemisphereLight('#e4e9f4','#8a90a3',2.6);scene.add(hemi);
+/* ---------------- the base (real size, ~50 m across) ---------------- */
+// v8: drawn in the crew clip-art style (ideas/character-designs/crew-v5 style rules): squircle shapes; every part
+// light on top fading to slate at the bottom; soft light; a lighter inner rim on metal; navy screens with a shine streak;
+// cyan glow accents; small amber plates; soft contact shadows; chibi crew. Layout from Bea's 3 reference renders (v7).
+// Inside groups: +x right, +z toward the base camera, +y up.
+const TEX=(w,h,draw,rep)=>{const c=document.createElement('canvas');c.width=w;c.height=h;draw(c.getContext('2d'),w,h);const t=new THREE.CanvasTexture(c);t.colorSpace=THREE.SRGBColorSpace;t.wrapS=t.wrapT=THREE.RepeatWrapping;t.anisotropy=8;if(rep)t.repeat.set(...rep);return t};
+const RAMP=(()=>{const d=new Uint8Array([180,205,228,246,255]);const t=new THREE.DataTexture(d,5,1,THREE.RedFormat);t.minFilter=t.magFilter=THREE.LinearFilter;t.needsUpdate=true;return t})(); // soft wrap light, no hard bands
+function M(c,o={}){const m=new THREE.MeshToonMaterial({color:c,gradientMap:RAMP,vertexColors:true});if(o.side)m.side=o.side;
+  const rim=o.rim??.38;if(rim>0)m.onBeforeCompile=sh=>{sh.uniforms.rimS={value:rim};sh.fragmentShader='uniform float rimS;\n'+sh.fragmentShader.replace('#include <opaque_fragment>',
+    'outgoingLight=mix(outgoingLight,vec3(1.),rimS*smoothstep(.5,.92,1.-abs(dot(normal,normalize(vViewPosition))))); // lighter inner rim (metal bevel)\n#include <opaque_fragment>')};
+  return m}
+const wht=M('#F2F4F8'),lgt=M('#D9DCE3'),mid=M('#A0A5B2'),slt=M('#7F869D'),nvy=M('#2A3558'),boot=M('#4F5772'),amber=M('#ffffff'),
+  mound=M('#B4B8C2',{rim:0}),reg=M('#A3A8B3',{rim:0}),
+  scr=new THREE.MeshBasicMaterial({vertexColors:true,toneMapped:false}),   // navy screen: gradient set per mesh
+  shine=new THREE.MeshBasicMaterial({color:'#ffffff',transparent:true,opacity:.6,depthWrite:false,toneMapped:false}),
+  cyan=new THREE.MeshBasicMaterial({color:'#21dbe3',toneMapped:false}),lampM=new THREE.MeshBasicMaterial({color:'#ffe3a8'});
+const gridM=new THREE.MeshBasicMaterial({transparent:true,depthWrite:false,toneMapped:false,map:TEX(96,256,(x,w,h)=>{x.strokeStyle='rgba(150,180,250,.55)';x.lineWidth=3;x.beginPath();for(let i=1;i<6;i++)x.moveTo(i*w/6,0),x.lineTo(i*w/6,h);for(let j=1;j<16;j++)x.moveTo(0,j*h/16),x.lineTo(w,j*h/16);x.stroke()})});
+const base=new THREE.Group();scene.add(base);
+// ground height of the drawn terrain mesh (same triangles), so nothing floats or sinks on the slope
+const cell=(A,v)=>{let lo=0,hi=A.length-2;while(lo<hi){const m=(lo+hi+1)>>1;if(A[m]<=v)lo=m;else hi=m-1}return lo};
+function hM(x,z){const i=cell(GX,x),j=cell(GZ,z),u=(x-GX[i])/(GX[i+1]-GX[i]),v=(z-GZ[j])/(GZ[j+1]-GZ[j]),k=j*(NX+1)+i,a=HV[k],b=HV[k+1],c=HV[k+NX+2],d=HV[k+NX+1];
+  return u+v<=1?a+u*(b-a)+v*(d-a):c+(1-u)*(d-c)+(1-v)*(b-c)}
+const mesh=(geo,mat,o={})=>{const m=new THREE.Mesh(geo,mat);m.castShadow=o.cast!==false;m.receiveShadow=true;if(o.g)m.userData.g=o.g;return m};
+const put=(g,geo,mat,x,y,z,o={})=>{const m=mesh(geo,mat,o);m.position.set(x,y,z);if(o.rx)m.rotation.x=o.rx;if(o.ry)m.rotation.y=o.ry;if(o.rz)m.rotation.z=o.rz;if(o.s)m.scale.set(...o.s);g.add(m);return m};
+const grp=(x,z,ry=0,dy=0,parent=base)=>{const g=new THREE.Group();g.position.copy(W(x,hM(x,z)+dy,z));g.rotation.y=ry;parent.add(g);return g};
+const UP=new THREE.Vector3(0,1,0);
+const rod=(g,a,b,r,mat,seg=10)=>{const A=new THREE.Vector3(...a),B=new THREE.Vector3(...b),d=B.clone().sub(A),L=d.length();const m=mesh(new THREE.CylinderGeometry(r,r,L,seg),mat);m.position.copy(A).add(B).multiplyScalar(.5);m.quaternion.setFromUnitVectors(UP,d.normalize());g.add(m);return m};
+// squircle pieces: rounded-edge cylinder (lathe) and big-radius box
+function rcyl(r,h,b=.3,seg=48){b=Math.min(b,r-.001,h/2-.001);const P=[new THREE.Vector2(0,-h/2)],q=6;
+  for(let i=0;i<=q;i++){const a=-Math.PI/2+i/q*Math.PI/2;P.push(new THREE.Vector2(r-b+Math.cos(a)*b,-h/2+b+Math.sin(a)*b))}
+  for(let i=0;i<=q;i++){const a=i/q*Math.PI/2;P.push(new THREE.Vector2(r-b+Math.cos(a)*b,h/2-b+Math.sin(a)*b))}
+  P.push(new THREE.Vector2(0,h/2));return new THREE.LatheGeometry(P,seg)}
+const rbox=(w,h,d,r)=>new RoundedBoxGeometry(w,h,d,4,Math.min(r,Math.min(w,h,d)/2-.001));
+const SHINE=new RoundedBoxGeometry(1,1,.02,2,.49);
+function screen(g,w,h,x,y,z,o={}){const s=new THREE.Group();s.position.set(x,y,z);s.rotation.y=o.ry||0;g.add(s);
+  put(s,rbox(w,h,.12,Math.min(w,h)*.3),scr,0,0,0,{cast:false,g:'screen'});const st=put(s,SHINE,shine,-w*.17,h*.27,.07,{cast:false,rz:.12});st.scale.set(w*.3,Math.max(.05,h*.09),1);return s}
+const HALO=TEX(64,64,x=>{const g=x.createRadialGradient(32,32,0,32,32,32);g.addColorStop(0,'rgba(255,255,255,1)');g.addColorStop(.3,'rgba(255,255,255,.4)');g.addColorStop(1,'rgba(255,255,255,0)');x.fillStyle=g;x.fillRect(0,0,64,64)});
+const halo=(g,x,y,z,s,c='#21dbe3')=>{const sp=new THREE.Sprite(new THREE.SpriteMaterial({map:HALO,color:c,blending:THREE.AdditiveBlending,depthWrite:false,transparent:true,toneMapped:false}));sp.position.set(x,y,z);sp.scale.set(s,s,1);g.add(sp);return sp};
+const beacon=(g,x,y,z)=>{put(g,new THREE.SphereGeometry(.17,14,10),cyan,x,y,z,{cast:false});halo(g,x,y,z,1.2)};
+// the suit's chest panel, reused on modules and the power unit: amber plate + cyan light + navy buttons
+const panelBits=(g,x,y,z,ry=0,k=1)=>{const p=new THREE.Group();p.position.set(x,y,z);p.rotation.y=ry;p.scale.setScalar(k);g.add(p);put(p,rbox(1.3,.55,.14,.13),lgt,0,0,0);
+  put(p,rbox(.62,.17,.08,.07),amber,-.2,.1,.07,{cast:false,g:'amber'});put(p,new THREE.SphereGeometry(.075,12,8),cyan,.38,.1,.08,{cast:false});for(const dx of [-.36,-.14])put(p,rbox(.15,.1,.06,.04),nvy,dx,-.13,.07,{cast:false});return p};
+const BLOB=TEX(128,128,x=>{const g=x.createRadialGradient(64,64,0,64,64,64);g.addColorStop(0,'rgba(22,28,52,.55)');g.addColorStop(.6,'rgba(22,28,52,.28)');g.addColorStop(1,'rgba(22,28,52,0)');x.fillStyle=g;x.fillRect(0,0,128,128)});
+const blobM=new THREE.MeshBasicMaterial({map:BLOB,transparent:true,depthWrite:false,side:THREE.DoubleSide,toneMapped:false});
+function blob(x,z,rx,rz,rot=0){const N=8,P=[],U=[],I=[],c=Math.cos(rot),s=Math.sin(rot);for(let j=0;j<=N;j++)for(let i=0;i<=N;i++){const lx=(i/N-.5)*2*rx,lz=(j/N-.5)*2*rz,wx=x+lx*c-lz*s,wz=z+lx*s+lz*c,w=W(wx,hM(wx,wz)+.07,wz);P.push(w.x,w.y,w.z);U.push(i/N,j/N)}
+  for(let j=0;j<N;j++)for(let i=0;i<N;i++){const a=j*(N+1)+i;I.push(a,a+1,a+N+1,a+1,a+N+2,a+N+1)}const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(P,3));g.setAttribute('uv',new THREE.Float32BufferAttribute(U,2));g.setIndex(I);
+  const m=new THREE.Mesh(g,blobM);m.renderOrder=1;m.userData.flat=true;base.add(m)}
+const EARTH_W=new THREE.Vector3(EARTH_D[0],EARTH_D[1],-EARTH_D[2]);
+const sunH=Math.atan2(LIGHT.sun[0],-LIGHT.sun[2]);
+
+// 1) HABITAT: two modules on a landed deck; the lander legs stay as the base's feet
+const DECK=2.4,hab=grp(2,-6);
+put(hab,rcyl(6.1,.55,.24,64),lgt,0,DECK-.27,0);
+for(let k=0;k<4;k++){const a=Math.PI/4+k*Math.PI/2,c=Math.sin(a),s=Math.cos(a),foot=[c*6.6,.3,s*6.6],knee=[c*5.6,1.15,s*5.6];
+  rod(hab,[c*4.3,DECK-.5,s*4.3],foot,.24,lgt,16);rod(hab,[c*2.4,DECK-.5,s*2.4],knee,.13,mid);
+  put(hab,new THREE.SphereGeometry(.3,16,12),mid,...knee);put(hab,rcyl(.9,.28,.12,32),slt,foot[0],.14,foot[2])}
+put(hab,rcyl(1.7,1.2,.4,32),slt,0,DECK-1.1,0);
+for(const [x,z] of [[-2.3,1.3],[2.3,1.3],[0,-2.5]])put(hab,new THREE.SphereGeometry(.85,24,16),amber,x,DECK-1.32,z,{s:[1,1.12,1],g:'amber'});
+put(hab,new THREE.CylinderGeometry(.4,.8,.6,24),boot,0,DECK-1.95,0);
+// module A: tall, porthole, chest panel, cyan beacon
+put(hab,rcyl(2.1,4.4,.55,64),wht,-2.2,DECK+2.2,-.3);
+put(hab,new THREE.SphereGeometry(1.95,48,14,0,Math.PI*2,0,Math.PI/2),lgt,-2.2,DECK+4.35,-.3,{s:[1,.38,1]});
+put(hab,rcyl(2.16,.34,.14,64),mid,-2.2,DECK+3.5,-.3);
+{const ph=new THREE.Group();ph.position.set(-2.2,DECK+2.3,1.8);hab.add(ph);put(ph,new THREE.TorusGeometry(.72,.2,14,40),lgt,0,0,0);put(ph,new THREE.CircleGeometry(.68,40),scr,0,0,.03,{cast:false,g:'screen'});
+  const st=put(ph,SHINE,shine,-.24,.3,.1,{cast:false,rz:.55});st.scale.set(.42,.1,1)}
+panelBits(hab,-2.2,DECK+.95,1.85);
+rod(hab,[-2.2,DECK+5,-.3],[-2.2,DECK+6.3,-.3],.08,mid);beacon(hab,-2.2,DECK+6.45,-.3);
+// module B: shorter, row of navy windows, grey suit stripe
+put(hab,rcyl(1.9,3.4,.55,64),wht,2.6,DECK+1.7,.2);
+put(hab,new THREE.SphereGeometry(1.75,48,14,0,Math.PI*2,0,Math.PI/2),lgt,2.6,DECK+3.35,.2,{s:[1,.36,1]});
+put(hab,rcyl(1.96,.34,.14,64),mid,2.6,DECK+.8,.2);
+for(const a of [-.5,0,.5])screen(hab,.62,.78,2.6+Math.sin(a)*1.93,DECK+2.15,.2+Math.cos(a)*1.93,{ry:a});
+put(hab,new THREE.CapsuleGeometry(.75,1.2,8,24),lgt,.3,DECK+1.35,0,{rz:Math.PI/2});
+// deck props: crates, front railing, ladder
+put(hab,rbox(1.2,.9,1,.28),wht,.6,DECK+.45,-3.7);put(hab,rbox(1,1,1,.3),mid,4.6,DECK+.5,-2.5);put(hab,rbox(.8,.6,.7,.22),amber,-4.3,DECK+.3,1.4,{g:'amber'});
+for(const x of [-2.7,-1.5,-.3,.9])rod(hab,[x,DECK,5.25],[x,DECK+.95,5.25],.07,mid);rod(hab,[-2.7,DECK+.95,5.25],[.9,DECK+.95,5.25],.07,mid);
+for(const x of [1.45,2.45])rod(hab,[x,DECK,5.5],[x,0,7],.08,mid);
+for(let i=1;i<7;i++){const t=i/7;rod(hab,[1.45,DECK*(1-t),5.5+1.5*t],[2.45,DECK*(1-t),5.5+1.5*t],.06,mid)}
+
+// 2) TUNNEL: soft, ribbed walkway from module A down to the storm shelter (crew run here when a storm hits)
+{const tp=[[-1.9,2.4+DECK-1.05,-5.6],[-4.4,3.7,-5.6],[-6.6,2.5,-5.5],[-8.1,1.55,-5.4],[-9.05,1.45,-5.4]].map(([x,y,z])=>W(x,hM(x,z)+y,z));
+  const cv=new THREE.CatmullRomCurve3(tp),L=cv.getLength();base.add(mesh(new THREE.TubeGeometry(cv,64,.7,20),wht));
+  const Z=new THREE.Vector3(0,0,1),ring=(t,R,r,mat)=>{const m=mesh(new THREE.TorusGeometry(R,r,10,28),mat);m.position.copy(cv.getPointAt(t));m.quaternion.setFromUnitVectors(Z,cv.getTangentAt(t));base.add(m)};
+  for(let s=.7;s<L-.5;s+=.85)ring(s/L,.73,.13,lgt);for(const t of [0,1])ring(t,.8,.2,mid);
+  const mid0=cv.getPointAt(.55);for(const dz of [-.5,.5])rod(base,[mid0.x,mid0.y-.6,mid0.z+dz],[mid0.x,hM(mid0.x,-mid0.z),mid0.z+dz*1.6],.11,slt)}
+
+// 3) STORM SHELTER: soft regolith mound over a buried module, rounded door with a cyan light
+{const g=new THREE.SphereGeometry(1,48,24,0,Math.PI*2,0,Math.PI/2);const p=g.attributes.position;for(let i=0;i<p.count;i++){const y=p.getY(i),k=1+(Math.sin(p.getX(i)*5)+Math.cos(p.getZ(i)*4))*.02*(1-y);p.setXYZ(i,p.getX(i)*k,y,p.getZ(i)*k)}g.computeVertexNormals();
+  const sh=grp(-11,0,0,-.15);put(sh,g,mound,0,0,0,{s:[5.8,3.4,4.8]})}
+{const en=grp(-10,-5.2);put(en,rbox(2.3,2.4,2.4,.55),wht,0,1.2,0);screen(en,1.2,1.5,0,.95,1.22);put(en,rbox(.95,.13,.08,.06),cyan,0,1.95,1.22,{cast:false});halo(en,0,1.95,1.3,1.4);
+  put(en,rbox(.7,.2,.08,.08),amber,0,2.2,1.2,{cast:false,g:'amber'})}
+
+// 4) COMMS TOWER: chunky lattice mast, floodlight pod over the base, dish locked on Earth
+{const tw=grp(10,4),H=9,wd=y=>1-.6*y/H,C4=[[1,1],[1,-1],[-1,-1],[-1,1]];
+  for(const [sx,sz] of C4)rod(tw,[sx,0,sz],[sx*.4,H,sz*.4],.14,mid,12);
+  for(let i=1;i<=3;i++){const y0=(i-1)*H/3,y1=i*H/3,w0=wd(y0),w1=wd(y1);for(let k=0;k<4;k++){const [ax,az]=C4[k],[bx,bz]=C4[(k+1)%4];
+    rod(tw,[ax*w1,y1,az*w1],[bx*w1,y1,bz*w1],.1,mid);rod(tw,[ax*w0,y0,az*w0],[bx*w1,y1,bz*w1],.07,mid,8);rod(tw,[bx*w0,y0,bz*w0],[ax*w1,y1,az*w1],.07,mid,8)}}
+  put(tw,rcyl(.8,.3,.12,32),lgt,0,H+.1,0);put(tw,rbox(1.7,.6,1.7,.28),wht,0,.3,0);
+  const fl=new THREE.Group();fl.position.set(0,7.2,0);fl.rotation.y=-.67;tw.add(fl);put(fl,rbox(1.9,.8,.6,.28),wht,0,0,.55);
+  for(const x of [-.45,.45]){put(fl,new THREE.CircleGeometry(.27,28),lampM,x,0,.86,{cast:false});halo(fl,x,0,.98,.9,'#fff1cc')}
+  rod(tw,[0,H+.2,0],[0,H+.9,0],.13,mid);beacon(tw,.62,H+.45,.62);
+  const dg=new THREE.Group();dg.position.set(0,H+1.3,0);tw.add(dg);base.updateMatrixWorld(true);dg.lookAt(dg.getWorldPosition(new THREE.Vector3()).add(EARTH_W.clone().multiplyScalar(1000)));
+  const cap=mesh(new THREE.SphereGeometry(1.5,40,14,0,Math.PI*2,0,.9),M('#F2F4F8',{side:THREE.DoubleSide}));cap.rotation.x=-Math.PI/2;cap.position.z=1.25;dg.add(cap);
+  put(dg,new THREE.TorusGeometry(1.175,.11,10,40),lgt,0,0,.32);rod(dg,[0,0,-.3],[0,0,.95],.06,mid);put(dg,new THREE.SphereGeometry(.15,12,10),mid,0,0,1);put(dg,rcyl(.3,.35,.1,20),mid,0,0,-.42,{rx:Math.PI/2})}
+
+// 5) SOLAR: tall vertical arrays on masts (NASA's polar design, ~10 m; F65), turned toward the low Sun; navy screens
+const MASTS=[[-17,12],[-12.5,14],[-8,16]];
+for(const [x,z] of MASTS){const g=grp(x,z);put(g,rbox(1.6,.8,1.6,.32),wht,0,.4,0);put(g,new THREE.CylinderGeometry(.2,.27,10,18),lgt,0,5,0);
+  const pg=new THREE.Group();pg.position.set(0,6.75,0);pg.rotation.y=sunH;g.add(pg);
+  put(pg,rbox(3.55,6.75,.24,.32),lgt,0,0,.2);put(pg,rbox(3.2,6.4,.1,.22),scr,0,0,.3,{cast:false,g:'screen'});put(pg,new THREE.PlaneGeometry(3.1,6.3),gridM,0,0,.36,{cast:false});
+  const st=put(pg,SHINE,shine,-.75,2.3,.37,{cast:false,rz:.3});st.scale.set(1.2,.15,1);put(pg,new THREE.CylinderGeometry(.18,.18,.5,14),mid,0,0,0,{rx:Math.PI/2})}
+{const g=grp(-12.5,14);beacon(g,0,10.25,0)}
+// power unit (batteries + radiator fins)
+{const g=grp(-4,10,sunH);put(g,rbox(3,1.5,1.8,.42),wht,0,.75,0);for(let i=0;i<4;i++)put(g,rbox(.2,.6,1.4,.09),mid,-.9+i*.6,1.7,0);panelBits(g,0,.8,.93,0,.9)}
+
+// 6) ROVER: pressurised, Curio-style navy wheels with light rings, big navy window, amber side plate
+const RV=[11.5,-10.5];
+{const g=grp(RV[0],RV[1],.35);put(g,rbox(4.4,.5,2.1,.22),slt,0,.95,0);
+  for(const x of [-1.5,0,1.5])for(const z of [-1.2,1.2]){const s=Math.sign(z);put(g,new THREE.CylinderGeometry(.6,.6,.45,28),nvy,x,.6,z,{rx:Math.PI/2});put(g,new THREE.TorusGeometry(.36,.1,10,24),lgt,x,.6,z+s*.24)}
+  put(g,rbox(3.9,1.9,2.2,.62),wht,-.2,2.05,0);put(g,rbox(3.94,.24,2.24,.11),mid,-.2,1.32,0);
+  screen(g,1.75,1,1.77,2.25,0,{ry:Math.PI/2});for(const x of [.4,-.8])for(const s of [-1,1])screen(g,.8,.55,x,2.4,s*1.11,{ry:s>0?0:Math.PI});
+  for(const s of [-1,1])put(g,rbox(1.1,.26,.08,.1),amber,-.5,1.62,s*1.11,{cast:false,g:'amber'});
+  for(const z of [-.65,.65]){put(g,rbox(.08,.2,.36,.04),cyan,2.22,1.02,z,{cast:false});halo(g,2.3,1.02,z,.9)}
+  put(g,rbox(1.6,.08,1.3,.04),nvy,-.9,3.04,0);rod(g,[.7,2.9,.6],[.7,3.9,.6],.06,mid);beacon(g,.7,4,.6)}
+
+// 7) CREW: chibi astronauts matching the v5 sprite (big helmet, side pods, navy visor + shine, cyan top light, arm band)
+function astro(x,z,ry,band){const g=grp(x,z,ry),bm=M(band);
+  for(const sx of [-.17,.17]){put(g,rbox(.3,.24,.42,.11),boot,sx,.12,.04);put(g,new THREE.CapsuleGeometry(.14,.22,4,12),wht,sx,.42,0)}
+  put(g,rbox(.78,.66,.5,.23),wht,0,.9,0);
+  {const pb=new THREE.Group();pb.position.set(0,.92,.25);g.add(pb);put(pb,rbox(.42,.22,.06,.06),lgt,0,0,0);put(pb,rbox(.16,.06,.03,.025),amber,-.06,.04,.035,{cast:false,g:'amber'});put(pb,new THREE.SphereGeometry(.03,8,6),cyan,.11,.04,.04,{cast:false})}
+  for(const sx of [-1,1]){put(g,new THREE.CapsuleGeometry(.12,.3,4,10),wht,sx*.48,.9,0,{rz:sx*.2});put(g,new THREE.CylinderGeometry(.135,.135,.08,14),bm,sx*.46,1,0,{rz:sx*.2});put(g,new THREE.SphereGeometry(.13,12,10),lgt,sx*.53,.66,0)}
+  put(g,rbox(.6,.62,.32,.14),lgt,0,.98,-.38);
+  put(g,new THREE.SphereGeometry(.6,32,22),wht,0,1.72,0,{s:[1,.92,1]});for(const sx of [-1,1])put(g,rcyl(.17,.17,.06,20),lgt,sx*.6,1.72,0,{rz:Math.PI/2});
+  put(g,new THREE.SphereGeometry(.605,32,16,Math.PI/2-.8,1.6,1,.95),scr,0,1.72,0,{cast:false,s:[1,.92,1],g:'screen'});
+  const st=put(g,SHINE,shine,-.16,1.9,.58,{cast:false,rz:.25,ry:-.25});st.scale.set(.26,.06,1);
+  put(g,rbox(.22,.09,.12,.04),cyan,0,2.3,0,{cast:false});halo(g,0,2.3,0,.7);return g}
+astro(4.6,-13.3,-.5,'#f08c3c');astro(-11.4,12.4,-2.54,'#21dbe3');
+
+// 8) ground: soft contact shadows (like the ellipse under every sprite), worn rover path, rounded rocks
+blob(2,-6,7.8,7.8);blob(-11,0,6.8,5.8);blob(-10,-5.3,1.9,1.9);blob(10,4,1.9,1.9);for(const [x,z] of MASTS)blob(x,z,1.4,1.4);blob(-4,10,2.2,1.6,sunH);blob(RV[0],RV[1],2.7,1.7,.35);blob(4.6,-13.3,.6,.6);blob(-11.4,12.4,.6,.6);
+function tracks(ctrl,offs,alpha){const cv=new THREE.CatmullRomCurve3(ctrl.map(([x,z])=>new THREE.Vector3(x,0,z))),N=Math.ceil(cv.getLength()/.6),P=[],C=[],I=[];
+  for(let i=0;i<=N;i++){const t=i/N,p=cv.getPointAt(t),d=cv.getTangentAt(t),a=Math.min(1,i/5)*Math.pow(1-t,.8)*alpha;
+    for(const o of offs){const x=p.x-d.z*o,z=p.z+d.x*o,w=W(x,hM(x,z)+.06,z);P.push(w.x,w.y,w.z);C.push(.1,.11,.14,a)}}
+  for(let i=0;i<N;i++){const a=i*4,b=a+4;for(const s of [0,2])I.push(a+s,a+s+1,b+s,a+s+1,b+s+1,b+s)}
+  const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(P,3));g.setAttribute('color',new THREE.Float32BufferAttribute(C,4));g.setIndex(I);
+  const m=new THREE.Mesh(g,new THREE.MeshBasicMaterial({vertexColors:true,transparent:true,depthWrite:false,side:THREE.DoubleSide,toneMapped:false}));m.renderOrder=1;m.userData.flat=true;base.add(m)}
+const ROAD=[[9.4,-11.3],[14,-9.6],[20,-6],[28,2],[40,18],[62,42],[95,75],[140,120]]; // the worn path the rover takes toward the dark crater
+tracks(ROAD,[-1.5,1.5,1.5,1.5],.2);tracks(ROAD,[-1.15,-.6,.6,1.15],.38);
+// every part: its own vertical gradient, base colour on top fading to slate at the bottom (screens: navy -> blue; amber plates)
+const GR={def:[new THREE.Color(1,1,1),new THREE.Color(1,1,1).lerp(new THREE.Color('#4F5772'),.5)],amber:[new THREE.Color('#F7C081'),new THREE.Color('#BF833E')],screen:[new THREE.Color('#1D2B4C'),new THREE.Color('#4465B2')]};
+function shade(g,top,bot,ys,lo,hi){const p=g.attributes.position,col=new Float32Array(p.count*3),c=new THREE.Color(),span=Math.max(.001,hi-lo);
+  for(let i=0;i<p.count;i++){const t=(ys[i]-lo)/span;c.copy(bot).lerp(top,t*t*(3-2*t));col[i*3]=c.r;col[i*3+1]=c.g;col[i*3+2]=c.b}g.setAttribute('color',new THREE.BufferAttribute(col,3))}
+{base.updateMatrixWorld(true);const v=new THREE.Vector3();base.traverse(o=>{if(!o.isMesh||o.userData.flat||o.geometry.attributes.color)return;const p=o.geometry.attributes.position,ys=new Float32Array(p.count);let lo=1e9,hi=-1e9;
+  for(let i=0;i<p.count;i++){v.fromBufferAttribute(p,i).applyMatrix4(o.matrixWorld);ys[i]=v.y;if(v.y<lo)lo=v.y;if(v.y>hi)hi=v.y}const [t,b]=GR[o.userData.g||'def'];shade(o.geometry,t,b,ys,lo,hi)})}
+const rockGeo=(()=>{let g=new THREE.IcosahedronGeometry(1,2);g.deleteAttribute('normal');g.deleteAttribute('uv');g=mergeVertices(g);const p=g.attributes.position;
+  for(let i=0;i<p.count;i++){const x=p.getX(i),y=p.getY(i),z=p.getZ(i),k=1+.14*Math.sin(x*3.1+y*1.7)*Math.cos(z*2.3-y)+.05*Math.sin(x*7+z*5);p.setXYZ(i,x*k,y*k,z*k)}g.computeVertexNormals();
+  const ys=Array.from({length:p.count},(_,i)=>p.getY(i));shade(g,...GR.def,ys,-1.1,1.1);return g})();
+{const R=rng(11),inst=new THREE.InstancedMesh(rockGeo,reg,190);const m4=new THREE.Matrix4(),q=new THREE.Quaternion(),e=new THREE.Euler();let n=0;
+  const place=(x,z,s)=>{e.set((R()-.5)*.3,R()*6.28,(R()-.5)*.3);q.setFromEuler(e);m4.compose(W(x,hM(x,z)+s*.15,z),q,new THREE.Vector3(s,s*.62,s*(.8+R()*.4)));inst.setMatrixAt(n++,m4)};
+  for(let i=0;i<400&&n<160;i++){const x=(R()-.5)*420,z=(R()-.5)*420;if(Math.abs(x)<26&&Math.abs(z)<22)continue;place(x,z,.2+R()*R()*1.6)}
+  for(let i=0;i<14;i++){const a=R()*Math.PI*2;if(Math.sin(a)<-.5)continue;place(-11+Math.cos(a)*6.1,Math.sin(a)*5.1,.25+R()*.4)} // stones piled round the shelter
+  inst.count=n;inst.castShadow=true;inst.receiveShadow=true;scene.add(inst)}
+
+// night lamps (day-5 long shadow): habitat front, shelter door, tower floodlights
+const lamps=[];for(const p of [[-.2,5,-12],[4.6,4.4,-12],[-10,1.6,-9.5],[7,6.5,-1.5]]){const l=new THREE.PointLight('#ffb35c',0,60,2);l.position.copy(W(p[0],hM(p[0],p[2])+p[1],p[2]));scene.add(l);lamps.push(l)}
+
+/* ---------------- sky: stars + Earth ---------------- */
+{const R=rng(9),N=2500,p=new Float32Array(N*3);for(let i=0;i<N;i++){const u=R()*2-1,a=R()*Math.PI*2,r=300000,s=Math.sqrt(1-u*u);p[i*3]=r*s*Math.cos(a);p[i*3+1]=Math.abs(r*u);p[i*3+2]=r*s*Math.sin(a)}
+  const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.BufferAttribute(p,3));scene.add(new THREE.Points(g,new THREE.PointsMaterial({color:'#fff3d6',size:1.8,sizeAttenuation:false,transparent:true,opacity:.8,toneMapped:false})))}
+// Earth: real continents + clouds (NASA Blue Marble maps from the three.js examples), drawn flat in the
+// storybook palette: posterised land/sea/ice, two-tone clouds with soft shadows, crisp day/night line, blue rim.
+const earth=new THREE.Group();earth.userData.earth=true;
+const EU={dayMap:{value:null},seaMap:{value:null},cloudMap:{value:null},hasMaps:{value:0},sunW:{value:new THREE.Vector3(LIGHT.sun[0],LIGHT.sun[1],-LIGHT.sun[2])},drift:{value:0},
+  ocean:{value:new THREE.Color('#2f6fd0')},shallow:{value:new THREE.Color('#4a95e6')},land:{value:new THREE.Color('#4fae6a')},dry:{value:new THREE.Color('#d8b46a')},ice:{value:new THREE.Color('#f2f6fb')},
+  night:{value:new THREE.Color('#111c44')},rim:{value:new THREE.Color('#9fdcff')},cloudLo:{value:new THREE.Color('#c9d6ea')}};
+{const blank=new THREE.DataTexture(new Uint8Array([0,0,0,255]),1,1);blank.needsUpdate=true;EU.dayMap.value=EU.seaMap.value=EU.cloudMap.value=blank;
+  const TL=new THREE.TextureLoader(),SRC='assets/earth/',CDN='https://cdn.jsdelivr.net/gh/mrdoob/three.js@r160/examples/textures/planets/';let got=0;const ok=k=>t=>{t.anisotropy=8;EU[k].value=t;if(++got===3)EU.hasMaps.value=1};
+  for(const [f,k] of [['earth_atmos_2048.jpg','dayMap'],['earth_specular_2048.jpg','seaMap'],['earth_clouds_1024.png','cloudMap']])
+    TL.load(SRC+f,ok(k),undefined,()=>TL.load(CDN+f,ok(k),undefined,()=>console.warn('Earth map failed; using the simple globe')))}
+const EV=`varying vec2 vUv;varying vec3 vN;varying vec3 vV;varying vec3 vP;
+  #include <common>
+  #include <logdepthbuf_pars_vertex>
+  void main(){vUv=uv;vP=normalize(position);vN=normalize(mat3(modelMatrix)*normal);vec4 wp=modelMatrix*vec4(position,1.0);vV=cameraPosition-wp.xyz;gl_Position=projectionMatrix*viewMatrix*wp;
+  #include <logdepthbuf_vertex>
+  }`;
+const EHEAD=`uniform sampler2D dayMap,seaMap,cloudMap;uniform float hasMaps,drift;uniform vec3 sunW,ocean,shallow,land,dry,ice,night,rim,cloudLo;varying vec2 vUv;varying vec3 vN;varying vec3 vV;varying vec3 vP;
+  #include <logdepthbuf_pars_fragment>
+  float hs(vec3 p){p=fract(p*.3183099+.1);p*=17.;return fract(p.x*p.y*p.z*(p.x+p.y+p.z));}
+  float vn(vec3 x){vec3 i=floor(x),f=fract(x);f=f*f*(3.-2.*f);return mix(mix(mix(hs(i),hs(i+vec3(1,0,0)),f.x),mix(hs(i+vec3(0,1,0)),hs(i+vec3(1,1,0)),f.x),f.y),mix(mix(hs(i+vec3(0,0,1)),hs(i+vec3(1,0,1)),f.x),mix(hs(i+vec3(0,1,1)),hs(i+vec3(1,1,1)),f.x),f.y),f.z);}
+  float fbm(vec3 p){float a=.5,s=0.;for(int i=0;i<5;i++){s+=a*vn(p);p=p*2.03+vec3(1.7,9.2,3.1);a*=.5;}return s;}
+  // storybook clouds: swirly noise banded like real weather (cloudy equator + storm belts, clear subtropical deserts),
+  // plus the dense clouds from the real cloud map (cover stored in alpha)
+  float cl(vec2 uv,vec3 p){float a=drift*6.2832,c=cos(a),s=sin(a);p=vec3(c*p.x-s*p.z,p.y,s*p.x+c*p.z);
+    vec3 q=p*vec3(4.2,7.,4.2);q+=.7*vec3(fbm(q*.6),fbm(q*.6+4.1),fbm(q*.6+8.3));float n=fbm(q*1.25);
+    float lat=p.y,wt=max(exp(-pow(lat/.16,2.)),exp(-pow((abs(lat)-.8)/.15,2.)));float t=.6-.15*wt;
+    return max(texture2D(cloudMap,uv).a*hasMaps,smoothstep(t,t+.16,n)*.42);}
+  float band(float e,float v){float w=fwidth(v)*.75+.004;return smoothstep(e-w,e+w,v);}`;
+const earthSurf=new THREE.Mesh(new THREE.SphereGeometry(1,96,64),new THREE.ShaderMaterial({uniforms:EU,vertexShader:EV,fragmentShader:EHEAD+`
+  void main(){
+  #include <logdepthbuf_fragment>
+    vec3 n=normalize(vN);float ndl=dot(n,sunW);vec3 col;
+    if(hasMaps>.5){vec3 d=texture2D(dayMap,vUv).rgb;float sea=band(.5,texture2D(seaMap,vUv).r),lum=dot(d,vec3(.3,.59,.11));
+      float sat=max(d.r,max(d.g,d.b))-min(d.r,min(d.g,d.b)),lat=abs(vUv.y-.5)*2.;vec3 L=mix(land,dry,band(.06,d.r-d.g*.92));L=mix(L,ice,max(band(.72,lat)*band(.45,lum),band(.7,lum)*(1.-band(.14,sat))));
+      vec3 S=mix(ocean,shallow,band(.2,lum));S=mix(S,ice,band(.93,lat));col=mix(L,S,sea);}
+    else{float q=sin(vUv.x*31.4+sin(vUv.y*9.)*2.)*sin(vUv.y*15.7+sin(vUv.x*12.)*1.5);col=mix(ocean,land,band(.3,q));}
+    col*=1.-.24*smoothstep(.06,.2,cl(vUv+vec2(drift+.0035,-.003),vP+vec3(.004,-.004,0.)));
+    float day=band(0.,ndl),sh=mix(.82,1.,band(.28,ndl));vec3 c=mix(mix(col,night,.84),col*sh,day);
+    float fr=pow(1.-max(0.,dot(n,normalize(vV))),2.6);c=mix(c,rim,fr*.8*smoothstep(-.15,.35,ndl));
+    gl_FragColor=vec4(c,1.);}`}));
+const earthCloud=new THREE.Mesh(new THREE.SphereGeometry(1.012,96,64),new THREE.ShaderMaterial({uniforms:EU,vertexShader:EV,transparent:true,depthWrite:false,fragmentShader:EHEAD+`
+  void main(){
+  #include <logdepthbuf_fragment>
+    vec3 n=normalize(vN);float ndl=dot(n,sunW),v=cl(vUv+vec2(drift,0.),vP),thin=smoothstep(.03,.15,v),thick=band(.22,v); // the cloud map keeps most cover below .3
+    vec3 c=mix(cloudLo,vec3(1.),thick)*mix(.82,1.,band(.28,ndl));float day=band(0.,ndl);c=mix(night*1.6,c,day);
+    gl_FragColor=vec4(c,(thin*.6+thick*.4)*mix(.35,1.,day));}`}));
+const earthHalo=new THREE.Mesh(new THREE.SphereGeometry(1.07,64,32),new THREE.ShaderMaterial({uniforms:EU,vertexShader:EV,transparent:true,depthWrite:false,side:THREE.BackSide,blending:THREE.AdditiveBlending,fragmentShader:EHEAD+`
+  void main(){
+  #include <logdepthbuf_fragment>
+    vec3 n=normalize(vN);float f=pow(clamp(abs(dot(n,normalize(vV)))/.36,0.,1.),1.6);
+    gl_FragColor=vec4(rim*f*.55*smoothstep(-.3,.4,dot(n,sunW)),1.);}`}));
+{const D=150000,r=D*Math.tan(.95*D2R);earth.position.copy(EARTH_W).multiplyScalar(D);earth.scale.setScalar(r);earth.rotation.z=.2;
+  earthSurf.rotation.y=-1.95;earthSurf.add(earthCloud);earth.add(earthSurf,earthHalo);scene.add(earth)}
+
+/* ---------------- outlines: ridge crest, Shackleton rim, ice craters ---------------- */
+const lines=new THREE.Group();scene.add(lines);
+const loop=(pts,col,op,dash)=>{const g=new THREE.BufferGeometry().setFromPoints(pts);const m=dash?new THREE.LineDashedMaterial({color:col,transparent:true,opacity:op,dashSize:dash,gapSize:dash*.7,toneMapped:false}):new THREE.LineBasicMaterial({color:col,transparent:true,opacity:op,toneMapped:false});const l=new THREE.Line(g,m);if(dash)l.computeLineDistances();lines.add(l)};
+loop(Array.from({length:161},(_,k)=>{const a=k/160*Math.PI*2,x=SH.x+Math.cos(a)*SH.R,z=SH.z+Math.sin(a)*SH.R;return W(x,hT(x,z)+40,z)}),'#ffffff',.5);
+for(const [px,pz,pr] of PSRS)loop(Array.from({length:49},(_,k)=>{const a=k/48*Math.PI*2,x=px+Math.cos(a)*pr,z=pz+Math.sin(a)*pr;return W(x,hT(x,z)+8,z)}),'#9fdcff',.9,40);
+loop(Array.from({length:80},(_,k)=>{const z=-9000+k*140;return W(0,hT(0,z)+10,z)}),'#ffc24a',.9,160);
+
+
+/* =================================== APP SHELL =================================== */
+const stage=document.getElementById('stage');
+const CAMS={
+  title:{pos:W(-9000,13000,-24000),tgt:W(1500,-2200,9000),fov:30,orbit:true},
+  site:{pos:W(-2500,5500,-14000),tgt:W(1400,-1400,5600),fov:30},
+  crater:{pos:W(-3200,4600,-200),tgt:W(2600,-2400,14200),fov:40},
+  sky:{pos:W(-16,8,-262),tgt:W(-16+EARTH_D[0]*3000,8+EARTH_D[1]*3000+40,-262+EARTH_D[2]*3000),fov:26},
+  base:{pos:W(-16,hT(-16,-262)+6,-262),tgt:W(1,4.2,0),fov:10.5},
+  trip:{pos:W(-900,1100,-1500),tgt:W(450,-40,700),fov:34},
+  solar:{pos:W(-36,9,-52),tgt:W(-12.5,6.2,14),fov:30},hab:{pos:W(18,6,-42),tgt:W(2,4.2,-6),fov:28},shelter:{pos:W(-26,4.5,-30),tgt:W(-11,2,0),fov:30},
+};
+const controls=new OrbitControls(camera,renderer.domElement);controls.enableDamping=true;controls.dampingFactor=.08;controls.minDistance=20;controls.maxDistance=80000;controls.maxPolarAngle=Math.PI*.497;controls.autoRotateSpeed=.25;
+// crater-trip route + rover marker (shown on trip/event screens)
+const route=new THREE.Group();scene.add(route);
+{const pts=[];for(let t=0;t<=1.0001;t+=.02){const x=11+(PSRS[0][0]-PSRS[0][2]*.9-11)*t+Math.sin(t*3.1)*60,z=-9+(PSRS[0][1]-PSRS[0][2]*.6+9)*t;pts.push(W(x,hT(x,z)+6,z))}
+  const g=new THREE.BufferGeometry().setFromPoints(pts);const l=new THREE.Line(g,new THREE.LineDashedMaterial({color:'#5ee0e8',dashSize:30,gapSize:18,toneMapped:false}));l.computeLineDistances();route.add(l);
+  const rv=new THREE.Mesh(new THREE.SphereGeometry(14,20,12),new THREE.MeshBasicMaterial({color:'#ffd38a'}));rv.position.copy(pts[32]);route.add(rv)}
+// pins and 3D labels
+const SV=d=>`<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">${d}</svg>`;
+const PINS={hab:{p:W(2,hM(2,-6)+8.2,-6),ic:SV('<rect x="2.5" y="8" width="19" height="9" rx="4.5" fill="currentColor" stroke="none"/><path d="M6 17v3M18 17v3"/>'),nm:'Habitat'},
+  shelter:{p:W(-11,hM(-11,0)+5,0),ic:SV('<path d="M12 3l8 3v5c0 5-3.4 8.5-8 10-4.6-1.5-8-5-8-10V6z" fill="currentColor" stroke="none"/>'),nm:'Shelter'},
+  solar:{p:W(-12.5,hM(-12.5,14)+11.6,14),ic:SV('<rect x="5" y="3" width="14" height="11" rx="1"/><path d="M5 8.5h14M12 3v11M12 14v7M8 21h8"/>'),nm:'Solar arrays'},
+  rover:{p:W(RV[0],hM(RV[0],RV[1])+4.4,RV[1]),ic:SV('<path d="M3 15l2-6h10l2 3h4v3z" fill="currentColor" stroke="none"/><circle cx="7" cy="17.5" r="2.2" fill="currentColor" stroke="none"/><circle cx="17" cy="17.5" r="2.2" fill="currentColor" stroke="none"/>'),nm:'Rover · crater trips'},
+  earth:{p:W(-16+EARTH_D[0]*150000,EARTH_D[1]*150000-7000,-262+EARTH_D[2]*150000),ic:SV('<path d="M4 9a10 10 0 0 0 11 11z" fill="currentColor" stroke="none"/><path d="M9.5 14.5 16 8M16 8a3 3 0 0 1 3 3M16 4a7 7 0 0 1 7 7"/>'),nm:'Earth link'}};
+const L3={base:{p:()=>W(0,14,0),t:'YOUR BASE',s:'≈50 m across · to scale'},shack:{p:()=>W(SH.x-1500,hT(SH.x-1500,SH.z+SH.R*.8)+300,SH.z+SH.R*.8),t:'SHACKLETON CRATER',s:'21 km wide · 4 km deep'},
+  ridge:{p:()=>W(0,hT(0,-4200)+20,-4200),t:'CONNECTING RIDGE',s:'high ground · sunlit most of the time',warm:1},ice:{p:()=>W(-750,hT(-750,1300)+30,1300),t:'DARK CRATERS · ice?',s:'never sunlit · 1–2 km away'},
+  floor:{p:()=>W(SH.x+1500,hT(SH.x+1500,SH.z+3500)+50,SH.z+3500),t:'NEVER SUNLIT',s:'colder than Pluto'},target:{p:()=>W(PSRS[0][0],hT(PSRS[0][0],PSRS[0][1])+20,PSRS[0][1]),t:'DARK CRATER',s:'1.2 km · permanent shadow'}};
+
+/* ---------- reusable HUD pieces ---------- */
+const FACE=`<svg viewBox="0 0 100 100" width="100%" height="100%"><rect width="100" height="100" fill="#0b2a3a"/><circle cx="50" cy="50" r="46" fill="#12384c"/><line x1="50" y1="14" x2="50" y2="26" stroke="#cfd8e0" stroke-width="3"/><circle cx="50" cy="12" r="5" fill="#ff9a4a"/><rect x="22" y="24" width="56" height="44" rx="18" fill="#eef3f7"/><rect x="29" y="31" width="42" height="28" rx="12" fill="#0b1a2a"/><ellipse cx="41" cy="45" rx="5" ry="6.5" fill="#5ee0e8"/><ellipse cx="59" cy="45" rx="5" ry="6.5" fill="#5ee0e8"/><path d="M44 53q6 4 12 0" stroke="#5ee0e8" stroke-width="2.5" fill="none" stroke-linecap="round"/><path d="M18 100 q4-26 32-26 q28 0 32 26z" fill="#e3e9ee"/><rect x="42" y="82" width="16" height="10" rx="3" fill="#ff9a4a"/></svg>`;
+const dots=(d,dark)=>Array.from({length:7},(_,i)=>`<i class="${i<d-1?'past':i===d-1?'now':''} ${(i===4||i===5)&&!dark?'f':''}"></i>`).join('');
+function hud(o){const dark=o.dark,m=o.meters||[['⚡','Power',72,'#ffd34d'],['O₂','Oxygen',61,'#7fe3ff'],['☢','Dose',18,'#b4e05c'],['♥','Stamina',74,'#ff7b8f']];
+  return `${o.notop?'':`<div class="ui day ${o.fade?'faded':''}"><div class="t1">Day ${o.day}<small>of 7</small></div><div class="dots">${dots(o.day,dark)}</div><div class="chips2">${dark?'<span class="pill dark">◐ Long shadow · no Earth link</span>':'<span class="pill sun">☀ Sunlight</span>'}<span class="pill star click" data-go="report">★ ${o.stars||3} / 12</span></div></div>
+  <div class="ui tools ${o.fade?'faded':''}"><div class="ibtn click" data-go="sunwatch">☀${o.alert?'<span class="dot"></span>':''}</div><div class="ibtn">?</div><div class="ibtn click" data-go="settings">⚙</div></div>`}
+  <div class="ui tray ${o.fade?'faded':''}">${o.bubble===false?'':`<div class="face">${FACE}</div><div class="bub panel"><div class="who">BASE BOT</div><p>${o.say}</p><div class="tags">${o.tags||''}</div></div>`}
+    <div class="meters ${o.hl==='meters'?'hl':''}">${m.map(([i,n,v,c])=>`<div class="m"><span class="ic" style="color:${c}">${i}</span><div class="tr"><i style="width:${v}%;background:${c}"></i></div><span class="v" style="${v<15?'color:#ff9a8a':''}">${v}</span><span></span><span class="lb">${n}</span></div>`).join('')}</div>
+    <div class="endw"><div class="crew ${o.hl==='crew'?'hl':''}">${(o.crew||['out','out','out','out','in','','','']).map(c=>`<i class="${c}"></i>`).join('')}</div><div class="btn pri click ${o.hl==='end'?'hl':''}" data-go="results">End day ▶</div></div></div>`}
+const storyCard=(n,txt,tag,top)=>`<div class="ui storyc" style="${top?'top:24px;bottom:auto':''}"><div class="face">${FACE}</div><div class="bub panel"><div class="who">BASE BOT</div><p>${txt}</p><div class="tags" style="justify-content:space-between;align-items:center"><span>${tag}</span><span class="sdots">${[1,2,3,4,5].map(i=>`<i class="${i===n?'on':''}"></i>`).join('')}</span></div></div>
+  <div style="display:flex;flex-direction:column;gap:8px"><div class="btn pri click" style="padding:12px 22px;font-size:17px" data-go="${n<5?'story'+(n+1):'tut1'}">${n<5?'Next ▶':'Ready ▶'}</div><div class="btn sec click" style="padding:8px 0;font-size:14px" data-go="tut1">Skip</div></div></div>`;
+const tutCard=(n,txt,last)=>`<div class="ui tutc"><div class="face" style="width:72px;height:72px">${FACE}</div><div class="bub panel"><div class="who">BASE BOT · TOUR</div><p>${txt}</p><div class="tags" style="justify-content:flex-end"><span class="sdots">${[1,2,3,4,5,6].map(i=>`<i class="${i===n?'on':''}"></i>`).join('')}</span></div></div>
+  <div style="display:flex;flex-direction:column;gap:8px">${last?`<div class="btn pri click" style="padding:11px 18px;font-size:15px" data-go="base">Got it ▶</div>`:`<div class="btn pri click" style="padding:11px 18px;font-size:15px" data-go="tut${n+1}">Next ▶</div><div class="btn sec click" style="padding:7px 0;font-size:14px" data-go="base">Skip tour</div>`}</div></div>`;
+const NASA='<span class="badge b-nasa">✓ NASA fact</span>', STORY='<span class="badge b-story">✎ Story</span>', GAME='<span class="badge b-game">~ Game number</span>', ARCH='<span class="badge b-arch">✓ NASA DONKI · ARCHIVE May 2024</span>';
+const spark=`<svg width="250" height="60" viewBox="0 0 250 60"><polyline points="0,56 30,55 60,56 90,54 110,50 125,30 135,8 150,14 170,30 195,44 220,50 250,53" fill="none" stroke="#b4e05c" stroke-width="2.5"/><line x1="0" y1="57" x2="250" y2="57" stroke="rgba(255,255,255,.2)"/></svg>`;
+
+/* ===================== STORYBOOK ART (flat vector, 2D) for title, story and ending ===================== */
+const SR=s=>{let x=s;return()=>{x=(x*16807)%2147483647;return x/2147483647}};
+function svgStars(n,yMax,seed){const R=SR(seed);let s='';for(let i=0;i<n;i++){const x=R()*1280,y=Math.pow(R(),1.25)*yMax,r=.7+R()*1.8;s+=`<circle class="tw" style="animation-delay:${(R()*4).toFixed(1)}s" cx="${x.toFixed(0)}" cy="${y.toFixed(0)}" r="${r.toFixed(1)}" fill="#fff3d6" opacity="${(.35+R()*.6).toFixed(2)}"/>`}return s}
+const skyDefs=(P,a='#04061a',b='#10163a')=>`<linearGradient id="${P}sky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${a}"/><stop offset="1" stop-color="${b}"/></linearGradient>`;
+const sunArt=(x,y,r)=>`<circle cx="${x}" cy="${y}" r="${r*3.2}" fill="#ffe9b0" opacity=".05"/><circle cx="${x}" cy="${y}" r="${r*2}" fill="#ffe9b0" opacity=".1"/><circle cx="${x}" cy="${y}" r="${r}" fill="#fff1c7"/>`;
+function earthArt(P,x,y,r,litLeft=true){const o=litLeft?1:-1;return `<defs><clipPath id="${P}e"><circle cx="${x}" cy="${y}" r="${r}"/></clipPath></defs><circle cx="${x}" cy="${y}" r="${r*1.35}" fill="#5ea8ff" opacity=".12"/>
+  <g clip-path="url(#${P}e)"><rect x="${x-r}" y="${y-r}" width="${2*r}" height="${2*r}" fill="#3f7fd8"/><path d="M${x-r*.7},${y-r*.1} q${r*.3},-${r*.6} ${r*.75},-${r*.35} q${r*.2},${r*.5} -${r*.1},${r*.75} q-${r*.4},${r*.25} -${r*.65},-${r*.4}z" fill="#4caf6e"/><path d="M${x+r*.15},${y+r*.25} q${r*.4},-${r*.1} ${r*.5},${r*.35} q-${r*.15},${r*.35} -${r*.45},${r*.2}z" fill="#4caf6e"/>
+  <path d="M${x-r},${y-r*.45} q${r*.6},-${r*.2} ${r*1.2},${r*.05}" stroke="#f4f8ff" stroke-width="${r*.12}" fill="none" stroke-linecap="round"/><path d="M${x-r*.4},${y+r*.6} q${r*.5},-${r*.15} ${r*1.1},${r*.1}" stroke="#f4f8ff" stroke-width="${r*.1}" fill="none" stroke-linecap="round"/>
+  <circle cx="${x+o*r*1.15}" cy="${y}" r="${r*1.05}" fill="#081028" opacity=".82"/></g>`}
+const naut=(x,y,s=1,wave=false)=>`<g transform="translate(${x} ${y}) scale(${s})"><rect x="-7" y="-14" width="6" height="14" rx="2.5" fill="#e6e9f2"/><rect x="1" y="-14" width="6" height="14" rx="2.5" fill="#e6e9f2"/><rect x="-10" y="-34" width="20" height="22" rx="7" fill="#f6f8fc"/><rect x="7" y="-33" width="7" height="16" rx="3" fill="#c6cbd5"/>
+  ${wave?'<path d="M-9,-30 l-9,-14" stroke="#f6f8fc" stroke-width="6" stroke-linecap="round"/>':'<path d="M-9,-28 l-5,10" stroke="#f6f8fc" stroke-width="6" stroke-linecap="round"/>'}<circle cx="0" cy="-42" r="10" fill="#f6f8fc"/><ellipse cx="-3" cy="-42.5" rx="6.5" ry="5" fill="#ffc24a"/></g>`;
+// the base: solar towers, shelter dome, habitat, rover. (x,y) = ground point at the habitat, s = scale
+function baseArt(x,y,s=1,shadows=true){const g=[];
+  if(shadows)g.push(`<g fill="#1a2030" opacity=".55">${[-118,-98,-78].map(d=>`<path d="M${d},0 L${d+3},0 L${d+330},5 L${d+330},9 L${d},3Z"/>`).join('')}<path d="M-70,0 L30,0 L230,6 L230,12 L-70,4Z"/><path d="M0,0 L118,0 L300,6 L300,12 L0,4Z"/></g>`);
+  for(const d of [-118,-98,-78])g.push(`<rect x="${d}" y="-108" width="3" height="108" fill="#a0a6b4"/><rect x="${d-11}" y="-104" width="13" height="50" rx="1.5" fill="#4f7fe0"/><rect x="${d-11}" y="-104" width="6" height="50" fill="#7fa6f5"/>`);
+  g.push(`<circle cx="-98" cy="-111" r="2.5" fill="#ff6a5a"/>`);
+  g.push(`<path d="M-72,0 A40,30 0 0 1 8,0Z" fill="#959aa6"/><path d="M-32,-30 A40,30 0 0 1 8,0 L-32,0Z" fill="#6b7180"/><rect x="2" y="-12" width="12" height="12" rx="2" fill="#ffd58a"/>`);
+  g.push(`<rect x="20" y="-34" width="96" height="30" rx="15" fill="#eef1f7"/><rect x="20" y="-19" width="96" height="15" rx="7" fill="#c9ced8"/><rect x="31" y="-34" width="5" height="30" fill="#f08c3c"/><rect x="100" y="-34" width="5" height="30" fill="#f08c3c"/>${[50,66,82].map(c=>`<circle cx="${c}" cy="-22" r="4.5" fill="#ffd58a"/>`).join('')}${[34,66,98].map(c=>`<rect x="${c}" y="-4" width="3" height="4" fill="#5a5f7a"/>`).join('')}`);
+  g.push(`<rect x="88" y="-52" width="2.5" height="18" fill="#a0a6b4"/><path d="M80,-52 a11,5 -30 0 0 20,-9z" fill="#e2e6ec"/>`);
+  g.push(`<rect x="128" y="-14" width="34" height="11" rx="4" fill="#e9ecf4"/><rect x="146" y="-21" width="14" height="9" rx="3" fill="#d0d5de"/><rect x="150" y="-19.5" width="8" height="5" rx="1.5" fill="#ffd58a"/><circle cx="134" cy="-2" r="4" fill="#2a2d45"/><circle cx="156" cy="-2" r="4" fill="#2a2d45"/>`);
+  return `<g transform="translate(${x} ${y}) scale(${s})">${g.join('')}</g>`}
+
+function sceneTitle(P,ending=false){return `<svg viewBox="0 0 1280 720" width="1280" height="720"><defs>${skyDefs(P)}<radialGradient id="${P}pool"><stop offset="0" stop-color="#ffb06a" stop-opacity=".35"/><stop offset="1" stop-color="#ffb06a" stop-opacity="0"/></radialGradient></defs>
+  <rect width="1280" height="720" fill="url(#${P}sky)"/>${svgStars(130,470,7)}${sunArt(150,452,34)}${earthArt(P,1040,150,44)}
+  <path class="dr1" d="M-20,520 L-20,452 L80,440 L170,456 L280,428 L390,450 L520,424 L640,446 L760,420 L880,444 L1010,426 L1130,448 L1300,430 L1300,520Z" fill="#252c40"/>
+  <path class="dr2" d="M-20,720 L-20,560 C200,540 420,500 640,468 C820,482 1000,520 1300,560 L1300,720Z" fill="#a7aab2"/>
+  <path class="dr2" d="M640,468 C820,482 1000,520 1300,560 L1300,720 L760,720 C720,640 690,540 640,468Z" fill="#646a7a"/>
+  <g class="dr2"><ellipse cx="1050" cy="640" rx="170" ry="38" fill="#3d4352"/><ellipse cx="1050" cy="646" rx="150" ry="30" fill="#0b0f1c"/><circle cx="1010" cy="646" r="2.5" fill="#bfe6ff"/><circle cx="1080" cy="650" r="2" fill="#bfe6ff"/><circle cx="1050" cy="642" r="1.8" fill="#bfe6ff"/>
+    <path d="M760,478 C860,520 950,560 990,612" stroke="#c9ccd4" stroke-width="2" stroke-dasharray="4 6" fill="none" opacity=".7"/>
+    <ellipse cx="660" cy="480" rx="220" ry="34" fill="url(#${P}pool)"/>${baseArt(630,471,1.1)}
+    ${ending?`${naut(560,476,.9,true)}${naut(612,476,.9)}${naut(782,476,.9,true)}${naut(818,476,.9)}<rect x="700" y="372" width="3" height="70" fill="#d0d5de"/><path d="M703,374 l64,10 l-64,12z" fill="#ffc24a"/>`:''}</g>
+  ${ending?svgConfetti():''}</svg>`}
+function svgConfetti(){const R=SR(42);let s='';const c=['#ffc24a','#5ee0e8','#ff8fa3','#7fb2ff','#8ff0a4'];for(let i=0;i<70;i++){const x=R()*1280,y=R()*430,r=R()*6.28;s+=`<rect class="tw" style="animation-delay:${(R()*3).toFixed(1)}s" x="${x.toFixed(0)}" y="${y.toFixed(0)}" width="8" height="4" rx="1" fill="${c[i%5]}" transform="rotate(${(r*57).toFixed(0)} ${x.toFixed(0)} ${y.toFixed(0)})"/>`}return s}
+function sceneEarthMoon(P){return `<svg viewBox="0 0 1280 720" width="1280" height="720"><defs>${skyDefs(P,'#03041a','#0a0f2c')}<clipPath id="${P}m"><circle cx="960" cy="230" r="120"/></clipPath></defs>
+  <rect width="1280" height="720" fill="url(#${P}sky)"/>${svgStars(170,720,3)}
+  <g class="dr1">${earthArt(P,270,470,165)}</g>
+  <g class="dr3"><circle cx="1185" cy="560" r="30" fill="#d0613a"/><circle cx="1176" cy="552" r="8" fill="#b44f2c"/><circle cx="1196" cy="570" r="6" fill="#b44f2c"/><circle cx="1205" cy="560" r="31" fill="#2a1a18" opacity=".55"/><rect x="1120" y="604" width="130" height="24" rx="12" fill="#0b2030" stroke="#d0613a"/><text x="1185" y="621" text-anchor="middle" font-family="Nunito" font-weight="800" font-size="15" fill="#ffb59a">Mars · a later mission</text></g>
+  <path class="dr2" d="M410,380 C600,260 760,380 900,330" stroke="#5ee0e8" stroke-width="3" stroke-dasharray="6 10" fill="none"/>
+  <g class="dr2" transform="translate(905 326) rotate(-20)"><path d="M-14,-6 L10,-6 L18,0 L10,6 L-14,6Z" fill="#eef1f7"/><path d="M-14,-6 l-6,-6 l0,24 l6,-6z" fill="#f08c3c"/></g>
+  <g class="dr3"><circle cx="960" cy="230" r="120" fill="#bdc0c7"/><g clip-path="url(#${P}m)"><circle cx="910" cy="190" r="22" fill="#a2a5ae"/><circle cx="1010" cy="250" r="30" fill="#a2a5ae"/><circle cx="950" cy="290" r="14" fill="#a2a5ae"/><circle cx="1030" cy="170" r="12" fill="#a2a5ae"/><circle cx="1050" cy="230" r="125" fill="#3b4050" opacity=".55"/></g>
+  <circle cx="955" cy="346" r="7" fill="#ffc24a"/><path d="M955,346 L955,392" stroke="#ffc24a" stroke-width="2"/><rect x="890" y="392" width="130" height="26" rx="13" fill="#0b2030" stroke="#ffc24a"/><text x="955" y="410" text-anchor="middle" font-family="Nunito" font-weight="800" font-size="15" fill="#ffd98a">south pole</text></g></svg>`}
+function sceneLightIce(P){return `<svg viewBox="0 0 1280 720" width="1280" height="720"><defs>${skyDefs(P)}<linearGradient id="${P}soil" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#6d717e"/><stop offset="1" stop-color="#383d4b"/></linearGradient></defs>
+  <rect width="1280" height="720" fill="url(#${P}sky)"/>${svgStars(110,400,11)}${sunArt(120,388,30)}
+  <path d="M0,430 L0,404 L120,396 L240,410 L380,392 L520,406 L700,398 L900,410 L1100,396 L1280,404 L1280,430Z" fill="#252c40"/>
+  <path d="M0,720 L0,440 C200,436 420,446 640,432 C700,440 740,470 780,540 C820,610 860,640 940,646 L1120,646 C1180,620 1240,560 1280,530 L1280,720Z" fill="url(#${P}soil)"/>
+  <path d="M0,440 C200,436 420,446 640,432" stroke="#babdc6" stroke-width="10" fill="none"/>
+  <path d="M640,432 L1280,474 L1280,530 C1240,560 1180,620 1120,646 L940,646 C860,640 820,610 780,540 C740,470 700,440 640,432Z" fill="#070a1c" opacity=".9"/>
+  <line x1="120" y1="388" x2="1280" y2="474" stroke="#ffd896" stroke-width="2.5" stroke-dasharray="7 9"/>
+  <text x="700" y="420" font-family="Nunito" font-weight="800" font-size="17" fill="#ffd896">sunlight skims over the rim</text>
+  ${baseArt(380,440,1.25,false)}
+  <g fill="#bfe6ff">${[[960,660,3],[1000,672,2.5],[1040,664,3.5],[1080,676,2.5],[1010,690,2],[1100,662,2]].map(([x,y,r])=>`<circle cx="${x}" cy="${y}" r="${r}"/>`).join('')}</g>
+  <g transform="translate(1020 590)"><path d="M0,-22 v44 M-19,-11 l38,22 M-19,11 l38,-22" stroke="#bfe6ff" stroke-width="4" stroke-linecap="round"/></g>
+  <rect x="1060" y="560" width="160" height="30" rx="15" fill="#0b2030" stroke="#9fdcff"/><text x="1140" y="580" text-anchor="middle" font-family="Nunito" font-weight="800" font-size="14" fill="#cfefff">−414°F · ice?</text>
+  <rect x="300" y="300" width="170" height="30" rx="15" fill="#0b2030" stroke="#ffc24a"/><text x="385" y="320" text-anchor="middle" font-family="Nunito" font-weight="800" font-size="14" fill="#ffd98a">sunlight = power</text></svg>`}
+function sceneStorm(P){const R=SR(9);let streams='';for(let i=0;i<9;i++){const y0=250+i*28,c=R()*60;streams+=`<path class="flow" style="animation-delay:${(i*.3).toFixed(1)}s" d="M250,${y0} C500,${y0-60+c} 760,${y0+40-c} 1010,${430+i*10}" stroke="#ffb347" stroke-width="${2+R()*2}" stroke-dasharray="3 14" stroke-linecap="round" fill="none" opacity=".85"/>`}
+  return `<svg viewBox="0 0 1280 720" width="1280" height="720"><defs>${skyDefs(P,'#03050f','#0e1530')}</defs><rect width="1280" height="720" fill="url(#${P}sky)"/>${svgStars(120,720,21)}
+  <circle cx="90" cy="360" r="300" fill="#ffb347" opacity=".07"/><circle cx="90" cy="360" r="200" fill="#ffc86b" opacity=".14"/><circle cx="90" cy="360" r="150" fill="#ffd27a"/>
+  <path d="M210,270 q60,-50 40,20" stroke="#ffe6a8" stroke-width="7" fill="none" stroke-linecap="round"/><path d="M225,420 q70,10 20,50" stroke="#ffe6a8" stroke-width="6" fill="none" stroke-linecap="round"/>
+  ${streams}
+  <path d="M760,720 C860,560 1100,470 1300,450 L1300,720Z" fill="#8f939e"/><path d="M760,720 C860,560 1100,470 1300,450" stroke="#babdc6" stroke-width="6" fill="none"/>
+  ${baseArt(1080,512,.8,false)}
+  <path d="M1004,476 a40,22 0 0 1 80,0Z" fill="#5ee0e8" opacity=".28"/>
+  ${earthArt(P,1150,140,48,false)}
+  ${[0,1,2].map(i=>`<path d="M${1125-i*18},${200+i*16} q-20,${40+i*10} -${20+i*10},${80+i*18}" stroke="#5ee0e8" stroke-width="3" fill="none" opacity="${.9-i*.25}" stroke-dasharray="5 7"/>`).join('')}
+  <rect x="1040" y="232" width="200" height="30" rx="15" fill="#0b2030" stroke="#5ee0e8"/><text x="1140" y="252" text-anchor="middle" font-family="Nunito" font-weight="800" font-size="14" fill="#cfefff">Mission Control: “take cover”</text></svg>`}
+function sceneGoal(P){return `<svg viewBox="0 0 1280 720" width="1280" height="720"><defs>${skyDefs(P)}<radialGradient id="${P}pool"><stop offset="0" stop-color="#ffb06a" stop-opacity=".35"/><stop offset="1" stop-color="#ffb06a" stop-opacity="0"/></radialGradient></defs>
+  <rect width="1280" height="720" fill="url(#${P}sky)"/>${svgStars(110,420,5)}${sunArt(110,436,28)}${earthArt(P,1100,130,40)}
+  <path d="M-20,520 L-20,446 L120,438 L260,452 L420,430 L600,448 L780,424 L960,446 L1140,430 L1300,440 L1300,520Z" fill="#252c40"/>
+  <path d="M-20,720 L-20,500 C300,488 900,488 1300,500 L1300,720Z" fill="#a7aab2"/><path d="M-20,720 L-20,600 C400,580 900,600 1300,640 L1300,720Z" fill="#868a96"/>
+  <ellipse cx="640" cy="506" rx="360" ry="40" fill="url(#${P}pool)"/>${baseArt(600,500,2)}
+  ${naut(430,520,1.5,true)}${naut(480,522,1.5)}${naut(860,522,1.5)}${naut(910,520,1.5,true)}
+  <g transform="translate(640 92)">${[0,1,2,3,4,5,6].map(i=>`<g transform="translate(${(i-3)*64} 0)"><circle r="22" fill="${i===0?'#5ee0e8':'rgba(94,224,232,.12)'}" stroke="#5ee0e8" stroke-width="2"/><text y="6" text-anchor="middle" font-family="Exo 2" font-weight="800" font-size="16" fill="${i===0?'#062030':'#cfefff'}">${i+1}</text></g>`).join('')}<text y="52" text-anchor="middle" font-family="Exo 2" font-weight="800" font-size="15" letter-spacing="2" fill="#9ff6ff">7 DAYS · KEEP YOUR CREW SAFE</text></g></svg>`}
+function photoCard(){return `<div style="position:absolute;inset:0;background:#000"><img src="assets/shackleton-oblique.jpg" alt="Real orbiter view of Shackleton crater and the Connecting Ridge" style="position:absolute;left:0;top:54px;width:1280px;height:auto;display:block">
+  <div style="position:absolute;left:791px;top:586px;width:70px;height:70px;margin:-35px 0 0 -35px;border-radius:50%;border:3px solid #5ee0e8;box-shadow:0 0 0 6px rgba(94,224,232,.25),0 0 30px #5ee0e8" class="pulse"></div>
+  <div style="position:absolute;left:836px;top:600px;background:rgba(6,22,32,.88);border:1.5px solid #5ee0e8;border-radius:10px;padding:5px 11px;font-family:'Exo 2';font-weight:800;font-size:14px;letter-spacing:.05em">MISSION 1 BASE: NEAR HERE<div style="font-family:Nunito;font-size:12px;opacity:.8;letter-spacing:0">Connecting Ridge site</div></div>
+  <div style="position:absolute;right:18px;bottom:16px"><span class="badge b-nasa">✓ Real orbiter image (NASA LRO) · credit to confirm</span></div></div>`}
+
+/* ---------- every screen ---------- */
+const SCREENS=[
+ {id:'title',g:'Start',name:'Title',cam:'title',art:()=>sceneTitle('ti'),note:'<b>Title (storybook art).</b> Framed as Junior Astronaut training: Mission 1 is the Moon, Mars is shown as the next mission. Data sources one tap away (judges).',
+  html:()=>`<div style="position:absolute;left:0;top:0;bottom:0;width:820px;background:linear-gradient(90deg,rgba(4,6,26,.78),rgba(4,6,26,.45) 60%,rgba(4,6,26,0));pointer-events:none"></div><div class="ui" style="left:80px;top:150px;width:620px"><div class="h" style="font-size:15px;color:#9ff6ff">Junior Astronaut training</div>
+    <div style="font-family:'Exo 2';font-weight:800;font-style:italic;font-size:76px;line-height:.95;margin-top:10px;text-shadow:0 4px 30px rgba(0,0,0,.6)">MISSION:<br>OUTPOST</div><div style="font-size:14px;opacity:.6;margin-top:6px">(working title)</div>
+    <p style="font-size:21px;font-weight:700;margin:18px 0 26px;max-width:520px;text-shadow:0 2px 12px #000">Run a space outpost, keep your crew safe, and learn why no choice is free.</p>
+    <div style="display:flex;gap:10px;margin:-8px 0 24px"><span class="pill star">● Mission 1 · Moon south pole</span><span class="pill" style="border-color:rgba(230,251,255,.3);color:rgba(230,251,255,.55)">🔒 Mission 2 · Mars · coming soon</span></div>
+    <div style="display:flex;gap:12px"><div class="btn pri click" style="padding:16px 30px;font-size:20px" data-go="story1">▶ Start mission</div><div class="btn sec click" style="padding:16px 22px;font-size:15px" data-go="settings">Settings</div></div></div>
+    <div class="ui" style="left:80px;bottom:40px;display:flex;gap:10px;align-items:center;font-size:14px;font-weight:700;opacity:.9"><span class="badge b-nasa">✓ Uses real NASA data</span><span>No account needed</span><span style="opacity:.5">·</span><span class="click" style="text-decoration:underline" data-go="source">Data sources</span></div>`},
+ {id:'settings',g:'Start',name:'Settings',cam:'title',art:()=>sceneTitle('se'),dim:true,note:'<b>Settings.</b> Includes a Graphics: Low mode for school Chromebooks (smaller canvas, fewer shadow steps).',
+  html:()=>`<div class="ui panel modal" style="width:520px"><div class="h" style="font-size:18px;margin-bottom:10px">Settings</div><span class="x click" data-go="title">✕</span>
+    <div class="tog">Text size <span class="segm"><span>A</span><span class="on">A+</span><span>A++</span></span></div>
+    <div class="tog">Graphics <span class="segm"><span>Low</span><span class="on">High</span></span></div>
+    <div class="tog">Screen glow <span class="sw on"></span></div><div class="tog">Reduce motion (fades instead of camera flights) <span class="sw ${REDUCE?'on':''} click" data-toggle="motion" aria-label="Reduce motion"></span></div>
+    <div class="tog">Sound <span class="sw on"></span></div><div class="tog">Show the tutorial again <span class="sw"></span></div></div>`},
+ {id:'story1',g:'Story',name:'1 · Future',cam:'title',art:()=>sceneEarthMoon('s1'),note:'<b>Story 1/5 (storybook art).</b> The general lesson first: life far from Earth means trade-offs. Mars sits in the sky as the next mission.',
+  html:()=>storyCard(1,'Astronauts don’t just fly rockets. They live and work far from Earth, where air, power and safety are never free.',STORY)},
+ {id:'story2',g:'Story',name:'2 · Real place',cam:'title',art:photoCard,note:'<b>Story 2/5: the one real photo.</b> A real orbiter view of Shackleton and the Connecting Ridge, with the game site circled. Image credit still to confirm.',
+  html:()=>storyCard(2,'Welcome to Junior Astronaut training, Commander! Mission 1 takes you and your crew of 4 to a real place near the Moon’s south pole.',NASA+' '+STORY,true)},
+ {id:'story3',g:'Story',name:'3 · Light & ice',cam:'title',art:()=>sceneLightIce('s3'),note:'<b>Story 3/5.</b> Side cut-away: the low Sun skims over the crater rim, so the ridge is lit and the crater floor never is.',
+  html:()=>storyCard(3,'On the Moon, sunlight is your power, and near the pole the Sun stays low. Dark craters may hide ice, but they’re colder than Pluto.',NASA,true)},
+ {id:'story4',g:'Story',name:'4 · Storms',cam:'title',art:()=>sceneStorm('s4'),note:'<b>Story 4/5.</b> Solar particles stream out; Mission Control on Earth relays the warning. Friendly, not scary.',
+  html:()=>storyCard(4,'The Sun can also throw storms of radiation. Mission Control on Earth will warn you, but you decide when to hide.',NASA)},
+ {id:'story5',g:'Story',name:'5 · Goal',cam:'title',art:()=>sceneGoal('s5'),note:'<b>Story 5/5.</b> The goal works on any planet: crew safe + mission tasks. “Ready” hands over to Base Bot’s 3D tour.',
+  html:()=>storyCard(5,'Your mission: keep your crew safe for 7 days and complete 4 mission tasks. Every choice costs something. Ready?',STORY)},
+ {id:'tut1',g:'Tutorial',name:'1 · Welcome',cam:'base',pins:true,note:'<b>Base Bot’s tour, step 1/6 (3D).</b> The camera lands at the base; the meters glow while the bot explains them.',
+  html:()=>hud({day:1,notop:true,bubble:false,hl:'meters',crew:['','','','','','','','']})+tutCard(1,'Welcome to your base, Commander! These four meters keep your crew alive: power, oxygen, radiation dose and stamina. Let me show you around.')},
+ {id:'tut2',g:'Tutorial',name:'2 · Solar',cam:'solar',pins:true,ring:'solar',note:'<b>Tour 2/6.</b> Camera flies to the solar towers.',
+  html:()=>hud({day:1,notop:true,fade:true,bubble:false,crew:['','','','','','','','']})+tutCard(2,'These tall solar panels turn to follow the Sun. Here it stays low on the horizon, so they stand up tall. No sunlight, no power!')},
+ {id:'tut3',g:'Tutorial',name:'3 · Habitat',cam:'hab',pins:true,ring:'hab',note:'<b>Tour 3/6.</b> Camera flies to the habitat; crew-time chips glow.',
+  html:()=>hud({day:1,notop:true,fade:true,bubble:false,hl:'crew',crew:['','','','','','','','']})+tutCard(3,'Your crew of 4 lives here. Each day you get 8 crew time to spend on jobs. Outside jobs tire the crew much more than inside ones.')},
+ {id:'tut4',g:'Tutorial',name:'4 · Shelter',cam:'shelter',pins:true,ring:'shelter',note:'<b>Tour 4/6.</b> Camera flies to the shelter.',
+  html:()=>hud({day:1,notop:true,fade:true,bubble:false,crew:['','','','','','','','']})+tutCard(4,'This is the shelter. Moon soil piled on top blocks space radiation. When a solar storm comes, this is where your crew hides.')},
+ {id:'tut5',g:'Tutorial',name:'5 · Crater',cam:'trip',lines:true,route:true,labs:['target','base'],note:'<b>Tour 5/6.</b> Camera rises to show the real 1.2 km route to the dark crater.',
+  html:()=>tutCard(5,'See that dark crater? It never sees the Sun, and ice may hide inside. Driving there costs lots of power, and you leave the sunlight behind.')},
+ {id:'tut6',g:'Tutorial',name:'6 · Your turn',cam:'base',pins:true,ring:'hab',note:'<b>Tour 6/6.</b> Back at the base: the player does one real job, then presses End day.',
+  html:()=>hud({day:1,bubble:false,hl:'end',crew:['in','','','','','','','']})+tutCard(6,'Your turn! Tap the habitat, add “Tune the air system”, then press End day.',true)},
+ {id:'base',g:'Mission',name:'Plan the day',cam:'base',pins:true,note:'<b>Base screen (hub).</b> Long-lens 3D view, bottom tray. Tap a pin for its jobs; End day when crew time is planned.',
+  html:()=>hud({day:2,alert:true,say:'A big solar flare just went off. A particle storm may reach us tomorrow!',tags:ARCH+' <span class="badge b-story">✎ Story</span>'})},
+ {id:'jobs',g:'Mission',name:'Place jobs',cam:'base',pins:true,sel:'shelter',note:'<b>Job card.</b> Opens beside the tapped pin. Each job shows crew time (dots) and every cost; goal jobs carry their report-card tag.',
+  html:()=>hud({day:2,alert:true,say:'Piling soil on the shelter now means a safer crew tomorrow.',tags:STORY})+`<div class="ui panel" data-anchor="shelter" data-dx="-370" data-dy="-150" style="width:320px;padding:14px 16px"><div class="h" style="font-size:15px">Shelter · level 1</div><div style="font-size:14px;opacity:.8;margin:3px 0 6px">Moon soil blocks radiation. ${NASA}</div>
+    ${[['Pile soil on shelter','power −10 · O₂ −4 · dose +2 · <b style="color:#ffd98a">outside</b>',4,1,'SHELTER'],['Shelter during peak','power +5 · storm days only',4,0,'SHELTER']].map(([n,c,t,o,tag])=>`<div class="row" style="font-size:14px;align-items:flex-start"><div><div style="font-weight:800">${n} <span class="badge" style="background:#ffc24a;color:#2a1a00">★ ${tag}</span></div><div style="font-size:14px;opacity:.85;font-weight:700">${c}</div></div><div style="display:flex;gap:3px;padding-top:4px">${Array.from({length:t},()=>`<i style="width:10px;height:10px;border-radius:50%;background:${o?'#ffc24a':'#5ee0e8'};display:block"></i>`).join('')}</div></div>`).join('')}
+    <div class="btn pri" style="width:100%;padding:9px 0;font-size:14px;margin-top:8px">+ Add pile soil</div></div>`},
+ {id:'sunwatch',g:'Mission',name:'SunWatch',cam:'base',pins:true,note:'<b>SunWatch panel.</b> Alerts come from Mission Control (real chain). The DONKI record and CRaTER readings carry ARCHIVE badges; DONKI is never called a warning service.',
+  html:()=>hud({day:2,alert:true,say:'Mission Control just sent a space-weather alert.',tags:STORY})+`<div class="ui panel" style="right:24px;top:84px;width:330px;padding:16px 18px"><div class="h" style="font-size:16px">☀ SunWatch</div><span class="x click" data-go="base">✕</span>
+    <div style="margin-top:10px;padding:10px 12px;border-radius:12px;border:1.5px solid #ffc24a;background:rgba(255,194,74,.08)"><div style="font-weight:800">⚠ Big flare seen on the Sun</div><div style="font-size:14px;opacity:.85">Relayed by Mission Control · storm likely tomorrow</div><div class="tags">${ARCH}</div></div>
+    <div style="margin-top:14px;font-weight:800;font-size:14px">My dose so far</div><div class="m" style="margin-top:6px"><span class="ic" style="color:#b4e05c">☢</span><div class="tr"><i style="width:18%;background:#b4e05c"></i></div><span class="v">18%</span></div><div style="font-size:14px;opacity:.7">of our mission plan ${GAME}</div>
+    <div style="margin-top:12px;font-weight:800;font-size:14px">Radiation near the Moon, May 2024</div>${spark}<div class="tags"><span class="badge b-arch">✓ NASA CRaTER · ARCHIVE</span></div></div>`},
+ {id:'report',g:'Mission',name:'Report card',cam:'base',dim:true,note:'<b>Mission tasks.</b> The Moon mission’s 4 tasks × (1 main + 2 bonus). A Mars mission would swap in its own tasks; the tiers stay the same.',
+  html:()=>`<div class="ui panel modal" style="width:640px"><div class="h" style="font-size:18px">Mission tasks · 3 / 12 ★</div><span class="x click" data-go="base">✕</span>
+    ${[['Light','✓ Log sunlight twice','+ Log while dark · + Power never ran out',1],['Radiation','✓ Measure radiation once','+ Measure during a storm · + 4 measurements',1],['Shelter','☐ Shelter during a storm','+ Shelter level 1 · + Final dose under 25%',0],['Ice','☐ Bring back a crater sample','+ Drone map first · + Find ice or 2 samples',0]].map(([q,m,b,ok])=>`<div class="goal"><div class="q">${q}</div><div><div class="${ok?'ok':'no'}" style="font-weight:800">${m} <span style="opacity:.6;font-size:14px">main</span></div><div style="opacity:.75;font-weight:700">${b}</div></div></div>`).join('')}
+    <div class="tier"><span>Keep going</span><span>MISSION COMPLETE · crew safe + 4 tasks</span><span>HONORS · 11★</span><span>GOLD PATCH · 12★</span></div></div>`},
+ {id:'trip',g:'Mission',name:'Crater trip',cam:'trip',lines:true,route:true,labs:['target','base'],note:'<b>Crater trip.</b> Camera flies out to show the real 1.2 km drive into permanent shadow; costs tick while the rover is out.',
+  html:()=>`<div class="ui panel" style="left:28px;bottom:26px;width:420px;padding:16px 18px"><div class="h" style="font-size:16px">Rover trip · dark crater</div><div style="font-size:14px;opacity:.85;margin:4px 0 10px">1.2 km from base · inside: never sunlit, as cold as −414°F ${NASA}</div>
+    <div class="m"><span class="ic">◉</span><div class="tr"><i style="width:62%;background:#ffd38a"></i></div><span class="v">62%</span></div><div style="font-size:14px;margin-top:8px;font-weight:700">Heaters on: ⚡ −50 · O₂ −8 · dose +4 ${GAME}</div></div>`},
+ {id:'event',g:'Mission',name:'Event choice',cam:'trip',route:true,dim:true,note:'<b>Event prompt.</b> One dilemma at a time, 2–3 choices, none free. Triggered by real archived storm data.',
+  html:()=>`<div class="ui panel modal" style="width:600px;border-color:#ffc24a"><div class="h" style="font-size:18px;color:#ffd98a">⚠ Storm building · rover still out</div><div style="font-size:16px;font-weight:700;margin:8px 0 2px">Particles are rising and your rover is still at the crater.</div><div class="tags">${ARCH} ${STORY}</div>
+    <div class="choice">Drive back now <span>lose today’s sample</span></div><div class="choice">Finish the dig <span>dose +8 for 2 crew</span></div><div class="choice">Wait inside the rover <span>⚡ −15 · dose +3</span></div></div>`},
+ {id:'emergency',g:'Mission',name:'Power emergency',cam:'base',dark:true,pins:true,note:'<b>Day 5 long shadow.</b> The Sun is behind far hills; the box replaces the bot bubble and says exactly how to recover.',
+  html:()=>hud({day:5,dark:true,bubble:false,meters:[['⚡','Power',6,'#ffd34d'],['O₂','Oxygen',58,'#7fe3ff'],['☢','Dose',22,'#b4e05c'],['♥','Stamina',63,'#ff7b8f']]})+`<div class="ui panel" style="left:28px;bottom:24px;width:600px;padding:14px 18px;border-color:#ff7b6b"><div style="display:flex;justify-content:space-between"><span class="h" style="font-size:16px;color:#ffb4a8">⚠ Power emergency</span><span class="pill sun">☀ back in 2 days</span></div>
+    <div style="font-size:15px;font-weight:700;margin-top:6px">How to recover: ① Clean dust off the panels (no power needed) ② Power-saving mode ③ Rest the crew</div><div style="font-size:14px;opacity:.8;margin-top:4px">Cost: the base gets cold, stamina −10 a day ${GAME}</div></div>`},
+ {id:'results',g:'Mission',name:'Day results',cam:'base',dim:true,note:'<b>End of day.</b> Short replay, then what changed and why, one new star, and one fun fact tied to what just happened.',
+  html:()=>`<div class="ui panel modal" style="width:560px"><div class="h" style="font-size:18px">Day 2 → Day 3 · What happened</div>
+    <div style="margin-top:10px">${[['⚡ Power','72 → 48','down','soil digging + air system'],['O₂ Oxygen','61 → 83','up','tuned the air system'],['☢ Dose','18 → 20','down','outside work'],['★ New star','SHELTER level 1','up','']].map(([a,b,c,d])=>`<div class="row"><span>${a}</span><span><span class="delta ${c}">${b}</span> <span style="opacity:.6;font-size:14px">${d}</span></span></div>`).join('')}</div>
+    <div style="margin-top:12px;padding:12px 14px;border-radius:12px;background:rgba(94,224,232,.08);border:1.5px solid rgba(94,224,232,.35)"><div class="h" style="font-size:14px;color:#9ff6ff">Fun fact</div><div style="font-weight:700;font-size:15px;margin:3px 0 6px">In the May 2024 storm, radiation near the Moon jumped about 600× in hours.</div><span class="badge b-arch">✓ NASA RadLab (CRaTER) · our arithmetic</span></div>
+    <div class="btn pri click" style="width:100%;padding:12px 0;font-size:17px;margin-top:14px" data-go="base">Next day ▶</div></div>`},
+ {id:'source',g:'Mission',name:'Source card',cam:'base',dim:true,note:'<b>“Where is this from?”</b> Opens from any badge. Never says “NASA approved”; archive data is never shown as live.',
+  html:()=>`<div class="ui panel modal" style="width:520px;border-color:#ffc24a"><span class="badge b-arch">✓ NASA DONKI · ARCHIVE</span><span class="x click" data-go="base">✕</span>
+    <div style="font-size:19px;font-weight:800;margin:10px 0 6px">A real solar flare, 8 May 2024</div><div style="font-size:15px;line-height:1.5;opacity:.9">From NASA’s space-weather database (DONKI): a research log of past events, not a warning service. Shown as saved data, not live.</div>
+    <div style="display:flex;gap:10px;margin-top:14px"><div class="btn sec" style="padding:9px 16px;font-size:14px">Open the real record ↗</div><div class="btn sec click" style="padding:9px 16px;font-size:14px" data-go="base">Back</div></div></div>`},
+ {id:'ending',g:'Ending',name:'Ending story',cam:'title',art:()=>sceneTitle('en',true),note:'<b>Ending story (storybook art).</b> Every tier gets praise that names the player’s own choices, then the one-line lesson.',
+  html:()=>`<div class="ui" style="left:50%;top:70px;transform:translateX(-50%);text-align:center;width:900px"><div class="h" style="font-size:16px;color:#9ff6ff">Mission 1 · Moon south pole · crew safe</div><div style="font-family:'Exo 2';font-weight:800;font-style:italic;font-size:64px;color:#ffd98a;text-shadow:0 0 30px rgba(255,194,74,.4)">MISSION COMPLETE</div><div style="font-size:24px;font-weight:800">with honors · ★ 11 / 12</div></div>
+    <div class="ui storyc" style="bottom:40px"><div class="face">${FACE}</div><div class="bub panel"><div class="who">BASE BOT</div><p>You moved your crew into the shelter during a real solar storm from May 2024, and you mapped the dark crater before driving in. That’s real astronaut thinking.</p><div class="tags">${STORY}</div></div><div class="btn pri click" style="padding:12px 22px;font-size:17px" data-go="debrief">Next ▶</div></div>`},
+ {id:'debrief',g:'Ending',name:'Debrief & replay',cam:'site',lines:true,dim:true,note:'<b>Debrief.</b> Final report, your week at a glance, the lesson, and replay options (new surprises / harder 14 days).',
+  html:()=>`<div class="ui panel" style="left:60px;top:70px;width:520px;padding:20px 22px"><div class="h" style="font-size:17px">Mission tasks · 11 / 12 ★</div>
+    ${[['Light','★★★'],['Radiation','★★★'],['Shelter','★★★'],['Ice','★★☆']].map(([a,b])=>`<div class="row"><span>${a}</span><span style="color:#ffc24a;letter-spacing:3px">${b}</span></div>`).join('')}
+    <div style="margin-top:10px;font-size:14px;font-weight:700;opacity:.85">Try next time: find ice or bring back 2 samples.</div></div>
+    <div class="ui panel" style="right:60px;top:70px;width:560px;padding:20px 22px"><div class="h" style="font-size:17px">Your week</div>
+    <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:8px;margin-top:12px;text-align:center">${[['1','☀','arrive'],['2','⚡','flare alert'],['3','☢','storm'],['4','☢','storm peak'],['5','◐','long shadow'],['6','◐','no Earth'],['7','★','report']].map(([d,i,t])=>`<div style="padding:8px 2px;border-radius:12px;border:1.5px solid rgba(94,224,232,.35)"><div style="font-size:14px;opacity:.7">Day ${d}</div><div style="font-size:22px">${i}</div><div style="font-size:13px;font-weight:800">${t}</div></div>`).join('')}</div>
+    <div style="margin-top:14px;font-size:16px;font-weight:800;color:#ffd98a">Every choice costs something. On the Moon, light is a resource: where you work decides your power, cold, and radiation risk.</div></div>
+    <div class="ui" style="left:50%;bottom:44px;transform:translateX(-50%);display:flex;gap:12px"><div class="btn pri click" style="padding:14px 24px;font-size:17px" data-go="story5">▶ Play again · new surprises</div><div class="btn sec" style="padding:14px 20px;font-size:15px">Harder: 14 days</div><div class="btn sec" style="padding:14px 20px;font-size:15px;opacity:.5">🔒 Mission 2: Mars</div><div class="btn sec click" style="padding:14px 20px;font-size:15px" data-go="title">I’m done</div></div>`},
+];
+
+/* ---------- one SVG icon set (replaces emoji, which render differently per device) ---------- */
+const G=(d,fill)=>`<svg viewBox="0 0 24 24" fill="${fill?'currentColor':'none'}" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">${d}</svg>`;
+const GLYPH={'⚡':['bolt',G('<path d="M13.5 2 4 14h6.5L9.5 22 20 9.5h-6.5z" stroke="none"/>',1)],
+  '☢':['dose',G('<circle cx="12" cy="12" r="2.2" stroke="none"/><path d="M12 9.6 9.4 5.2A8 8 0 0 0 4 12h5.2M14.6 12H20a8 8 0 0 0-5.4-6.8L12 9.6M10.8 14.1 8.2 18.6a8 8 0 0 0 7.6 0l-2.6-4.5" stroke="none"/>',1)],
+  '♥':['heart',G('<path d="M12 21s-7.5-4.6-9.6-9.2A5.2 5.2 0 0 1 12 6.3a5.2 5.2 0 0 1 9.6 5.5C19.5 16.4 12 21 12 21z" stroke="none"/>',1)],
+  '☀':['sun',G('<circle cx="12" cy="12" r="4.2" fill="currentColor" stroke="none"/><path d="M12 2v2.5M12 19.5V22M2 12h2.5M19.5 12H22M4.9 4.9l1.8 1.8M17.3 17.3l1.8 1.8M4.9 19.1l1.8-1.8M17.3 6.7l1.8-1.8"/>')],
+  '⚙':['gear',G('<circle cx="12" cy="12" r="3.2"/><path d="M12 2.5v3M12 18.5v3M2.5 12h3M18.5 12h3M5.3 5.3l2.1 2.1M16.6 16.6l2.1 2.1M5.3 18.7l2.1-2.1M16.6 7.4l2.1-2.1"/>')],
+  '🔒':['lock',G('<rect x="5" y="10.5" width="14" height="10" rx="2.5"/><path d="M8.5 10.5V7.5a3.5 3.5 0 0 1 7 0v3"/>')],
+  '◐':['shadow',G('<circle cx="12" cy="12" r="8.5"/><path d="M12 3.5a8.5 8.5 0 0 1 0 17z" fill="currentColor" stroke="none"/>')],
+  '⚠':['warn',G('<path d="M12 3 2.5 20h19z"/><path d="M12 10v4.5M12 17.4v.1"/>')],
+  '◉':['rover',G('<path d="M3 15l2-6h10l2 3h4v3z" stroke="none"/><circle cx="7" cy="17.5" r="2.2" stroke="none"/><circle cx="17" cy="17.5" r="2.2" stroke="none"/>',1)],
+  '★':['star',G('<path d="M12 2.8l2.8 6 6.6.7-4.9 4.5 1.4 6.5L12 17.2l-5.9 3.3 1.4-6.5-4.9-4.5 6.6-.7z" stroke="none"/>',1)],
+  '☆':['stare',G('<path d="M12 2.8l2.8 6 6.6.7-4.9 4.5 1.4 6.5L12 17.2l-5.9 3.3 1.4-6.5-4.9-4.5 6.6-.7z" stroke-width="1.6"/>')],
+  '?':['help',G('<circle cx="12" cy="12" r="9.5"/><path d="M9.3 9.4a2.8 2.8 0 1 1 4 2.5c-.8.5-1.3 1-1.3 2M12 17.2v.1"/>')]};
+const GRX=/[⚡☢♥☀⚙🔒◐⚠◉★☆]/u;
+function iconize(root){const w=document.createTreeWalker(root,NodeFilter.SHOW_TEXT),nodes=[];while(w.nextNode())if(GRX.test(w.currentNode.nodeValue)&&!w.currentNode.parentElement.closest('svg'))nodes.push(w.currentNode);
+  for(const n of nodes){const f=document.createDocumentFragment();for(const ch of Array.from(n.nodeValue)){const g=GLYPH[ch];if(g&&ch!=='?'){const s=document.createElement('span');s.className='gi '+g[0];s.setAttribute('aria-hidden','true');s.innerHTML=g[1];f.appendChild(s)}else f.appendChild(document.createTextNode(ch))}n.replaceWith(f)}
+  root.querySelectorAll('.ibtn').forEach(b=>{if(b.textContent.trim()==='?'){b.innerHTML='<span class="gi help" aria-hidden="true">'+GLYPH['?'][1]+'</span>';b.setAttribute('aria-label','Help')}})}
+/* every control: a keyboard-reachable button with a name */
+function a11y(root){root.querySelectorAll('[data-go],[data-toggle],.ibtn').forEach(el=>{if(el.tagName!=='BUTTON'){el.setAttribute('role','button');el.tabIndex=0}
+  if(!el.getAttribute('aria-label')){const g=el.dataset.go,p=el.dataset.pin;const nm=p?PINS[p].nm:el.classList.contains('x')?'Close':g==='sunwatch'?'SunWatch alerts':g==='settings'&&!el.textContent.trim()?'Settings':g==='report'?'Mission tasks':null;if(nm)el.setAttribute('aria-label',nm)}})}
+let REDUCE=matchMedia('(prefers-reduced-motion: reduce)').matches;
+/* ---------- navigation ---------- */
+const nav=document.getElementById('nav');const groups=[...new Set(SCREENS.map(s=>s.g))];
+nav.innerHTML=groups.map(g=>`<div class="navrow"><span class="g">${g}</span>${SCREENS.filter(s=>s.g===g).map(s=>`<button data-id="${s.id}">${s.name}</button>`).join('')}</div>`).join('');
+nav.addEventListener('click',e=>{const b=e.target.closest('button');if(b)go(b.dataset.id)});
+stage.addEventListener('click',e=>{if(e.target.closest('[data-reset]')){flyTo(CAMS[cur.cam]);return}const tg=e.target.closest('[data-toggle]');if(tg){REDUCE=!REDUCE;go(cur.id,true);return}const t=e.target.closest('[data-go]');if(t)go(t.dataset.go)});
+stage.addEventListener('keydown',e=>{if(e.key!=='Enter'&&e.key!==' ')return;const t=e.target.closest('[data-go],[data-toggle]');if(!t)return;e.preventDefault();t.click()});
+document.getElementById('prev').onclick=()=>{const i=SCREENS.findIndex(s=>s.id===cur.id);go(SCREENS[(i-1+SCREENS.length)%SCREENS.length].id)};
+document.getElementById('next').onclick=()=>{const i=SCREENS.findIndex(s=>s.id===cur.id);go(SCREENS[(i+1)%SCREENS.length].id)};
+
+let cur=null,anim=null,lightMode=null;
+function setLight(m){if(m===lightMode)return;lightMode=m;const L=LIGHT[m],up=m==='sun';terrainMat.uniforms.sunD.value.set(...L);sun.position.copy(W(L[0]*1500,L[1]*1500,L[2]*1500));sun.target.position.set(0,0,0);sun.intensity=up?.75:0;hemi.intensity=up?2.6:.45; /* clip-art: mostly flat light, shadows stay soft */lamps.forEach(l=>l.intensity=up?0:40)}
+function flyTo(C,instant){
+  if(REDUCE&&!instant){if(camera.position.distanceTo(C.pos)>1||controls.target.distanceTo(C.tgt)>1){const fd=document.getElementById('fade');fd.style.opacity=1;anim=null;setTimeout(()=>{camera.position.copy(C.pos);controls.target.copy(C.tgt);camera.fov=C.fov;camera.updateProjectionMatrix();fd.style.opacity=0},300)}}
+  else if(instant){anim=null;camera.position.copy(C.pos);controls.target.copy(C.tgt);camera.fov=C.fov;camera.updateProjectionMatrix()}
+  else{const far=Math.max(camera.position.distanceTo(C.pos),controls.target.distanceTo(C.tgt));anim={t0:performance.now(),dur:far<50?Math.max(450,far*12):Math.min(2200,900+far*.05),p0:camera.position.clone(),q0:controls.target.clone(),f0:camera.fov,C,arc:Math.min(1500,far*.08)}}}
+function go(id,instant){const S=SCREENS.find(s=>s.id===id);cur=S;
+  nav.querySelectorAll('button').forEach(b=>b.classList.toggle('on',b.dataset.id===id));document.getElementById('note').innerHTML=S.note;
+  setLight(S.dark?'dark':'sun');lines.visible=!!S.lines;route.visible=!!S.route;scene.traverse(o=>{if(o.userData.earth)o.visible=!S.dark;if(o.material&&o.material.isShadowMaterial)o.visible=['base','solar','hab','shelter','sky'].includes(S.cam)});
+  const C=CAMS[S.cam];controls.autoRotate=!!C.orbit&&!REDUCE;frame.classList.toggle('rm',REDUCE);
+  if(instant||REDUCE||!anim||anim.C!==C)flyTo(C,instant);
+  let h=S.art?'':`<button class="ui reset" data-reset aria-label="Reset camera view"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M4.5 12a7.5 7.5 0 1 0 2.2-5.3"/><path d="M4 4v4.5h4.5"/><circle cx="12" cy="12" r="1.6" fill="currentColor" stroke="none"/></svg>Reset view</button>`;if(S.art)h+=`<div class="artl" role="img" aria-label="Illustration: ${S.name}">${S.art()}</div>`;if(S.dim)h+='<div class="dim"></div>';
+  if(S.pins)for(const [k,p] of Object.entries(PINS))if(!(S.dark&&k==='earth'))h+=`<div class="pin ${S.sel===k?'sel':''} ${S.ring===k?'ring':''} ${S.id==='tutorial'&&!['hab','shelter'].includes(k)?'faded':''} click" data-pin="${k}" data-go="${k==='shelter'?'jobs':S.id}"><div class="o">${p.ic}</div><div class="stem"></div>${S.sel===k||S.ring===k?`<div class="nm">${p.nm}</div>`:''}</div>`;
+  for(const k of (S.labs||[]))h+=`<div class="lab3 ${L3[k].warm?'warm':''}" data-lab="${k}"><div class="box"><div class="t">${L3[k].t}</div><div class="s">${L3[k].s}</div></div><div class="stem"></div><div class="dt"></div></div>`;
+  stage.innerHTML=h+S.html();iconize(stage);a11y(stage);renderer.domElement.setAttribute('aria-hidden','true');}
+
+/* ---------- render loop ---------- */
+const composer=new EffectComposer(renderer);composer.addPass(new RenderPass(scene,camera));
+composer.addPass(new UnrealBloomPass(new THREE.Vector2(1280,720),.35,.4,.95));composer.addPass(new OutputPass());
+function resize(){const w=frame.clientWidth||728,h=Math.round(w*9/16);renderer.setSize(w,h,false);composer.setSize(w,h);camera.aspect=w/h;camera.updateProjectionMatrix();stage.style.transform=`scale(${w/1280})`}
+new ResizeObserver(resize).observe(frame);resize();
+const ease=t=>t<.5?4*t*t*t:1-Math.pow(-2*t+2,3)/2,v3=new THREE.Vector3();
+const toStage=p=>{v3.copy(p).project(camera);return v3.z>1?null:[(v3.x+1)/2*1280,(1-v3.y)/2*720]};
+function tick(now){
+  if(anim){const t=Math.min(1,(now-anim.t0)/anim.dur),k=ease(t);camera.position.lerpVectors(anim.p0,anim.C.pos,k);camera.position.y+=Math.sin(k*Math.PI)*anim.arc;controls.target.lerpVectors(anim.q0,anim.C.tgt,k);camera.fov=anim.f0+(anim.C.fov-anim.f0)*k;camera.updateProjectionMatrix();if(t>=1)anim=null}
+  const dt=Math.min(.1,(now-(tick.t||now))/1000);tick.t=now;if(!REDUCE){earthSurf.rotation.y+=dt*.035;EU.drift.value+=dt*.0025}
+  controls.update();if(!cur.art)composer.render();
+  const rb=stage.querySelector('[data-reset]');if(rb){const C=CAMS[cur.cam],tol=C.pos.distanceTo(C.tgt)*.02+.5;rb.classList.toggle('show',!anim&&(camera.position.distanceTo(C.pos)>tol||controls.target.distanceTo(C.tgt)>tol))}
+  stage.querySelectorAll('[data-pin]').forEach(el=>{const s=toStage(PINS[el.dataset.pin].p);if(!s){el.style.display='none';return}el.style.display='flex';el.style.left=s[0]+'px';el.style.top=s[1]+'px'});
+  stage.querySelectorAll('[data-lab]').forEach(el=>{const s=toStage(L3[el.dataset.lab].p());if(!s||s[0]<0||s[0]>1280||s[1]<0||s[1]>720){el.style.display='none';return}el.style.display='block';el.style.left=s[0]+'px';el.style.top=s[1]+'px'});
+  stage.querySelectorAll('[data-anchor]').forEach(el=>{const s=toStage(PINS[el.dataset.anchor].p);if(!s)return;el.style.left=Math.max(10,Math.min(1280-340,s[0]+ +el.dataset.dx))+'px';el.style.top=Math.max(10,s[1]+ +el.dataset.dy)+'px'});
+  requestAnimationFrame(tick)}
+go(/*START*/'title',true);requestAnimationFrame(tick);
+</script>
+</body>
+</html>

@@ -353,3 +353,27 @@ The skill targets marketing websites. Its section, photo, footer and gate rules 
 6. **Text:** in-game text is ≥14 px (13 px only for small badges and tags).
 7. **Contrast:** a soft dark scrim sits behind the title text over the art.
 8. **One system:** radii cut to 16 (panels), 12 (buttons, tiles, segments), 8 (badges, labels), plus pills and circles.
+
+## v7: base model + Earth polish (2026-11-15, proposed)
+From Bea's 3 references (Mars lander-habitat, Blue Moon lander, Moon-base render), kept in the D-023 two-tone toon look:
+- **Habitat:** 2 modules (lattice skin + porthole; panelled + orange band + windows) on a hex deck with 4 lander legs, footpads, foil tanks and a ladder. Story hook: the habitat landed here.
+- **Tunnel to the shelter:** a ribbed walkway, so kids can see where the crew runs in a storm.
+- **Comms tower:** a 9 m lattice mast with floodlights on the base and a dish that tracks Earth.
+- **Solar:** 3 vertical masts, ~10 m (F65), cell grid visible, guy wires, cables to a power unit.
+- **Rover:** pressurised, 6 wheels, big front window, roof panel. One worn path leads toward the dark crater.
+- **Crew:** 2 placeholder astronauts (white suit, navy visor, orange/cyan arm band, as in v5).
+- **Earth:** real continents from NASA Blue Marble maps, flattened to the palette (sea, shallows, green, desert, ice). Storybook clouds with soft shadows, a crisp day/night line, a blue rim and a slow spin (off with reduced motion). Lowered to 2.4° elevation (F20).
+- **Reset view:** a pill button under the top-right tools that appears only when the camera is off its preset and flies back on tap.
+- Risks: Chromebook GPU cost (domain-warped cloud noise, more meshes, 3 textures ~1 MB). The ground tracks barely show from the long-lens hub view; they're only visible in close-ups.
+
+## v8: base in the crew clip-art style (2026-11-15, Bea's direction)
+Translating the `crew-v5` rules to 3D:
+- **Squircle shapes:** rounded-edge cylinders (lathe) and big-radius boxes; chunkier parts. No panel textures, guy wires, cables or thin lattice.
+- **Gradient per part:** vertex colours run from the base colour on top to slate #4F5772 at the bottom. Screens go from navy #1D2B4C to #4465B2; amber plates from #F7C081 to #BF833E.
+- **Light:** a soft toon ramp (0.7–1.0), strong ambient (2.6) and a weak, neutral sun (0.75), so backlit parts stay light. Ground shadows still show through the shadow catcher, plus soft blobs under every object.
+- **Inner rim:** metal parts lighten near the silhouette (a shader rim).
+- **Accents:** navy screens with a white shine streak (windows, porthole, solar panels, rover window, visors); cyan beacons with halos; the suit's chest panel (amber plate + cyan light + navy buttons) on module A and the power unit.
+- **Crew:** chibi astronauts like the sprite: big helmet with side pods, cyan top light, navy boots, arm band.
+- Open: the terrain still has its banded storybook shader. Softening it toward clip-art gradients is the next step if wanted. The HUD helper face is still the old Base Bot, not Curio.
+- **v8.1 outlines (Bea's request):** inverted-hull outlines in dark slate #27304C, a constant ~3.6 px on screen (scales with frame width). The light rim is now a crisp band, so each part reads as dark line + light bevel, like a sticker. Screens, glows and tiny parts (<0.09 m) have no outline. The mockup has an Outlines on/off button for comparison. Note: this breaks the Curio sheet's 'no dark outlines' rule. Either keep the 3D as the exception, or add matching outlines to the 2D art later. Open: the Earth, rocks and terrain have no outlines yet.
+
