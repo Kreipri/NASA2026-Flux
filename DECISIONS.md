@@ -13,13 +13,21 @@ Status: `decided` | `proposed` | `open` | `superseded`
 - [x] ~~How AI is used~~ -> decided, see D-004.
 - [x] ~~Story objective~~ -> decided, see D-013 (site report card). Story draft: `ideas/story-and-core-loop-v1.md` (awaiting Bea's full review).
 - [x] ~~Action list and costs~~ -> decided v1, see D-015 + D-018 (`ideas/balance-pass-v1.md`). Bot sim done; needs kid playtest.
-- [ ] **Crew names and mascot:** fictional, original, not Fallout.
+- [ ] **Crew names and mascot:** fictional, original, not Fallout. Crew is 4: you (commander) + engineer, doctor, geologist (D-019).
 - [x] ~~Tech stack~~ -> see D-016 (Vite + TS + React, plain-TS engine).
 - [ ] **Data plan:** DONKI can be called from the browser (verified). RadLab needs bundled snapshots. Decide live-vs-archive mix and the fallback. (Prototype: ARCHIVE only.)
 - [x] ~~Source Shackleton's size and distance from the pole~~ -> verified, see D-014 and `ideas/research-setting-facts.md` (verification pass).
 - [~] **Verify snippet-only facts:** most done (D-014). Still open: Chang'e-4 (non-NASA), Orion 150 mSv, ISS 6-month dose, 1.3 s delay, "Centennial" 10 cm.
 
 ---
+
+## D-019: Day-based loop with crew time, stamina, grouped jobs, visible report card
+**Status:** decided (from Bea's first terminal playtest feedback). Supersedes D-015's "2 shifts a day" pacing and the job list in D-018 (engine entry); replaces the Science points meter (D-007) with the on-screen report card (D-013).
+- 1 turn = 1 day, 14 turns. Crew of 4 (FICTION, matches NASA's Base Camp concept of up to 4) = **8 crew time** a day; jobs cost 1/2/4. Unused time rests the crew.
+- **Stamina** meter sets tomorrow's crew time (8/6/4). Outside work tires 4x more than inside.
+- Jobs grouped GOAL / KEEP BASE ALIVE / KEEP CREW SAFE; goal jobs tagged with their report-card entry. Removed rock samples and daily report. Added Power-saving mode.
+- Power emergency: shows a "how to recover" box with a sun countdown; cleaning allowed; cost is cold (stamina) not faster oxygen loss.
+- Details and sim results: `ideas/balance-pass-v2.md`. Crew facts verified in `ideas/research-setting-facts.md`.
 
 ## Proposed: Short task branches and pull requests
 **Status:** proposed (2026-11-14; recommendation, no repository settings changed)

@@ -17,7 +17,7 @@ Prototyping. Rules engine, bot sim, and a **chat-play CLI** exist (`src/`). No w
 - **Accuracy rule:** setting must match official NASA info; fiction (crew, story, mascot, dates) is clearly labeled (D-009).
 - **Source badges:** `LIVE` / `ARCHIVE` / `SIMULATED`, tap for a "where is this from?" card (D-008). AI text gets `[AI-written story]`, never a data badge.
 - **AI:** writes event flavor and situations; a deterministic rules engine owns all numbers; bundled offline events as fallback (D-004).
-- **Balance v1 (decided D-015, tuned D-018):** 28 turns (14 days x 2 shifts), 13 actions + 1 event choice, numbers in `ideas/balance-pass-v1.md`.
+- **Core loop v2 (D-019):** 14 days, 1 turn a day, 8 crew time (crew of 4), stamina meter, 12 jobs grouped by purpose, report card on screen. Numbers + sim results: `ideas/balance-pass-v2.md` (v1 is history).
 - **Stack (D-016):** Vite + TS + React; engine in plain TS, seeded, with a bot sim. Plan: `ideas/tech-stack-and-prototype-plan.md`.
 - **Facts verified (D-014):** Shackleton 21 km wide / 4 km deep, pole on its rim; ridge ~17 km from pole (derived); worst-case dark 73-117 h storage, longer ground-level shadows possible.
 - **SunWatch:** our fictional outpost-console panel showing alerts relayed from Mission Control. Not a real device. DONKI is a research log of events, **never call it a warning or forecast service** (D-012).
@@ -30,7 +30,8 @@ Prototyping. Rules engine, bot sim, and a **chat-play CLI** exist (`src/`). No w
 | `ideas/story-and-core-loop-v1.md` | Story, characters (fiction), turn loop, 14-action table, tutorial mockup |
 | `ideas/research-data-sources.md` | DONKI, RadLab, OSDR, Trek, CSA findings, with live-test results |
 | `ideas/research-setting-facts.md` | Official south pole facts. **Verification pass table at the top overrides older lines** |
-| `ideas/balance-pass-v1.md` | Action cost table, background rates, storm/eclipse rules, fail states, sanity check |
+| `ideas/balance-pass-v2.md` | **Current** loop, job table, report card rules, sim results |
+| `ideas/balance-pass-v1.md` | Old shift-based version (history) |
 | `ideas/tech-stack-and-prototype-plan.md` | Stack choice, architecture, thin prototype scope and build order |
 | `src/` | Engine, configs, bot sim, chat CLI. Run: `npm run sim`; play interactively with `npm run play` (type job numbers; `note <text>` logs feedback). State in `.run/state.json`, full transcript in `.run/playlog.txt` |
 | `data/samples/` | Real archived May 2024 solar storm data (DONKI + RadLab CRaTER) with README |
@@ -47,10 +48,11 @@ Prototyping. Rules engine, bot sim, and a **chat-play CLI** exist (`src/`). No w
 - **Balance numbers are hand math.** Build the bot sim before trusting them.
 - Most OSDR studies are **mice or cells, not astronauts**. Label honestly.
 - Moon Trek, OSDR terms, and OSDR keyword results are **still unverified** (JS-only pages).
+- **Two entries are numbered D-018** (attribution rule, and the engine/bot sim). Both were made in parallel by different agents; refer to them by title. Next new decision is D-020.
 - The user wants **light usage**: concise text, no subagents or big workflows unless asked, no Figma/HTML builds in ideation (see `CLAUDE.md`).
 
 ## Next Steps (suggested order)
-1. **Finish Bea's chat playtest** (full game). Note what felt boring, confusing or unfair, then tune `src/config/moon.json` and rerun `npm run sim`.
+1. **Bea playtests v2** in the terminal (`npm run play`). Read `.run/playlog.txt` + her `note` lines, tune `src/config/moon.json`, rerun `npm run sim`.
 2. **Name the crew and mascot** (original, fictional).
 3. **Web UI** (D-016): Vite + React skin over the same engine. Ask Bea first.
 4. **Data plan:** bundle more archived storms so the second storm can be real (ARCHIVE) instead of SIMULATED.
@@ -84,3 +86,4 @@ Add `src/` and `docs/` when those phases begin.
 - 2026-11-14 (session 1, Sonnet 5.5): Set up context, decisions, and handoff structure. Researched all 7 provided links plus live API tests (DONKI, RadLab). Researched official south pole setting, radiation risk, and astronaut tools via research agents. Decided setting (Shackleton Ridge), badges, SunWatch, AI role, report-card objective. Drafted story, 14-action table, and tutorial mockup. Saved sample data. Nothing built in code.
 - 2026-11-14 (session 2, Opus 5.5): Balance pass v1 (`ideas/balance-pass-v1.md`). Verified Shackleton size/pole position and most snippet-only facts on nasa.gov/NTRS pages (curl, exact wording); corrected eclipse hours, dropped -280 F and 5.6% ice. Picked stack (Vite+TS+React) and wrote thin prototype plan. Logged D-014 to D-016. No code.
 - 2026-11-14 (session 2, cont.): Bea approved D-015 and step 1. Built engine + bot sim + chat CLI, tuned from sim (D-018). Started chat playtest.
+- 2026-11-14 (session 2, cont.): Bea's playtest feedback -> v2 loop (D-019): days, crew time, stamina, grouped jobs, report card on screen, emergency recovery help. Verified crew facts (Artemis IV 2 on surface, Base Camp up to 4, 2.5 h exercise). Terminal play via `npm run play`.

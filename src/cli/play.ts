@@ -1,106 +1,133 @@
-// Chat-play prototype. State is saved in .run/state.json between commands.
-//   node --no-warnings src/cli/play.ts new [slice|full] [seed]
-//   node --no-warnings src/cli/play.ts act 1 4        (job numbers from the menu)
-//   node --no-warnings src/cli/play.ts choose back|finish
-//   node --no-warnings src/cli/play.ts show
-//   npm run play   (no args) = interactive mode: just type job numbers at the prompt
+// Terminal play prototype (v2, one turn = one day). State is saved in .run/state.json.
+//   npm run play   = interactive: type job numbers at the prompt (recommended)
+//   node --no-warnings src/cli/play.ts new [full|slice] [seed]
+//   node --no-warnings src/cli/play.ts act 1 4 7 | choose back|finish | show
 import { mkdirSync, readFileSync, writeFileSync, existsSync, appendFileSync } from 'node:fs';
 import {
-  newGame, step, menu, env, stormActive, slotsAvailable, dayShift, totalTurns, reportCard,
-  iceChance, airPowerCost, type State, type ActionId, type ScenarioId, type TripChoice,
+  newGame, step, menu, env, stormActive, blocksToday, blocksFor, totalDays, reportCard, starHints,
+  iceChance, powerCost, type State, type ActionId, type ScenarioId, type TripChoice, type Goal, type ActionDef,
 } from '../engine/engine.ts';
-import { missionControl } from '../content/lines.ts';
+import moon from '../config/moon.json' with { type: 'json' };
+import { missionControl, emergencyHelp } from '../content/lines.ts';
 
 const FILE = new URL('../../.run/state.json', import.meta.url);
 const load = (): State => JSON.parse(readFileSync(FILE, 'utf8'));
 const save = (s: State) => { mkdirSync(new URL('../../.run/', import.meta.url), { recursive: true }); writeFileSync(FILE, JSON.stringify(s)); };
 
-const W = 74;
+const W = 80;
 const line = '+' + '-'.repeat(W - 2) + '+';
 const row = (t = '') => '| ' + t.padEnd(W - 4).slice(0, W - 4) + ' |';
 const bar = (v: number) => '[' + '#'.repeat(Math.round(v / 10)) + '-'.repeat(10 - Math.round(v / 10)) + ']';
-function wrap(t: string, width = W - 4): string[] {
+const stars = (n: number) => '*'.repeat(n) + '.'.repeat(3 - n);
+function wrap(t: string, width = W - 6): string[] {
   const out: string[] = []; let cur = '';
   for (const w of t.split(' ')) { if ((cur + ' ' + w).trim().length > width) { out.push(cur); cur = w; } else cur = (cur + ' ' + w).trim(); }
   if (cur) out.push(cur);
   return out;
 }
 
+/** What a job does for you, in a few words. */
+function effect(s: State, d: ActionDef): string {
+  switch (d.id) {
+    case 'logsun': return 'LIGHT';
+    case 'measure': return 'RADIATION';
+    case 'scout': return 'ICE: odds +25%';
+    case 'rover': return `ICE: ${Math.round(iceChance(s) * 100)}% chance`;
+    case 'regolith': return 'SHELTER: +1 level';
+    case 'clean': return 'solar back to full';
+    case 'air': return 'oxygen +30';
+    case 'repair': return 'fixes a fault';
+    case 'powersave': return `saves ${moon.perDay.upkeepPower - moon.perDay.powerSaveUpkeep} power`;
+    case 'shelter': return 'SHELTER: less dose';
+    case 'rest': return 'stamina +20';
+    case 'call': return 'storm forecast';
+    default: return '';
+  }
+}
+function costs(s: State, d: ActionDef): string {
+  const c: string[] = [];
+  const p = powerCost(s, d.id);
+  if (p < 0) c.push(`pwr${p}`);
+  if (d.o2 < 0) c.push(`O2${d.o2}`);
+  if (d.dose) c.push(`dose+${d.dose}`);
+  if (d.outside) c.push('OUT');
+  if (d.id === 'powersave') c.push('stamina-10');
+  return c.join(' ') || '-';
+}
+
 function screen(s: State): string {
   const e = env(s);
-  const { day, shift } = dayShift(s);
-  const sc = s.scenario === 'slice' ? 'SLICE' : 'FULL';
   const L: string[] = [line];
-  L.push(row(`SHACKLETON RIDGE OUTPOST (${sc})`.padEnd(32) + `DAY ${day}/${totalTurns(s) / 2}  SHIFT ${shift}/2`.padStart(38)));
+  L.push(row('SHACKLETON RIDGE OUTPOST'.padEnd(54) + `DAY ${s.turn + 1} / ${totalDays(s)}`.padStart(22)));
   L.push(line);
-  const warn = (v: number, lim: number, low = true) => ((low ? v <= lim : v >= lim) ? ' LOW!' : '');
-  L.push(row(`POWER  ${bar(s.power)} ${String(s.power).padStart(3)}%${warn(s.power, 20)}`.padEnd(36) + `OXYGEN ${bar(s.o2)} ${String(s.o2).padStart(3)}%${warn(s.o2, 25)}`));
-  L.push(row(`DOSE   ${bar(s.dose)} ${String(s.dose).padStart(3)}% of plan${s.dose >= 75 ? ' HIGH!' : ''}`.padEnd(36) + `SCIENCE ${s.science}`));
-  const extras = [
-    `Dust ${'*'.repeat(s.dust) || 'none'}`,
-    `Shelter lvl ${s.shelterLevel}`,
-    `Ice samples ${s.iceSamples}`,
-    `Next trip ice odds ${Math.round(iceChance(s) * 100)}%`,
-  ];
-  L.push(row(extras.join(' | ')));
-  if (s.faults.panel || s.faults.scrubber || slotsAvailable(s) < 2) {
-    L.push(row([s.faults.panel && 'FAULT: panel', s.faults.scrubber && 'FAULT: air scrubber', slotsAvailable(s) < 2 && 'CREW TIRED (1 job)'].filter(Boolean).join(' | ')));
-  }
+  const flag = (bad: boolean, w: string) => (bad ? ' ' + w : '');
+  L.push(row(`BASE  POWER   ${bar(s.power)} ${String(s.power).padStart(3)}%${flag(s.power <= 25, 'LOW!')}`.padEnd(40) + `OXYGEN ${bar(s.o2)} ${String(s.o2).padStart(3)}%${flag(s.o2 <= 25, 'LOW!')}`));
+  L.push(row(`CREW  STAMINA ${bar(s.stamina)} ${String(s.stamina).padStart(3)}%${flag(s.stamina < 50, 'TIRED')}`.padEnd(40) + `DOSE   ${bar(s.dose)} ${String(s.dose).padStart(3)}% of plan${flag(s.dose >= 75, 'HIGH!')}`));
+  const bt = blocksToday(s);
+  L.push(row(`CREW TIME TODAY: ${'#'.repeat(bt)}${'.'.repeat(8 - bt)} ${bt}   (stamina 50%+ = 8, 25-49% = 6, under 25% = 4)`));
+  const faults = [s.faults.panel && 'solar panel jammed', s.faults.scrubber && 'air scrubber clogged'].filter(Boolean).join(', ') || 'none';
+  L.push(row(`Dust ${s.dust}/3   Shelter level ${s.shelterLevel}/3   Ice samples ${s.iceSamples}   Faults: ${faults}`));
   L.push(line);
-  L.push(row('SUNWATCH  (our outpost console - fiction)'));
-  const sun = e.eclipse === 'long' ? 'DARK (long shadow)' : e.eclipse === 'short' ? 'DARK (short eclipse)' : 'UP, on the ridge';
-  const alert = stormActive(e) ? (e.storm === 'strong' ? 'PARTICLE STORM - STRONG' : 'PARTICLE STORM - building') : e.storm === 'warning' && e.link ? 'FLARE ALERT' : 'none';
-  L.push(row(` Sun: ${sun}`.padEnd(32) + `Earth link: ${e.link ? 'OK' : 'DOWN'}`));
-  L.push(row(` Alerts: ${alert}`));
+  const rc = reportCard(s); const hints = starHints(s);
+  L.push(row(`MISSION GOAL: SITE REPORT CARD  (${Object.values(rc).reduce((a, b) => a + b, 0)}/12 stars)`));
+  for (const g of ['LIGHT', 'RADIATION', 'SHELTER', 'ICE'] as Goal[]) L.push(row(`  ${g.padEnd(10)} ${stars(rc[g])}   ${rc[g] < 3 ? 'to do: ' + hints[g] : 'done!'}`));
   L.push(line);
+  const sun = e.eclipse === 'long' ? 'DARK (long shadow)' : e.eclipse === 'short' ? 'HALF (short eclipse)' : 'UP';
+  const alert = stormActive(e) ? (e.storm === 'strong' ? 'PARTICLE STORM: STRONG' : 'PARTICLE STORM: building') : e.storm === 'warning' && e.link ? 'FLARE ALERT' : 'none';
+  L.push(row(`SUNWATCH (our console, fiction)   Sun: ${sun}   Earth link: ${e.link ? 'OK' : 'DOWN'}   Alert: ${alert}`));
+  L.push(line);
+  if (s.emergency) { for (const m of emergencyHelp(s)) wrap(m.trim(), W - 12).forEach((w, i) => L.push(row((m.startsWith('  ') ? (i ? '     ' : '  ') : '') + w))); L.push(line); }
   L.push(row('MISSION CONTROL:'));
-  for (const m of missionControl(s)) for (const w of wrap(m, W - 6)) L.push(row('  ' + w));
+  for (const m of missionControl(s)) for (const w of wrap(m)) L.push(row('  ' + w));
   L.push(line);
-  L.push(row(`CHOOSE JOBS (crew time: ${slotsAvailable(s)} slot${slotsAvailable(s) > 1 ? 's' : ''})`));
-  menu(s).forEach((m, i) => {
-    const d = m.def;
-    const cost: string[] = [];
-    const p = d.id === 'air' ? airPowerCost(s) : d.power;
-    if (p) cost.push(`pwr ${p > 0 ? '+' : ''}${p}`);
-    if (d.o2) cost.push(`O2 ${d.o2 > 0 ? '+' : ''}${d.o2}`);
-    if (d.dose) cost.push(`dose +${d.dose}${d.outside ? ' (out)' : ''}`);
-    else if (d.outside) cost.push('outside');
-    if (d.slots === 2) cost.push('uses 2');
-    const label = `[${i + 1}] ${d.label}`;
-    L.push(row((label.padEnd(31) + (m.blocked ? `(${m.blocked})` : cost.join(', '))).slice(0, W - 4)));
-  });
+  L.push(row(`PLAN THE DAY: type job numbers, e.g. 1 3 4  (crew time ${bt}, unused = rest)`));
+  L.push(row('     job                   time  costs                  gives'));
+  let n = 0;
+  const m = menu(s);
+  for (const g of moon.groups) {
+    L.push(row(g.title));
+    for (const item of m) {
+      n++;
+      if (item.def.group !== g.id) continue;
+      const d = item.def;
+      const num = `[${m.indexOf(item) + 1}]`.padStart(4);
+      const right = item.blocked ? `(blocked: ${item.blocked})` : `${costs(s, d).padEnd(22)} ${effect(s, d)}`;
+      L.push(row(`${num} ${d.label.padEnd(22)} ${String(d.blocks).padStart(2)}   ${right}`));
+    }
+  }
+  void n;
   L.push(line);
   return L.join('\n');
 }
 
 function card(s: State): string {
   const rc = reportCard(s);
-  const st = (n: number) => '*'.repeat(n) + '.'.repeat(3 - n);
-  const head = s.ended?.reason === 'complete' ? 'MISSION COMPLETE' : s.ended?.reason === 'oxygen' ? 'MISSION PAUSED: crew called home safely (oxygen ran low)' : 'MISSION PAUSED: crew called home safely (dose plan used up)';
+  const head = s.ended?.reason === 'complete' ? 'MISSION COMPLETE: the whole crew is healthy and heading home'
+    : s.ended?.reason === 'oxygen' ? 'MISSION PAUSED: crew called home safely (oxygen ran low)' : 'MISSION PAUSED: crew called home safely (dose plan used up)';
   const ev = s.evidence;
   const tips: string[] = [];
-  if (ev.powerHitZero) tips.push('Charge batteries and clean dust BEFORE the long shadow.');
-  if (ev.outsideStormShifts) tips.push('Stay inside or shelter when particles arrive.');
-  if (!ev.stormMeasures) tips.push('Measuring radiation during a storm is great science.');
-  if (!ev.iceFound && ev.trips) tips.push('Scout with the drone first to raise your ice odds.');
-  if (!ev.trips) tips.push('The dark crater is where the big science is. Plan a trip when the sky is calm.');
-  if (!ev.eclipseLogged) tips.push('Logging the dark stretch is rare evidence for the report card.');
+  if (ev.powerHitZero) tips.push('Fill the batteries and clean dust BEFORE the long shadow. Power-saving mode stretches them.');
+  if (ev.outsideStormBlocks) tips.push('Keep astronauts inside when particles arrive.');
+  if (!ev.stormMeasures) tips.push('Measuring radiation during a storm is the best radiation evidence.');
+  if (!ev.iceFound && ev.trips) tips.push('Scout with the drone before a rover trip to raise your ice odds.');
+  if (!ev.trips) tips.push('The dark crater is where the ice might be. Plan a trip on a calm, sunny day.');
+  if (!ev.eclipseLogged) tips.push('Logging the ridge while it is dark is rare evidence.');
   return [
     line, row(head), line,
-    row('SITE REPORT CARD - Shackleton Connecting Ridge'),
-    row(`  Lighting   ${st(rc.lighting)}  sun logs ${ev.sunLogs}, eclipse logged ${ev.eclipseLogged ? 'yes' : 'no'}, power ${ev.powerHitZero ? 'ran out' : 'never ran out'}`),
-    row(`  Radiation  ${st(rc.radiation)}  measurements ${ev.measures} (${ev.stormMeasures} during storm)`),
-    row(`  Shelter    ${st(rc.shelter)}  final dose ${s.dose}% of plan, outside in storms: ${ev.outsideStormShifts}x`),
-    row(`  Ice        ${st(rc.ice)}  trips ${ev.trips}, ice found ${ev.iceFound}, spots ruled out ${ev.mappedEmpty}`),
-    row(`  Science ${s.science}   Stars ${rc.lighting + rc.radiation + rc.shelter + rc.ice}/12`),
-    line, row('NEXT TIME, TRY:'), ...tips.slice(0, 3).flatMap((t) => wrap('- ' + t, W - 6).map((w) => row('  ' + w))), line,
+    row('SITE REPORT CARD: Shackleton Connecting Ridge'),
+    row(`  LIGHT      ${stars(rc.LIGHT)}  sun logs ${ev.sunLogs}, shadow logged ${ev.eclipseLogged ? 'yes' : 'no'}, power ${ev.powerHitZero ? 'ran out' : 'never ran out'}`),
+    row(`  RADIATION  ${stars(rc.RADIATION)}  measurements ${ev.measures} (${ev.stormMeasures} during a storm)`),
+    row(`  SHELTER    ${stars(rc.SHELTER)}  shelter level ${s.shelterLevel}/3, final dose ${s.dose}% of plan`),
+    row(`  ICE        ${stars(rc.ICE)}  trips ${ev.trips}, ice found ${ev.iceFound}, spots ruled out ${ev.mappedEmpty}`),
+    row(`  TOTAL ${Object.values(rc).reduce((a, b) => a + b, 0)}/12 stars in ${s.turn} days`),
+    line, row('NEXT TIME, TRY:'), ...tips.slice(0, 3).flatMap((t) => wrap('- ' + t).map((w) => row('  ' + w))), line,
   ].join('\n');
 }
 
 function show(s: State, log: string[] = []) {
-  if (log.length) console.log('WHAT HAPPENED:\n' + log.map((l) => (l.startsWith('  ') ? l : '- ' + l)).join('\n') + '\n');
+  if (log.length) console.log('\nWHAT HAPPENED:\n' + log.map((l) => (l.startsWith('  ') ? l : '- ' + l)).join('\n') + '\n');
   if (s.pending) {
-    console.log([line, row('!! PARTICLES ARRIVING WHILE THE ROVER IS OUT !!'), row('  back   = turn back now: no sample, safe inside (pwr -20, O2 -3)'), row('  finish = finish the trip: chance of ice, but storm dose outside'), line].join('\n'));
+    console.log([line, row('!! PARTICLES ARRIVING WHILE THE ROVER IS OUT !!'), row(`  back   = turn back now: no sample, safe inside (pwr ${moon.trip.backPower}, O2 ${moon.trip.backO2})`), row('  finish = finish the trip: chance of ice, but extra storm dose outside'), line].join('\n'));
     return;
   }
   console.log(s.ended ? card(s) : screen(s));
@@ -141,8 +168,8 @@ function handle(cmd: string | undefined, args: string[]) {
   }
 }
 
-const HELP = `Type job numbers (e.g. "8 9", or "7" for a 2-slot job), "back"/"finish" when asked,
-"note <text>" to jot playtest feedback, "show", "new full" / "new slice", "help", or "quit".`;
+const HELP = `Type the job numbers for today in one line (e.g. "1 3 7"). Their crew time must fit today's total.
+Type "back"/"finish" when asked, "note <text>" to jot playtest feedback, "show", "new full" / "new slice", "help", or "quit".`;
 
 async function interactive() {
   const { createInterface } = await import('node:readline');

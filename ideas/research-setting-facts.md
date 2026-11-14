@@ -21,6 +21,11 @@ Pages fetched with curl and searched for the exact wording (not summarized by a 
 | **ISS oxygen generation** | VERIFIED, **clarified** | The Oxygen Generation Assembly **electrolyzes water** using power; 2.3-9 kg O2/day, normal 5.4 kg/day. That's the **station's output for a crew of up to six**, not per person. Older fact sheet. | nasa.gov/wp-content/uploads/2016/01/174687main_eclss_facts.pdf |
 | South pole comms | VERIFIED (general) | "The South Pole also provides near constant communication with Earth." | science.nasa.gov/resource/shackleton-craters-illuminated-rim-shadowed-interior/ |
 
+| **Crew on the surface** | VERIFIED | Artemis IV (early 2028): "two crew members will descend to the surface and spend approximately a week near the South Pole". | nasa.gov/mission/artemis-iv/ |
+| **Base crew size + power storage** | VERIFIED (2020 concept) | Fixed habitat "can house up to four astronauts for a month-long stay"; "no single location ... avoids periods of darkness", so plan to "store power for up to eight days". | nasa.gov/blogs/artemis/2020/10/28/lunar-living-nasas-artemis-base-camp-concept/ |
+| **Daily exercise** | VERIFIED | ISS crew "are scheduled for two and a half hours of daily exercise". Older fact sheet: 2 h exercise, 8 h sleep after a 16-hour mission day. | nasa.gov/missions/station/faq-the-real-story-about-astronaut-health-care-in-space/ ; nasa.gov/wp-content/uploads/2015/05/167746main_fs_livingandworkinginspace508c.pdf |
+| Moonwalk "buddy rule" | NOT FOUND | No NASA page found stating a pairs rule. Our "outside jobs use pairs" is a game rule, consistent with the 2-person surface crew. | - |
+
 **Still unverified (not checked this pass):** Chang'e-4 1,369 uSv/day (China, not NASA, keep out of NASA-labeled text), Orion 150 mSv SPE design value, ISS 80-160 mSv per 6 months, 1.3 s one-way light delay, "Centennial" 10 cm shielding, LEND details, M2M-SWAO page.
 
 **Kid-safe lines now OK to use:**
