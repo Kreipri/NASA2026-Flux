@@ -1,0 +1,104 @@
+/* The finished screen's palette, art, typography and side dock are preserved. */
+html,body{background:#0a0e22!important;color:#eef0fb}
+main{padding-top:10px}
+.mission-gameplay .jobs{width:39cqw;top:8cqw;padding:1.25cqw;bottom:2.4cqw;margin:0}
+.mission-gameplay .dock-body{padding:.3cqw .2cqw;scrollbar-gutter:stable}
+.mission-gameplay .dock-body h3{font:600 max(16px,1.8cqw) Fredoka;margin:.5cqw 0 1cqw;color:#3a1f6e}
+.mission-gameplay .dock-body p{font:500 max(14px,1.45cqw)/1.4 Fredoka;margin:.6cqw 0 1cqw}
+.mission-gameplay .dock-body>p{color:#5b527c}
+.mission-gameplay .top3{gap:.65cqw}
+.mission-gameplay .view-tabs{gap:.4cqw}
+.mission-gameplay .view-tabs button{font-size:max(14px,1.4cqw);min-height:36px;padding:.65cqw .9cqw}
+.mission-gameplay .wk{gap:.7cqw}.mission-gameplay .wk .dots{gap:.3cqw}
+.mission-gameplay .chip3{cursor:pointer;min-height:36px;font-size:max(13px,1.3cqw)}
+.mission-gameplay .radio-off .d{background:#e6b779}
+.mission-gameplay .resources{width:34cqw;margin:0;gap:.6cqw 1.1cqw;padding:.9cqw 1.1cqw}
+.mission-gameplay .resource-cell{min-height:4.1cqw}
+.mission-gameplay .resource-title{font-size:max(12px,1.3cqw)}
+.mission-gameplay .resource-status,.mission-gameplay .resource-change,.mission-gameplay .meter-help{font-size:max(11px,.98cqw)}
+.mission-gameplay .resource-value{font-size:max(14px,1.4cqw)}
+.mission-brief{position:absolute;top:8.4cqw;left:2.6cqw;width:48cqw;margin:0;color:#fbf9ff;text-shadow:0 1px 6px #070a18;pointer-events:auto}
+.brief-speaker{font:500 max(12px,1.15cqw) Lexend;color:#d4c8f7}
+.mission-brief h2{font:600 2.8cqw/1.15 Fredoka;margin:.5cqw 0}
+.mission-brief p{font:500 max(14px,1.65cqw)/1.3 Fredoka;max-width:37cqw;margin:.5cqw 0 .8cqw}
+.condition-row{display:flex;flex-wrap:wrap;gap:.4cqw}
+.condition-row .jc{font-size:max(11px,.95cqw);background:rgba(12,18,42,.9);color:#f2edff;border:1px solid #70658c;text-shadow:none}
+.source-tag{border:0;border-bottom:1px dotted #b3d5e5;background:rgba(12,18,42,.9);border-radius:.4cqw;color:#d7efff;padding:.4cqw .7cqw;margin-top:.6cqw;font:500 max(11px,1cqw) Fredoka;min-height:28px;max-width:100%}
+.fault-note{color:#ffd48c!important}
+.mission-gameplay .job{min-height:6cqw;padding:.8cqw 4cqw .8cqw 1cqw}
+.mission-gameplay .job .jn{font-size:max(14px,1.65cqw)}
+.mission-gameplay .job .jc,.mission-gameplay .preview-costs .jc{font-size:max(11px,1.05cqw)}
+.mission-gameplay .job .hint{font-size:max(12px,1.2cqw)}
+.mission-gameplay .place-tabs{margin-bottom:.8cqw}
+.mission-gameplay .place-tabs button{font-size:max(13px,1.35cqw);min-height:36px}
+.mission-gameplay .planner-footer .next{font-size:max(16px,1.85cqw);min-height:44px;padding:.85cqw 1.5cqw}
+.mission-gameplay .planner-footer .crew3 .blocks{gap:.3cqw;grid-template-columns:repeat(8,1.9cqw)}
+.mission-gameplay .planner-footer .crew3 .blocks i{height:1.7cqw}
+.mission-gameplay .planner-footer .crew3{font-size:max(13px,1.3cqw)}
+.mission-gameplay .curio-entry{padding:.45cqw .7cqw;min-height:44px}
+.mission-gameplay .curio-entry .face{width:3.2cqw;height:3.2cqw;min-width:30px;min-height:30px}
+.mission-gameplay .curio-entry b{font-size:max(14px,1.5cqw)}
+.mission-gameplay .curio-entry small{font-size:max(11px,1.1cqw)}
+.text-button,.plan-link{background:transparent;color:#523884;border:0;text-decoration:underline;text-underline-offset:3px;padding:.7cqw 0;font:500 max(14px,1.4cqw) Fredoka;min-height:36px}
+.plan-link{width:100%;text-align:left;margin-top:.4cqw}
+.preview-costs{display:flex;gap:.5cqw;flex-wrap:wrap;margin-bottom:1.4cqw}
+.tradeoff{border-left:3px solid #5fd0c8;padding-left:1cqw}
+.tradeoff b{font:600 max(14px,1.5cqw) Fredoka;color:#3a1f6e}
+.chance,.plan-note{font-size:max(12px,1.2cqw)!important;color:#655b82!important;line-height:1.4}
+.mission-gameplay .dock-body .next{border:0;box-shadow:0 .25cqw 0 #b9731d;font-size:max(16px,1.7cqw);padding:.85cqw 1.5cqw;min-height:44px}
+.plan-list{list-style:decimal;padding-left:2.1cqw;margin:0 0 1cqw;font:500 max(14px,1.5cqw) Fredoka}
+.plan-list li{padding:.5cqw 0;border-bottom:1px solid #e2dcff;display:list-item;position:relative;padding-right:3cqw}
+.plan-list li span{display:block}.plan-list small{display:block;color:#6a6390;font-size:max(12px,1.15cqw);margin-top:.2cqw}
+.plan-list li button{position:absolute;right:0;top:0;width:max(32px,2.8cqw);height:max(32px,2.8cqw);border:0;border-radius:50%;background:#ece8ff;color:#3a1f6e;font-size:24px}
+.mission-gameplay .mission{margin:0 0 .5cqw}
+.mission-gameplay .mission>button{font-size:max(15px,1.7cqw);padding:.6cqw .9cqw;min-height:36px}
+.main-goal{margin:0!important;padding:0 .9cqw .65cqw;font-size:max(12px,1.15cqw)!important;color:#655b82}
+.mission-gameplay .mission-detail p{font-size:max(13px,1.25cqw)}
+.mission-purpose{font-size:max(13px,1.3cqw)!important}
+.menu-option{display:block;width:100%;border:1px solid #e2dcff;background:#f0edff;color:#3a1f6e;border-radius:.8cqw;text-align:left;padding:.8cqw 1cqw;margin:.7cqw 0;font:500 max(14px,1.5cqw) Fredoka;min-height:44px}
+.calendar{list-style:none;padding:0;font:500 max(13px,1.3cqw) Fredoka}
+.calendar li{padding:.7cqw 0;border-bottom:1px solid #ded6f3;display:flex;gap:1cqw}.calendar b{white-space:nowrap}.calendar .current{color:#553495;background:#f0edff}
+.game-dialog{display:flex;flex-direction:column;top:50%;width:62cqw;max-height:49cqw;text-align:left;padding:2cqw;margin:0}
+.game-dialog h2{font:600 max(22px,2.6cqw)/1.1 Fredoka;margin:0 0 1cqw;color:#3a1f6e}
+.game-dialog .dialog-body{overflow:auto;min-height:0;font:500 max(14px,1.6cqw)/1.4 Fredoka;padding:.2cqw .5cqw .7cqw}
+.game-dialog p{font-size:max(14px,1.6cqw)}
+.game-dialog .dialog-actions{display:flex;flex-wrap:wrap;justify-content:flex-end;gap:1cqw;padding-top:1.2cqw;border-top:1px solid #e2dcff}
+.game-dialog .next{min-height:44px;padding:.9cqw 1.5cqw}
+.alert-option{display:block;width:100%;border:1px solid #c3b5df;border-radius:1cqw;padding:1cqw 1.3cqw;text-align:left;background:#f0edff;color:#3a1f6e;font:500 max(14px,1.5cqw) Fredoka;min-height:44px}
+.alert-option:hover{background:#fff4df;border-color:#ffb547}.alert-option b{font:600 max(17px,1.8cqw) Fredoka}.alert-option span{display:block;color:#655b82;font-size:max(13px,1.3cqw);margin-top:.4cqw}
+.recap-meters{display:grid;grid-template-columns:repeat(5,1fr);gap:.6cqw;margin:.8cqw 0}
+.recap-meters div{padding:.7cqw;border-radius:.7cqw;background:#f0edff}.recap-meters span{display:block;color:#655b82;font-size:max(12px,1.2cqw)}
+.recap-meters b{font:600 max(15px,1.7cqw) Fredoka;color:#3a1f6e;white-space:nowrap}
+.week-log summary{cursor:pointer;color:#523884;text-decoration:underline;padding:.6cqw 0;min-height:36px}.week-log ul{font:500 max(13px,1.35cqw)/1.4 Fredoka;padding-left:1.8cqw}
+.week-log li{margin-bottom:.7cqw}
+.end-goals{display:grid;grid-template-columns:1fr 1fr;gap:.3cqw}
+.mission-gameplay :focus-visible{outline:3px solid #915b18;outline-offset:2px}
+.mission-gameplay .pin3{z-index:1}.mission-gameplay .pin3 .o{min-width:36px;min-height:36px}
+.player:has(.game-dialog) canvas{pointer-events:none}
+@media(max-width:760px){
+  .mission-gameplay .jobs{width:43cqw;right:1.5cqw;top:8cqw;bottom:1.5cqw;padding:1cqw}
+  .mission-gameplay .mission-brief{width:48cqw;left:1.5cqw;top:8cqw}
+  .mission-gameplay .mission-brief p{font-size:13px;max-width:43cqw}
+  .mission-gameplay .condition-row{display:none}
+  .mission-gameplay .wk .dots{display:none}
+  .mission-gameplay .top3{left:1.5cqw;right:1.5cqw;gap:.4cqw}
+  .mission-gameplay .view-tabs button{padding:.5cqw .7cqw;font-size:13px;min-height:30px}
+  .mission-gameplay .resources{width:43cqw;left:1.5cqw;bottom:1.5cqw}
+  .mission-gameplay .resource-cell{min-height:5.5cqw}
+  .mission-gameplay .resource-status{font-size:10px}
+  .mission-gameplay .curio-entry small{display:none}
+  .mission-gameplay .curio-entry{min-height:36px}
+  .mission-gameplay .planner-footer{gap:.4cqw;padding-top:.5cqw}
+  .mission-gameplay .planner-footer .next{min-height:36px;padding:.5cqw}
+  .mission-gameplay .missions{display:grid;grid-template-columns:1fr 1fr;gap:.7cqw}
+  .mission-gameplay .mission{min-width:0;margin:0}
+  .mission-gameplay .mission>button{min-height:32px;padding:.5cqw .8cqw;gap:.3cqw;font-size:14px}
+  .mission-gameplay .mission>button .stars{font-size:12px}
+  .mission-gameplay .main-goal{font-size:12px!important;line-height:1.3;min-height:34px}
+  .mission-gameplay .mission.open{grid-column:1/-1}
+  .game-dialog{width:86cqw;max-height:51cqw;padding:1.6cqw}
+  .game-dialog .dialog-actions{padding-top:.7cqw;gap:.6cqw}
+  .recap-meters{grid-template-columns:repeat(5,1fr)}
+}
+@media(max-width:540px){body{overflow-x:auto}main{min-width:700px}.flowbar{max-width:700px}}
+@media(prefers-reduced-motion:reduce){.mission-gameplay *{animation:none!important;transition:none!important}}

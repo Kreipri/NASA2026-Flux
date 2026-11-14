@@ -6,7 +6,7 @@
     "size": 4,
     "blocksPerAstronaut": 2
   },
-  "start": { "power": 80, "o2": 90, "food": 100, "dose": 0, "stamina": 80 },
+  "start": { "power": 80, "o2": 90, "dose": 0, "stamina": 80 },
   "perDay": {
     "solar": 60,
     "shortEclipseSolarFactor": 0.5,
@@ -15,7 +15,6 @@
     "upkeepPower": 20,
     "powerSaveUpkeep": 10,
     "breathO2": 8,
-    "food": 6,
     "emergencyO2": 8,
     "scrubberFaultO2": 5,
     "baseDose": 2,

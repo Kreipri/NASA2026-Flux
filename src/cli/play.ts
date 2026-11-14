@@ -5,16 +5,16 @@
 import { mkdirSync, readFileSync, writeFileSync, existsSync, appendFileSync } from 'node:fs';
 import {
   newGame, step, menu, env, stormActive, blocksToday, blocksFor, totalDays, turnUnit, reportCard, checklist, verdict, totalStars, scenarioOf, daysUntilLink, forecastLines,
-  iceChance, powerCost, actionDef, validate, mealEffects, type State, type ActionId, type ScenarioId, type TripChoice, type AlertChoice, type Goal, type ActionDef, type MealMode,
+  iceChance, powerCost, actionDef, validate, type State, type ActionId, type ScenarioId, type TripChoice, type AlertChoice, type Goal, type ActionDef,
 } from '../engine/engine.ts';
 import moon from '../config/moon.json' with { type: 'json' };
 import { missionControl, emergencyHelp } from '../content/lines.ts';
 
 const FILE = new URL('../../.run/state.json', import.meta.url);
 const load = (): State => {
-  const s = JSON.parse(readFileSync(FILE, 'utf8')) as State;
-  // Older saved runs predate the food meter.
-  if (typeof s.food !== 'number') s.food = 100;
+  const loaded = JSON.parse(readFileSync(FILE, 'utf8'));
+  delete loaded.food;
+  const s = loaded as State;
   if (!s.keyMoments) s.keyMoments = [];
   if (typeof s.evidence.longShadowLogged !== 'boolean') s.evidence.longShadowLogged = false;
   return s;
@@ -168,14 +168,13 @@ function projectPlan(s: State, ids: ActionId[]): State {
   return p;
 }
 
-function screen(s: State, planned: ActionId[] = [], meal: MealMode = 'normal'): string {
+function screen(s: State, planned: ActionId[] = []): string {
   const e = env(s);
   const projected = projectPlan(s, planned);
   const L: string[] = [line];
   const plannedUsed = planned.reduce((n, id) => n + actionDef(id).blocks, 0);
   const displayPower = Math.max(0, projected.power);
   const displayO2 = Math.max(0, projected.o2);
-  const displayFood = Math.max(0, projected.food);
   const displayDose = Math.min(100, projected.dose);
   const displayStamina = Math.max(0, projected.stamina);
   const unit = turnUnit(s).toUpperCase();
@@ -184,12 +183,9 @@ function screen(s: State, planned: ActionId[] = [], meal: MealMode = 'normal'): 
   const flag = (bad: boolean, w: string) => (bad ? ' ' + w : '');
   L.push(row(`BASE  POWER   ${bar(displayPower)} ${String(displayPower).padStart(3)}%${flag(displayPower <= 25, 'LOW!')}`.padEnd(40) + `OXYGEN ${bar(displayO2)} ${String(displayO2).padStart(3)}%${flag(displayO2 <= 25, 'LOW!')}`));
   L.push(row(`CREW  STAMINA ${bar(displayStamina)} ${String(displayStamina).padStart(3)}%${flag(displayStamina < 50, 'TIRED')}`.padEnd(40) + `DOSE   ${bar(displayDose)} ${String(displayDose).padStart(3)}% of plan${flag(displayDose >= 75, 'HIGH!')}`));
-  L.push(row(`FOOD  SUPPLY  ${bar(displayFood)} ${String(displayFood).padStart(3)}%${flag(displayFood <= 25, 'LOW!')}   (used by the crew each day)`));
   const bt = blocksToday(s);
   L.push(row(`CREW TIME LEFT: ${'#'.repeat(Math.max(0, bt - plannedUsed))}${'.'.repeat(8 - Math.max(0, bt - plannedUsed))} ${Math.max(0, bt - plannedUsed)} / ${bt}   (type end to resolve the day)`));
   if (planned.length) L.push(row(`PLANNED TASKS: ${planned.map((id) => actionDef(id).label).join(' + ')}`));
-  L.push(row(`MEALS: ${mealEffects(meal).label} (food -${mealEffects(meal).food}, stamina ${mealEffects(meal).stamina >= 0 ? '+' : ''}${mealEffects(meal).stamina})`));
-  L.push(row('  Change with: meal light | meal normal | meal full'));
   if (planned.length) L.push(row('RESOURCE VIEW: PROJECTED AFTER PLANNED TASKS; daily effects apply after END'));
   const faults = [s.faults.panel && 'solar panel jammed', s.faults.scrubber && 'air scrubber clogged'].filter(Boolean).join(', ') || 'none';
   L.push(row(`Dust ${projected.dust}/3   Shelter level ${projected.shelterLevel}/3   Ice samples ${projected.iceSamples}   Faults: ${faults}`));
@@ -236,7 +232,6 @@ function card(s: State): string {
   const v = verdict(s); const w = scenarioOf(s).win;
   const head = s.ended?.reason === 'oxygen' ? 'MISSION FAILED - LEVEL 1: LIFE SUPPORT. The crew came home safely because oxygen ran out.'
     : s.ended?.reason === 'dose' ? 'MISSION FAILED - LEVEL 2: RADIATION PLAN. The crew came home safely because the dose plan ran out.'
-    : s.ended?.reason === 'food' ? 'MISSION FAILED - LEVEL 3: FOOD SUPPLY. The crew came home safely because food ran out.'
     : s.ended?.reason === 'complete' && v.tier === 'gold' ? '*** MISSION COMPLETE - SITE APPROVED - GOLD! *** Every question answered with full evidence.'
     : s.ended?.reason === 'complete' && v.tier === 'approved' ? '*** MISSION COMPLETE - SITE APPROVED! *** NASA has strong evidence to build here.'
     : s.ended?.reason === 'complete' && v.tier === 'promising' ? 'MISSION COMPLETE - SITE PROMISING. The crew is healthy, but more evidence is needed.'
@@ -246,7 +241,7 @@ function card(s: State): string {
     : v.tier === 'promising' ? `SITE PROMISING! All 4 main goals done. ${w.minStars - v.stars} more bonus star(s) for APPROVED.`
     : `SITE NOT PROVEN YET: no main evidence on ${v.missingMain.join(', ')}.`;
   const ev = s.evidence;
-  const outcomeTier = s.ended?.reason === 'oxygen' ? 'LEVEL 1 FAILURE - OXYGEN' : s.ended?.reason === 'dose' ? 'LEVEL 2 FAILURE - RADIATION' : s.ended?.reason === 'food' ? 'LEVEL 3 FAILURE - FOOD' : s.ended?.reason === 'complete' && v.tier === 'gold' ? 'LEVEL 4 SUCCESS - GOLD' : s.ended?.reason === 'complete' && v.tier === 'approved' ? 'LEVEL 3 SUCCESS - SITE APPROVED' : s.ended?.reason === 'complete' && v.tier === 'promising' ? 'LEVEL 2 SUCCESS - SITE PROMISING' : 'LEVEL 1 - SITE NOT PROVEN';
+  const outcomeTier = s.ended?.reason === 'oxygen' ? 'LEVEL 1 FAILURE - OXYGEN' : s.ended?.reason === 'dose' ? 'LEVEL 2 FAILURE - RADIATION' : s.ended?.reason === 'complete' && v.tier === 'gold' ? 'LEVEL 4 SUCCESS - GOLD' : s.ended?.reason === 'complete' && v.tier === 'approved' ? 'LEVEL 3 SUCCESS - SITE APPROVED' : s.ended?.reason === 'complete' && v.tier === 'promising' ? 'LEVEL 2 SUCCESS - SITE PROMISING' : 'LEVEL 1 - SITE NOT PROVEN';
   const tips: string[] = [];
   if (ev.powerHitZero) tips.push('Fill the batteries and clean dust BEFORE the long shadow. Power-saving mode stretches them.');
   if (ev.outsideStormBlocks) tips.push('Keep astronauts inside when particles arrive.');
@@ -261,7 +256,6 @@ function card(s: State): string {
     row(`  LIGHT      ${stars(rc.LIGHT)}  sun logs ${ev.sunLogs}, shadow logged ${ev.eclipseLogged ? 'yes' : 'no'}, power ${ev.powerHitZero ? 'ran out' : 'never ran out'}`),
     row(`  RADIATION  ${stars(rc.RADIATION)}  measurements ${ev.measures} (${ev.stormMeasures} during a storm)`),
     row(`  SHELTER    ${stars(rc.SHELTER)}  shelter level ${s.shelterLevel}/3, final dose ${s.dose}% of plan`),
-    row(`  FOOD       ${s.food}% supply remaining`),
     row(`  ICE        ${stars(rc.ICE)}  drone maps ${ev.scouts}, rover samples ${ev.trips}, ice found ${ev.iceFound}, dry spots ${ev.mappedEmpty}`),
     row(`  MAIN ${v.mainDone}/4   BONUS ${v.bonus}/8   TOTAL ${v.stars}/12   (promising: 4 main, approved: ${w.minStars}, gold: ${w.gold})`),
     ...(s.keyMoments.length ? [row('KEY MOMENTS:'), ...s.keyMoments.slice(-4).flatMap((m) => wrap('- ' + m).map((w) => row('  ' + w)))] : []),
@@ -325,7 +319,7 @@ function handle(cmd: string | undefined, args: string[]) {
 }
 
 const HELP = `Type a job number to preview it, then type yes to add it to this week's plan. You can select more jobs before the week ends.
-Type "meal light|normal|full" to choose food and stamina trade-offs, "end" to resolve the turn, "fast" to toggle confirmations for testing, "shelter/save/continue" when an alert is waiting, "back"/"finish" for a rover choice, "note <text>", "show", "new weeks7" (7 weeks), "new solarMax", "new week" (legacy 7-day), "help", or "quit".`;
+Type "end" to resolve the turn, "fast" to toggle confirmations for testing, "shelter/save/continue" when an alert is waiting, "back"/"finish" for a rover choice, "note <text>", "show", "new weeks7" (7 weeks), "new solarMax", "new week" (legacy 7-day), "help", or "quit".`;
 
 async function interactive() {
   const { createInterface } = await import('node:readline');
@@ -333,16 +327,14 @@ async function interactive() {
   let proposed: ActionId[] | null = null;
   let planned: ActionId[] = [];
   let confirmTasks = true;
-  let meal: MealMode = 'normal';
   const resolvePlannedDay = () => {
     if (!planned.length) { print('No jobs selected. Choose a task first.'); return; }
     const s = load();
-    const r = step(s, planned, undefined, meal);
+    const r = step(s, planned);
     const bad = r.log[0]?.startsWith('!');
     if (!bad) save(r.state);
     show(bad ? s : r.state, r.log);
     if (!bad) planned = [];
-    if (!bad && !r.state.pending) meal = 'normal';
   };
   const commitTasks = (ids: ActionId[]) => {
     const s = load();
@@ -353,7 +345,7 @@ async function interactive() {
     const used = planned.reduce((n, id) => n + actionDef(id).blocks, 0);
     print(`Task confirmed. Today's plan uses ${used}/${blocksToday(s)} crew time.`);
     for (const id of ids) for (const message of taskResult(s, id)) print(`  ${message}`);
-    print(screen(s, planned, meal));
+    print(screen(s, planned));
     if (used >= blocksToday(s)) print('All crew time is assigned. Type end to finish the day.');
     else print('Choose another task, or type end when you are ready to finish the day.');
   };
@@ -367,13 +359,8 @@ async function interactive() {
       const [w, ...rest] = input.split(/[\s,]+/);
       if (w === 'quit' || w === 'exit' || w === 'q') break;
       if (w === 'help') print(HELP);
-      else if (w === 'meal') {
-        const selected = rest[0] as MealMode;
-        if (!['light', 'normal', 'full'].includes(selected)) print('Choose a meal: meal light, meal normal, or meal full.');
-        else { meal = selected; print(`Meal plan set to ${mealEffects(meal).label}: food -${mealEffects(meal).food}, stamina ${mealEffects(meal).stamina >= 0 ? '+' : ''}${mealEffects(meal).stamina}.`); print(screen(load(), planned, meal)); }
-      }
       else if (w === 'fast') { confirmTasks = !confirmTasks; print(`Fast testing mode ${confirmTasks ? 'OFF' : 'ON'}: ${confirmTasks ? 'type yes after previews' : 'job numbers commit immediately'}.`); }
-      else if (w === 'new') { proposed = null; planned = []; meal = 'normal'; handle('new', rest); }
+      else if (w === 'new') { proposed = null; planned = []; handle('new', rest); }
       else if ((w === 'yes' || w === 'y') && proposed) {
         commitTasks(proposed);
         proposed = null;
@@ -384,17 +371,15 @@ async function interactive() {
         const current = load();
         if (!current.pending || current.pending.type !== 'alertChoice') print('No weekly alert is waiting for that choice.');
         else {
-          const r = step({ ...current, pending: null }, current.pending.actions, w as AlertChoice, meal);
+          const r = step({ ...current, pending: null }, current.pending.actions, w as AlertChoice);
           save(r.state); show(r.state, r.log);
-          if (!r.state.pending) meal = 'normal';
         }
       }
       else if (w === 'back' || w === 'finish') {
         const current = load();
         if (current.pending) {
-          const r = step({ ...current, pending: null }, current.pending.actions, w as TripChoice, meal);
+          const r = step({ ...current, pending: null }, current.pending.actions, w as TripChoice);
           save(r.state); show(r.state, r.log);
-          if (!r.state.pending) meal = 'normal';
         } else handle('choose', [w]);
       }
       else if (/^\d+$/.test(w)) {

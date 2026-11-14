@@ -1,5 +1,17 @@
 # Handoff
 
+## Playable browser mission (2026-11-15)
+- `npm install` then `npm run dev`; open http://localhost:5173, or `/?s=week1` for direct gameplay. Story/tour lead into the working seven-week mission. Normal/Solar max, job costs and validation, alerts, current game meters, Earth radio, goals, recaps, ending and browser saves use the shared engine. The resource set follows the food-removal decision below.
+- Original screen/scene sources are preserved. `scripts/build-web.ts` adapts the finished generated flow in memory and writes `dist/`; `src/web/` owns the controller, model adapter, styles and scene bridge. Three.js is pinned and served locally. Read `ideas/browser-gameplay-integration.md` and `README.md` for setup and boundaries.
+- Verification: 8 integration tests; normal-mode sim completes 3,000 games; browser WebGL, seven-week flow, Earth blackouts, final report and reload persistence checked. Imported engine balance/data and costly-alert gaps remain. No child playtest or deployment.
+- Publication branch: `feat/browser-gameplay` (Bea requested committing/pushing the current work). Includes the browser integration, food-removal changes and queued learning-task notes. Finished screen work from `origin/main` at `a1bafa7` was merged separately (`082b6a2`), retaining both entries in the handoff conflict.
+
+## Food removed and submission copy drafted (2026-11-15)
+- Bea retained **Space Base Commander** as working name and asked to remove food. Engine/configs, CLI, browser controls, recap/help/CSS and tests now omit food and meals. Core systems are Power, Air and Radiation; crew energy limits work. Active browser saves migrate by discarding old supply fields; previously food-ended browser runs require a new game.
+- Verification: `npm run test:web` (7 passing), `npm run build`, `npm run sim` (3,000 seeded games) and `node --check src/cli/play.ts`. Build succeeds; balance still needs work. No visual browser check made in this task. Other ongoing browser work, package edits and untracked files were preserved.
+- Form draft, seven-slide text storyboard and judging audit are in `/Users/bg/Coding/NASA2026-Flux/ideas/`: `project-submission-draft-v1.md`, `project-demo-outline-v1.md`, `judging-gap-audit-v1.md`. Nothing uploaded or submitted. Team/member names and public URLs remain placeholders.
+- **Next:** finish measured storm profiles/data mapping and ensure alert shelter/clean choices have real costs; test the public browser flow; child playtest; complete asset credits/SI indicators; produce and host the demo. Bea has now queued the learning check first, causal debrief extension and parent/teacher sheet in `MILESTONES.md` and `/Users/bg/Coding/NASA2026-Flux/TODO.md`; none is implemented.
+
 ## Space base vector draft (2026-11-15)
 - Latest: `ideas/base-designs/vector-v3/space-base.svg`; comparison: `review.html`; notes/rebuild: `README.md`. Bea suggested **no outlines** to match the sprites. v3 removes added dark contours, outlined rods and dark tunnel edging, retaining crew-v5 metal/glass gradients, pale inner rims and quiet seams. This supersedes the v2 outlined recommendation for the 2D illustration. Both prior passes are preserved.
 - Comparison includes unchanged Curio/astronaut sprites, a material close-up and an isolated copy of the actual title screen (`in-screen.html`). Also includes a version without the astronaut and a 2200px transparent PNG export. All artwork is editable vector shapes/gradients/clip paths; the field rover remains separate from Curio.
@@ -15,9 +27,9 @@
 **Read order for any new agent:** `CONTEXT.md` -> `DECISIONS.md` -> this file -> `ideas/story-and-core-loop-v1.md` -> `CLAUDE.md` / `AGENTS.md` for working rules.
 
 ## Current Phase
-This checkout is on `gameplay-updates`. Its existing commit `6948ea1` imports six gameplay files from `Added-Gameplay` (`91e68e3`); latest fetched `origin/main` is `238d80a` and has been merged without conflicts. See `ideas/gameplay-updates-integration.md`. Commit only when Bea asks; no agent co-author trailers (D-018 attribution rule).
+This checkout is on `feat/browser-gameplay`, created from `gameplay-updates` for Bea's requested publication. It includes the selected gameplay, finished screen work through `a1bafa7`, browser integration and food-removal changes. Setup and validation are recorded above. Commit only when Bea asks; no agent co-author trailers (D-018 attribution rule).
 
-Prototyping. `npm run play` now defaults to the seven-week `weeks7` terminal mission; `solarMax` and legacy scenarios remain available. Rules engine + bot sim tune the numbers. Browser screens under `ideas/ui-mockups/` remain design prototypes, separate from the terminal engine.
+Prototyping. `npm run dev` starts the playable browser mission around the existing screen/scene designs. `npm run play` remains the terminal interface to the same engine; `weeks7` is the default, with `solarMax` and legacy scenarios available. Original screens under `ideas/ui-mockups/` remain preserved design sources.
 
 ## What's Decided (details in `DECISIONS.md`)
 - **Game:** kid-friendly (ages 7-12) survival resource-management game, browser-based, outpost management only (no launch/landing gameplay).
@@ -109,7 +121,7 @@ Prototyping. `npm run play` now defaults to the seven-week `weeks7` terminal mis
 - The user wants **light usage**: concise text, no subagents or big workflows unless asked, no Figma/HTML builds in ideation (see `CLAUDE.md`).
 
 ## Next Steps (suggested order)
-1. **Review/playtest the imported 7-week mission** against `ideas/gameplay-changes-7-weeks.md`. Integration does not certify full spec coverage; the simulation completes but its balance differs from the legacy 7-day baseline. Coordinate the terminal engine with the browser mockups in a separate implementation task.
+1. **Review/playtest the integrated browser mission** against `ideas/gameplay-changes-7-weeks.md`. Engine-to-browser integration works; complete storm data, costly alerts and rules/balance review remain. See `ideas/browser-gameplay-integration.md`.
 1b. **Storyline (Bea + agent):** finalize in `ideas/storyline-v2.md`; the engine pulls its copy from there.
 2. **Review the first character sheet:** `ideas/character-designs/crew-sheet-v1.png` against `ideas/character-concepts-v3.md`. Curio is the helper avatar, not field equipment; human commander is an example appearance. Settle species/names/proportions and optional tributes before production assets. User chose vector clip-art style; exact designs await feedback.
 3. **Web UI** (D-016): Vite + React skin over the same engine. Ask Bea first.
@@ -144,6 +156,10 @@ src/data/      Trimmed May 2024 storm data (built by scripts/build-storm-data.ts
 Add `docs/` for the judges' write-up.
 
 ## Session Log
+- 2026-11-15 (Browser branch publication): Packaged the current browser implementation, shared-engine food removal and queued learning-task notes on new branch `feat/browser-gameplay` at Bea's request. All 8 integration tests, browser build and whitespace checks pass. Existing `gameplay-updates` branch is preserved; commit uses the configured user identity without attribution trailers.
+- 2026-11-15 (Browser engine integration): Connected the finished story/3D flow and side dock to the shared engine through `src/web/`, with saves, previews, alerts, recaps, goals and replay. Added build/dev scripts, local Three.js, README and 8 integration tests. Browser completed seven weeks and reloaded the final report. Preserved design sources and concurrent food-removal work; no implementation commit/push or deployment.
+- 2026-11-15 (Learning backlog, Codex): Bea requested adding the three learning additions to the to-do list. Updated milestones/decisions/handoff and the main checkout's `TODO.md` and audit. Planning only; no implementation.
+- 2026-11-15 (Submission draft and food removal, Codex): Retained working name Space Base Commander and removed food/meal mechanics at Bea's request; seven gameplay tests, build, CLI syntax and bot sim pass. Submission text/demo storyboard/rubric audit saved in the main checkout's `ideas/`. No publication, commit or push; see the checkpoint at the top for remaining gaps.
 - 2026-11-15 (Gameplay branch integration): Confirmed the six selected gameplay files were already committed/pushed on `gameplay-updates` and match `Added-Gameplay`. Fetched and merged `origin/main` at `238d80a` without conflicts; `npm run sim` completed across 3,000 seeded games. Preserved branch history and existing design assets; no gameplay edits. See `ideas/gameplay-updates-integration.md`.
 - 2026-11-15 (Space base without outlines, Codex): Bea suggested removing outlines to match the sprites. Saved `ideas/base-designs/vector-v3/`: removed dark silhouette/rod/tunnel contours, retained pale inside rims and sprite shading. Comparison against v2, actual sprites and the title screen; SVG/PNG exports checked. Earlier drafts and active assets preserved.
 - 2026-11-15 (Gameplay side dock v2, Codex): Recorded Bea's side-panel choice. Created `ideas/ui-mockups/gameplay-side-dock-v2/` with the latest close 3D scene, compact labelled/tappable meters, in-dock Curio topics and contextual explanations, simpler job/time copy, and Earth-radio hover/focus/tap help. Preserved v1 and concurrent source work. Exact v2 treatment remains proposed.

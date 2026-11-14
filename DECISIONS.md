@@ -6,6 +6,29 @@ Status: `decided` | `proposed` | `open` | `superseded`
 
 ---
 
+## Decided: Publish the current browser gameplay on a new branch
+**Status:** decided (Bea, 2026-11-15: "push to a new branch").
+- Use `feat/browser-gameplay`, branched from the current `gameplay-updates` checkout. Include the integrated browser game, current food-free engine and supporting documentation/backlog notes. Preserve the existing branches and use the user's configured Git identity.
+
+## Decided: Connect the finished browser screen to the seven-week engine
+**Status:** decided (Bea, 2026-11-15; requested the new gameplay on the current screen, then confirmed the screen agent had finished).
+- Use the shared engine for actual week results, alerts, progress and endings. Preserve the finished opening story, 3D base and side-dock design sources. The adapter changes their generated website copy only.
+- Browser controller/save code lives in `src/web/`; `npm run dev` starts the game and `npm run build` produces `dist/`. Pin/copy the existing Three.js 0.160.0 locally. Retain the current food-free resource set.
+- This is engine integration, not balance tuning or new science claims. Verification and remaining imported-rule/data gaps: `ideas/browser-gameplay-integration.md`.
+
+## Decided: Queue learning check, causal debrief and parent/teacher guide
+**Status:** decided (Bea, 2026-11-15: “put them in the to do”).
+- Added the three submission-audit proposals to `MILESTONES.md`, with the learning check first. Detailed task list: `/Users/bg/Coding/NASA2026-Flux/TODO.md`.
+- Backlog approval only; none is implemented. This supersedes the earlier description of these items as unapproved proposals.
+
+## Decided: Remove food for now; retain Space Base Commander as working name
+**Status:** decided (Bea, 2026-11-15: “yes. also sure lets remove the food resource for now”).
+- Keep Power, Air/Oxygen and Radiation as the three core systems, with crew energy limiting work. Remove food stock, meal choices, meal-based stamina effects and the food failure state from engine/configs, terminal and browser controls. Food production is not added to the submission scope.
+- Updated `src/engine/engine.ts`, `src/config/{moon,scenarios}.json`, `src/cli/play.ts`, `src/web/{model.js,game.js,game.css}` and existing browser-model tests. Active older browser saves discard retired controls; old runs already ended by food are rejected rather than silently changing their outcome.
+- Verified seven gameplay tests, browser build, CLI syntax and the default bot simulation. No balance retuning or browser visual verification performed. Existing concurrent browser-build work remains in place.
+- Submission text, demo storyboard and rubric audit are saved in the user-requested checkout at `/Users/bg/Coding/NASA2026-Flux/ideas/` (`project-submission-draft-v1.md`, `project-demo-outline-v1.md`, `judging-gap-audit-v1.md`). Working title retained; team/member placeholders remain.
+- Learning check, causal debrief extension and parent/teacher guide are proposals only. Complete the existing data pipeline and costly-choice rules before claiming scientific traceability or full validation.
+
 ## Decided: Integrate selected gameplay files on gameplay-updates
 **Status:** decided (Bea, 2026-11-15; requested latest main plus selected Added-Gameplay work).
 - Keep the six gameplay files already imported by `6948ea1`; they match `Added-Gameplay` at `91e68e3`. Merge latest `origin/main` (`238d80a`) into the existing branch, preserving its published history. No duplicate cherry-pick is needed.
