@@ -4,7 +4,7 @@
 //   node --no-warnings src/cli/play.ts act 1 4 7 | choose back|finish | show
 import { mkdirSync, readFileSync, writeFileSync, existsSync, appendFileSync } from 'node:fs';
 import {
-  newGame, step, menu, env, stormActive, blocksToday, blocksFor, totalDays, reportCard, checklist, verdict, totalStars, scenarioOf, daysUntilLink,
+  newGame, step, menu, env, stormActive, blocksToday, blocksFor, totalDays, reportCard, checklist, verdict, totalStars, scenarioOf, daysUntilLink, forecastLines,
   iceChance, powerCost, actionDef, validate, type State, type ActionId, type ScenarioId, type TripChoice, type Goal, type ActionDef,
 } from '../engine/engine.ts';
 import moon from '../config/moon.json' with { type: 'json' };
@@ -96,27 +96,10 @@ function taskResult(s: State, id: ActionId): string[] {
     case 'repair': return ['TASK RESULT: repair crew assigned to the base fault.'];
     case 'powersave': return ['TASK RESULT: the base will use less power today, but the crew will get colder.'];
     case 'shelter': return ['TASK RESULT: the crew will spend the day in the strongest shelter during the storm peak.'];
-    case 'rest': return ['TASK RESULT: rest time assigned. The crew will recover stamina when the day resolves.'];
-    case 'call': return ['TASK RESULT: Mission Control call assigned. The latest forecast will arrive when the day resolves.'];
+    case 'rest': return ['TASK RESULT: rest time assigned. The crew will recover stamina when the day resolves.', 'Rest does not refill today\'s crew time or remove accumulated radiation dose.'];
+    case 'call': return ['TASK RESULT: Mission Control sent the latest forecast.', ...forecastLines(s).slice(1)];
     default: return ['TASK RESULT: task added to today’s plan.'];
   }
-}
-
-function plannedStatus(s: State, ids: ActionId[]): string[] {
-  const used = ids.reduce((n, id) => n + actionDef(id).blocks, 0);
-  const power = ids.reduce((n, id) => n + powerCost(s, id), s.power);
-  const o2 = ids.reduce((n, id) => n + actionDef(id).o2, s.o2);
-  const dose = ids.reduce((n, id) => n + actionDef(id).dose, s.dose);
-  const stamina = ids.reduce((n, id) => n + (actionDef(id).outside ? -actionDef(id).blocks * 6 : -actionDef(id).blocks * 2) + (actionDef(id).stamina ?? 0), s.stamina);
-  const v = verdict(s);
-  const w = scenarioOf(s).win;
-  return [
-    'STATUS AFTER THIS TASK:',
-    `  MISSION: ${v.stars}/12 stars · ${v.mainDone}/4 main goals · ${v.tier === 'not-proven' ? 'SITE NOT PROVEN YET' : v.tier.toUpperCase()}`,
-    `  RESOURCES PROJECTED: POWER ${Math.max(0, power)} · OXYGEN ${Math.max(0, o2)} · DOSE ${Math.min(100, dose)} · STAMINA ${Math.max(0, stamina)}`,
-    `  CREW TIME LEFT: ${Math.max(0, blocksToday(s) - used)} / ${blocksToday(s)} blocks`,
-    `  APPROVAL TARGET: ${w.minStars} stars, at least 1 main goal in every report-card question, and a healthy crew`,
-  ];
 }
 
 function previewPlan(s: State, ids: ActionId[]): void {
@@ -140,20 +123,55 @@ function previewPlan(s: State, ids: ActionId[]): void {
   console.log('');
 }
 
-function screen(s: State): string {
+function projectPlan(s: State, ids: ActionId[]): State {
+  const p = structuredClone(s);
+  for (const id of ids) {
+    const d = actionDef(id);
+    p.power += powerCost(s, id);
+    p.o2 += d.o2;
+    p.dose += d.dose;
+    p.stamina += d.outside ? -d.blocks * 6 : -d.blocks * 2;
+    if (d.stamina) p.stamina += d.stamina;
+    if (id === 'logsun') {
+      p.evidence.sunLogs++;
+      if (env(s).eclipse !== 'none') p.evidence.eclipseLogged = true;
+    }
+    if (id === 'measure') {
+      p.evidence.measures++;
+      if (stormActive(env(s))) p.evidence.stormMeasures++;
+    }
+    if (id === 'scout') {
+      p.evidence.scouts++;
+      p.scoutBonus = Math.min(0.5, p.scoutBonus + 0.25);
+    }
+    if (id === 'regolith') p.shelterLevel = Math.min(3, p.shelterLevel + 1);
+    if (id === 'clean') p.dust = 0;
+  }
+  return p;
+}
+
+function screen(s: State, planned: ActionId[] = []): string {
   const e = env(s);
+  const projected = projectPlan(s, planned);
   const L: string[] = [line];
+  const plannedUsed = planned.reduce((n, id) => n + actionDef(id).blocks, 0);
+  const displayPower = Math.max(0, projected.power);
+  const displayO2 = Math.max(0, projected.o2);
+  const displayDose = Math.min(100, projected.dose);
+  const displayStamina = Math.max(0, projected.stamina);
   L.push(row('SHACKLETON RIDGE OUTPOST'.padEnd(54) + `DAY ${s.turn + 1} / ${totalDays(s)}`.padStart(22)));
   L.push(line);
   const flag = (bad: boolean, w: string) => (bad ? ' ' + w : '');
-  L.push(row(`BASE  POWER   ${bar(s.power)} ${String(s.power).padStart(3)}%${flag(s.power <= 25, 'LOW!')}`.padEnd(40) + `OXYGEN ${bar(s.o2)} ${String(s.o2).padStart(3)}%${flag(s.o2 <= 25, 'LOW!')}`));
-  L.push(row(`CREW  STAMINA ${bar(s.stamina)} ${String(s.stamina).padStart(3)}%${flag(s.stamina < 50, 'TIRED')}`.padEnd(40) + `DOSE   ${bar(s.dose)} ${String(s.dose).padStart(3)}% of plan${flag(s.dose >= 75, 'HIGH!')}`));
+  L.push(row(`BASE  POWER   ${bar(displayPower)} ${String(displayPower).padStart(3)}%${flag(displayPower <= 25, 'LOW!')}`.padEnd(40) + `OXYGEN ${bar(displayO2)} ${String(displayO2).padStart(3)}%${flag(displayO2 <= 25, 'LOW!')}`));
+  L.push(row(`CREW  STAMINA ${bar(displayStamina)} ${String(displayStamina).padStart(3)}%${flag(displayStamina < 50, 'TIRED')}`.padEnd(40) + `DOSE   ${bar(displayDose)} ${String(displayDose).padStart(3)}% of plan${flag(displayDose >= 75, 'HIGH!')}`));
   const bt = blocksToday(s);
-  L.push(row(`CREW TIME TODAY: ${'#'.repeat(bt)}${'.'.repeat(8 - bt)} ${bt}   (stamina 50%+ = 8, 25-49% = 6, under 25% = 4)`));
+  L.push(row(`CREW TIME LEFT: ${'#'.repeat(Math.max(0, bt - plannedUsed))}${'.'.repeat(8 - Math.max(0, bt - plannedUsed))} ${Math.max(0, bt - plannedUsed)} / ${bt}   (type end to resolve the day)`));
+  if (planned.length) L.push(row(`PLANNED TASKS: ${planned.map((id) => actionDef(id).label).join(' + ')}`));
+  if (planned.length) L.push(row('RESOURCE VIEW: PROJECTED AFTER PLANNED TASKS; daily effects apply after END'));
   const faults = [s.faults.panel && 'solar panel jammed', s.faults.scrubber && 'air scrubber clogged'].filter(Boolean).join(', ') || 'none';
-  L.push(row(`Dust ${s.dust}/3   Shelter level ${s.shelterLevel}/3   Ice samples ${s.iceSamples}   Faults: ${faults}`));
+  L.push(row(`Dust ${projected.dust}/3   Shelter level ${projected.shelterLevel}/3   Ice samples ${projected.iceSamples}   Faults: ${faults}`));
   L.push(line);
-  const v = verdict(s); const w = scenarioOf(s).win; const cl = checklist(s);
+  const v = verdict(projected); const w = scenarioOf(s).win; const cl = checklist(projected);
   L.push(row(`MISSION: prove this ridge can host a Moon base.            Stars: ${v.stars}/12`));
   for (const scenarioLine of wrap(`TODAY'S SCENARIO: ${dailyScenario(s)}`, W - 4)) L.push(row(scenarioLine));
   L.push(row(`  Main goals: ${v.mainDone}/4 -> SITE PROMISING.  Bonus -> APPROVED at ${w.minStars}, GOLD at ${w.gold}.`));
@@ -311,7 +329,7 @@ async function interactive() {
           const used = planned.reduce((n, id) => n + actionDef(id).blocks, 0);
           print(`Task confirmed. Today's plan uses ${used}/${blocksToday(s)} crew time.`);
           for (const id of proposed) for (const message of taskResult(s, id)) print(`  ${message}`);
-          print(plannedStatus(s, planned).join('\n'));
+          print(screen(s, planned));
           if (used >= blocksToday(s)) print('All crew time is assigned. Type end to finish the day.');
           else print('Choose another task, or type end when you are ready to finish the day.');
         }
