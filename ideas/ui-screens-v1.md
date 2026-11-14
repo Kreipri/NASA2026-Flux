@@ -353,3 +353,16 @@ The skill targets marketing websites. Its section, photo, footer and gate rules 
 6. **Text:** in-game text is ≥14 px (13 px only for small badges and tags).
 7. **Contrast:** a soft dark scrim sits behind the title text over the art.
 8. **One system:** radii cut to 16 (panels), 12 (buttons, tiles, segments), 8 (badges, labels), plus pills and circles.
+
+## v7: base model + Earth polish (2026-11-15, proposed)
+From Bea's 3 references (Mars lander-habitat, Blue Moon lander, Moon-base render), kept in the D-023 two-tone toon look:
+- **Habitat:** 2 modules (lattice skin + porthole; panelled + orange band + windows) on a hex deck with 4 lander legs, footpads, foil tanks and a ladder. Story hook: the habitat landed here.
+- **Tunnel to the shelter:** a ribbed walkway, so kids can see where the crew runs in a storm.
+- **Comms tower:** a 9 m lattice mast with floodlights on the base and a dish that tracks Earth.
+- **Solar:** 3 vertical masts, ~10 m (F65), cell grid visible, guy wires, cables to a power unit.
+- **Rover:** pressurised, 6 wheels, big front window, roof panel. One worn path leads toward the dark crater.
+- **Crew:** 2 placeholder astronauts (white suit, navy visor, orange/cyan arm band, as in v5).
+- **Earth:** real continents from NASA Blue Marble maps, flattened to the palette (sea, shallows, green, desert, ice). Storybook clouds with soft shadows, a crisp day/night line, a blue rim and a slow spin (off with reduced motion). Lowered to 2.4° elevation (F20).
+- **Reset view:** a pill button under the top-right tools that appears only when the camera is off its preset and flies back on tap.
+- Risks: Chromebook GPU cost (domain-warped cloud noise, more meshes, 3 textures ~1 MB). The ground tracks barely show from the long-lens hub view; they're only visible in close-ups.
+

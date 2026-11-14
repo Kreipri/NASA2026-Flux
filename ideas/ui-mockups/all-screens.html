@@ -104,8 +104,12 @@
   .gi { display:inline-flex; vertical-align:-0.18em; width:1.05em; height:1.05em; } .gi svg { width:100%; height:100%; display:block; }
   .gi.star, .gi.stare { color:#ffc24a; } .m .ic .gi { width:20px; height:20px; } .ibtn .gi { width:22px; height:22px; } .pill .gi { width:16px; height:16px; }
   .stage [data-go]:focus-visible, .stage [data-toggle]:focus-visible { outline:3px solid #ffd34d; outline-offset:3px; }
+  .stage .reset { right:28px; top:84px; min-height:44px; padding:0 16px 0 12px; display:flex; align-items:center; gap:8px; border-radius:999px; background:rgba(6,22,32,.8); border:2px solid rgba(94,224,232,.7); color:#bff8ff; font:800 15px Nunito,system-ui,sans-serif; cursor:pointer; opacity:0; transform:translateY(-6px); transition:opacity .2s, transform .2s; pointer-events:none; }
+  .stage .reset.show { opacity:1; transform:none; pointer-events:auto; }
+  .stage .reset svg { width:20px; height:20px; }
+  .stage .reset:focus-visible { outline:3px solid #ffd34d; outline-offset:3px; }
   #fade { position:absolute; inset:0; background:#04061a; opacity:0; transition:opacity .28s; pointer-events:none; z-index:5; }
-  .rm .tw, .rm .dr1, .rm .dr2, .rm .dr3, .rm .flow, .rm .pulse, .rm .hl, .rm .pin.ring .o { animation:none !important; }
+  .rm .tw, .rm .dr1, .rm .dr2, .rm .dr3, .rm .flow, .rm .pulse, .rm .hl, .rm .pin.ring .o { animation:none !important; } .rm .reset { transition:none; }
   @media (prefers-reduced-motion: reduce) { .tw, .dr1, .dr2, .dr3, .flow, .pulse, .hl, .pin.ring .o { animation:none !important; } #fade { transition:none; } }
 </style>
 <script type="importmap">
@@ -124,6 +128,7 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { RoundedBoxGeometry } from 'three/addons/geometries/RoundedBoxGeometry.js';
+import { mergeVertices } from 'three/addons/utils/BufferGeometryUtils.js';
 import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
 import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
 import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
@@ -157,7 +162,7 @@ function hRaw(x,z){
 }
 const H0=hRaw(0,0); const hT=(x,z)=>hRaw(x,z)-H0; // ridge crest at the base = 0 m
 const LIGHT={sun:dirAE(SUN_AZ,2.3),dark:dirAE(SUN_AZ,0.5)};
-const EARTH_D=dirAE(9,3.5);
+const EARTH_D=dirAE(9,2.4); // low over the far hills: from the pole Earth stays near the horizon and bobs with libration (F20)
 function rayLit(x,z,h0,L){const lh=Math.hypot(L[0],L[2]),ux=L[0]/lh,uz=L[2]/lh,t=L[1]/lh;let s=12,m=1e9;while(s<70000){const c=(h0+t*s+0.6-hT(x+ux*s,z+uz*s))/(0.0087*s+3);if(c<m)m=c;if(m<-1)return 0;s*=1.14}return Math.max(0,Math.min(1,.5+.5*m))}
 const W=(x,y,z)=>new THREE.Vector3(x,y,-z); // terrain coords -> three.js world (keeps Shackleton on the right)
 
@@ -242,68 +247,206 @@ const terrain=new THREE.Mesh(tg,terrainMat);scene.add(terrain);
 
 // lights
 const sun=new THREE.DirectionalLight('#fff1d8',2.1);scene.add(sun,sun.target);
-sun.castShadow=true;sun.shadow.mapSize.set(4096,4096);const sc=sun.shadow.camera;sc.left=-260;sc.right=260;sc.top=260;sc.bottom=-260;sc.near=10;sc.far=3000;sun.shadow.bias=-0.0004;sun.shadow.normalBias=0.4;
+sun.castShadow=true;sun.shadow.mapSize.set(4096,4096);const sc=sun.shadow.camera;sc.left=-110;sc.right=110;sc.top=110;sc.bottom=-110;sc.near=10;sc.far=3000;sun.shadow.bias=-0.0004;sun.shadow.normalBias=0.4;
 const hemi=new THREE.HemisphereLight('#c8d0e0','#3d4352',0.75);scene.add(hemi);
-const lamps=[];for(const p of [[2,2.6,-3.4],[-10,1.2,-5.6]]){const l=new THREE.PointLight('#ffb35c',0,60,2);l.position.copy(W(...p));scene.add(l);lamps.push(l)}
-
 /* ---------------- the base (real size, ~50 m across) ---------------- */
+// v7 (from Bea's reference renders): habitat modules on a landed deck, ribbed tunnel to the storm shelter,
+// lattice comms tower with floodlights + Earth dish, vertical solar masts (10 m, F65), pressurised rover, crew.
+// Inside groups: +x right, +z toward the base camera, +y up.
 const GRAD=(()=>{const d=new Uint8Array([165,255]);const t=new THREE.DataTexture(d,2,1,THREE.RedFormat);t.minFilter=t.magFilter=THREE.NearestFilter;t.needsUpdate=true;return t})();
-const M=(c,o={})=>{const m=new THREE.MeshToonMaterial({color:c,gradientMap:GRAD});if(o.side)m.side=o.side;return m};
-const OUTLINE=new THREE.ShaderMaterial({side:THREE.BackSide,uniforms:{w:{value:.09}},
-  vertexShader:`uniform float w;
-    #include <common>
-    #include <logdepthbuf_pars_vertex>
-    void main(){vec3 p=position+normal*w;gl_Position=projectionMatrix*modelViewMatrix*vec4(p,1.0);
-    #include <logdepthbuf_vertex>
-    }`,
-  fragmentShader:`
-    #include <logdepthbuf_pars_fragment>
-    void main(){
-    #include <logdepthbuf_fragment>
-    gl_FragColor=vec4(0.04,0.06,0.11,1.0);}`});
-const white=M('#eef1f7'),orange=M('#f08c3c'),grey=M('#a0a6b4'),dark=M('#2a2d45'),
-  reg=M('#959aa6'),panel=M('#5f8ef0'),panelBack=M('#4a5578'),
-  glow=new THREE.MeshBasicMaterial({color:'#ffd38a'}),red=new THREE.MeshBasicMaterial({color:'#ff5a4a'});
+const TEX=(w,h,draw,rep)=>{const c=document.createElement('canvas');c.width=w;c.height=h;draw(c.getContext('2d'),w,h);const t=new THREE.CanvasTexture(c);t.colorSpace=THREE.SRGBColorSpace;t.wrapS=t.wrapT=THREE.RepeatWrapping;t.anisotropy=8;if(rep)t.repeat.set(...rep);return t};
+const M=(c,o={})=>{const m=new THREE.MeshToonMaterial({color:c,gradientMap:GRAD});if(o.map)m.map=o.map;if(o.side)m.side=o.side;if(o.flat)m.flatShading=true;return m};
+const SEAM='rgba(70,80,104,.34)';
+const hullTex=TEX(256,256,(x,w,h)=>{x.fillStyle='#fff';x.fillRect(0,0,w,h);x.strokeStyle=SEAM;x.lineWidth=3;x.beginPath();for(const y of [1.5,128])x.moveTo(0,y),x.lineTo(w,y);x.moveTo(1.5,0);x.lineTo(1.5,h);x.stroke();
+  x.fillStyle=SEAM;for(const y of [12,116,140,244])for(let i=14;i<w;i+=38){x.beginPath();x.arc(i,y,2.4,0,7);x.fill()}},[6,2]);
+const latTex=TEX(256,256,(x,w,h)=>{x.fillStyle='#fff';x.fillRect(0,0,w,h);x.strokeStyle='rgba(70,80,104,.28)';x.lineWidth=2.2;x.beginPath();
+  for(let y=0;y<=h;y+=32)x.moveTo(0,y),x.lineTo(w,y);for(let i=-10;i<=18;i++){x.moveTo(i*32,0);x.lineTo(i*32+128,256);x.moveTo(i*32,0);x.lineTo(i*32-128,256)}x.stroke()},[7,2]);
+const solarTex=TEX(128,256,(x,w,h)=>{x.fillStyle='#d4ddf2';x.fillRect(0,0,w,h);const cw=w/6,ch=h/16;for(let i=0;i<6;i++)for(let j=0;j<16;j++){x.fillStyle=(i+j)%2?'#3160c6':'#3a6cd6';x.fillRect(i*cw+1.6,j*ch+1.6,cw-3.2,ch-3.2)}
+  x.fillStyle='rgba(255,255,255,.16)';x.beginPath();x.moveTo(0,0);x.lineTo(w*.7,0);x.lineTo(0,h*.35);x.fill()});
+const foilTex=TEX(128,128,(x,w,h)=>{x.fillStyle='#d8a94e';x.fillRect(0,0,w,h);const R=rng(21);for(let i=0;i<110;i++){x.fillStyle=R()<.5?'rgba(255,236,170,.5)':'rgba(120,80,20,.35)';const px=R()*w,py=R()*h;x.beginPath();x.moveTo(px,py);for(let k=0;k<3;k++)x.lineTo(px+(R()-.5)*34,py+(R()-.5)*34);x.fill()}},[2,1]);
+const regTex=TEX(256,256,(x,w,h)=>{x.fillStyle='#fff';x.fillRect(0,0,w,h);const R=rng(31);for(let i=0;i<800;i++){const r=1+R()*R()*8;x.fillStyle=R()<.6?`rgba(40,46,60,${.08+R()*.16})`:`rgba(255,255,255,${.2+R()*.3})`;x.beginPath();x.arc(R()*w,R()*h,r,0,7);x.fill()}},[3,2]);
+const white=M('#eef1f7'),hullM=M('#eef1f7',{map:hullTex}),latM=M('#eef1f7',{map:latTex}),legM=M('#d9dde6'),orange=M('#f08c3c'),orangeF=M('#f08c3c',{flat:true}),
+  grey=M('#a0a6b4'),steel=M('#737b90'),dark=M('#2a2d45'),reg=M('#959aa6'),regM=M('#959aa6',{map:regTex}),solarM=M('#ffffff',{map:solarTex}),panelBack=M('#4a5578'),
+  foil=M('#ffffff',{map:foilTex}),glass=M('#1d2b4c'),suit=M('#eceff4'),
+  glow=new THREE.MeshBasicMaterial({color:'#ffd38a'}),door=new THREE.MeshBasicMaterial({color:'#e9a660'}),flood=new THREE.MeshBasicMaterial({color:'#fff4d6'}),
+  red=new THREE.MeshBasicMaterial({color:'#ff5a4a'}),cyan=new THREE.MeshBasicMaterial({color:'#21dbe3'});
 const base=new THREE.Group();scene.add(base);
-const hull=m=>{}; // storybook art has no outlines, so neither does the 3D
-const add=(geo,mat,x,y,z,o={})=>{const m=new THREE.Mesh(geo,mat);m.position.copy(W(x,y,z));if(o.rx)m.rotation.x=o.rx;if(o.ry)m.rotation.y=o.ry;if(o.rz)m.rotation.z=o.rz;if(o.s)m.scale.set(...o.s);m.castShadow=o.cast!==false;m.receiveShadow=true;base.add(m);hull(m);return m};
-// habitat
-add(new THREE.CylinderGeometry(2.3,2.3,10,64),white,2,2.9,-6,{rz:Math.PI/2});
-for(const x of [-2.6,6.6])add(new THREE.CylinderGeometry(2.36,2.36,.6,64),orange,x,2.9,-6,{rz:Math.PI/2});
-for(const x of [-.4,2,4.4])add(new RoundedBoxGeometry(.9,.9,.2,3,.12),glow,x,3.2,-3.75,{cast:false});
-for(const x of [-1,2,5])for(const z of [-7.4,-4.6])add(new THREE.CylinderGeometry(.12,.12,1,12),grey,x,.5,z);
-add(new RoundedBoxGeometry(2,3.2,2.4,4,.3),white,8,1.8,-6);add(new THREE.BoxGeometry(.8,2,.1),orange,8,1.6,-7.22);
-// shelter: regolith mound over a buried module
-{const g=new THREE.SphereGeometry(1,48,24,0,Math.PI*2,0,Math.PI/2);const p=g.attributes.position,R=rng(5);for(let i=0;i<p.count;i++){const y=p.getY(i),k=1+(Math.sin(p.getX(i)*7)+Math.cos(p.getZ(i)*6))*.025*(1-y)+ (R()-.5)*.02;p.setXYZ(i,p.getX(i)*k,y,p.getZ(i)*k)}g.computeVertexNormals();add(g,reg,-11,0,0,{s:[5.8,3.4,4.8]})}
-add(new RoundedBoxGeometry(2,2.1,2.4,4,.25),white,-10,1.05,-5.2);add(new THREE.BoxGeometry(1.1,1.5,.1),glow,-10,.95,-6.42,{cast:false});
-// vertical solar arrays turned toward the low Sun
+// ground height of the drawn terrain mesh (same triangles), so nothing floats or sinks on the slope
+const cell=(A,v)=>{let lo=0,hi=A.length-2;while(lo<hi){const m=(lo+hi+1)>>1;if(A[m]<=v)lo=m;else hi=m-1}return lo};
+function hM(x,z){const i=cell(GX,x),j=cell(GZ,z),u=(x-GX[i])/(GX[i+1]-GX[i]),v=(z-GZ[j])/(GZ[j+1]-GZ[j]),k=j*(NX+1)+i,a=HV[k],b=HV[k+1],c=HV[k+NX+2],d=HV[k+NX+1];
+  return u+v<=1?a+u*(b-a)+v*(d-a):c+(1-u)*(d-c)+(1-v)*(b-c)}
+const mesh=(geo,mat,o={})=>{const m=new THREE.Mesh(geo,mat);m.castShadow=o.cast!==false;m.receiveShadow=true;return m};
+const put=(g,geo,mat,x,y,z,o={})=>{const m=mesh(geo,mat,o);m.position.set(x,y,z);if(o.rx)m.rotation.x=o.rx;if(o.ry)m.rotation.y=o.ry;if(o.rz)m.rotation.z=o.rz;if(o.s)m.scale.set(...o.s);g.add(m);return m};
+const grp=(x,z,ry=0,dy=0,parent=base)=>{const g=new THREE.Group();g.position.copy(W(x,hM(x,z)+dy,z));g.rotation.y=ry;parent.add(g);return g};
+const UP=new THREE.Vector3(0,1,0);
+const rod=(g,a,b,r,mat,seg=8)=>{const A=new THREE.Vector3(...a),B=new THREE.Vector3(...b),d=B.clone().sub(A),L=d.length();const m=mesh(new THREE.CylinderGeometry(r,r,L,seg),mat);m.position.copy(A).add(B).multiplyScalar(.5);m.quaternion.setFromUnitVectors(UP,d.normalize());g.add(m);return m};
+const EARTH_W=new THREE.Vector3(EARTH_D[0],EARTH_D[1],-EARTH_D[2]);
 const sunH=Math.atan2(LIGHT.sun[0],-LIGHT.sun[2]);
-for(const [x,z] of [[-17,12],[-12.5,14],[-8,16]]){add(new THREE.CylinderGeometry(.22,.28,13,16),grey,x,6.5,z);
-  const pg=new THREE.Group();pg.position.copy(W(x,9.4,z));pg.rotation.y=sunH;base.add(pg);
-  const f=new THREE.Mesh(new THREE.BoxGeometry(3.6,6.4,.12),[panelBack,panelBack,panelBack,panelBack,panel,panelBack]);f.position.z=.35;f.castShadow=true;pg.add(f);hull(f)}
-add(new THREE.SphereGeometry(.22,12,8),red,-12.5,13.2,14,{cast:false});
-add(new RoundedBoxGeometry(3,1.6,2,3,.2),white,-4,.8,10,{ry:sunH});
-// rover
-{const rg=new THREE.Group();rg.position.copy(W(11,0,-9));rg.rotation.y=.35;base.add(rg);const part=(geo,mat,x,y,z)=>{const m=new THREE.Mesh(geo,mat);m.position.set(x,y,z);m.castShadow=true;m.receiveShadow=true;rg.add(m);hull(m);return m};
-  part(new RoundedBoxGeometry(3.4,1.1,2,4,.3),white,0,1.3,0);part(new RoundedBoxGeometry(1.5,.9,1.8,4,.25),white,.7,2.2,0);part(new THREE.BoxGeometry(.1,.55,1.4),glow,1.48,2.25,0);
-  for(const [x,z] of [[-1.2,1.1],[1.2,1.1],[-1.2,-1.1],[1.2,-1.1]]){const w=part(new THREE.CylinderGeometry(.45,.45,.35,24),dark,x,.45,z);w.rotation.x=Math.PI/2}}
-// comms dish aimed at Earth
-add(new THREE.CylinderGeometry(.12,.15,4.2,12),grey,8,2.1,4);
-{const d=new THREE.Mesh(new THREE.SphereGeometry(1.5,32,12,0,Math.PI*2,0,.9),M('#eef1f4',{side:THREE.DoubleSide,metalness:.2}));d.position.copy(W(8,4.6,4));d.lookAt(W(8+EARTH_D[0]*100,4.6-EARTH_D[1]*100*-1,4+EARTH_D[2]*100));d.rotateX(-Math.PI/2);d.castShadow=true;base.add(d)}
-// rocks
-{const R=rng(11),geo=new THREE.DodecahedronGeometry(1,0),inst=new THREE.InstancedMesh(geo,reg,160);const m4=new THREE.Matrix4(),q=new THREE.Quaternion(),e=new THREE.Euler();let n=0;
-  for(let i=0;i<400&&n<160;i++){const x=(R()-.5)*420,z=(R()-.5)*420;if(Math.abs(x)<26&&Math.abs(z)<22)continue;const s=.2+R()*R()*1.6;e.set(R()*3,R()*3,R()*3);q.setFromEuler(e);m4.compose(W(x,hT(x,z)+s*.25,z),q,new THREE.Vector3(s,s*.6,s));inst.setMatrixAt(n++,m4)}
+
+// 1) HABITAT: two modules on a landed deck; the lander legs stay as the base's feet
+const DECK=2.4,hab=grp(2,-6);
+put(hab,new THREE.CylinderGeometry(6,6,.42,6),M('#c9ced9',{flat:true}),0,DECK-.21,0,{ry:Math.PI/6});
+put(hab,new THREE.CylinderGeometry(6.07,6.07,.14,6),orangeF,0,DECK-.3,0,{ry:Math.PI/6});
+for(let k=0;k<4;k++){const a=Math.PI/4+k*Math.PI/2,c=Math.sin(a),s=Math.cos(a),foot=[c*6.7,.16,s*6.7],knee=[c*5.7,1.05,s*5.7];
+  rod(hab,[c*4.3,DECK-.4,s*4.3],foot,.17,legM,10);rod(hab,[c*2.3,DECK-.42,s*2.3],knee,.09,legM);
+  put(hab,new THREE.SphereGeometry(.22,12,8),grey,...knee);put(hab,new THREE.CylinderGeometry(.75,.88,.16,20),grey,foot[0],.06,foot[2])}
+put(hab,new THREE.CylinderGeometry(1.6,1.6,1.3,6),M('#3a3f58',{flat:true}),0,DECK-1.07,0);
+for(const [x,z] of [[-2.3,1.3],[2.3,1.3],[0,-2.5]])put(hab,new THREE.SphereGeometry(.85,20,14),foil,x,DECK-1.32,z,{s:[1,1.15,1]});
+put(hab,new THREE.CylinderGeometry(.35,.75,.6,20),dark,0,DECK-1.95,0);
+// module A: tall, lattice skin, porthole
+put(hab,new THREE.CylinderGeometry(2.1,2.1,4.4,48),latM,-2.2,DECK+2.2,-.3);
+put(hab,new THREE.SphereGeometry(2.1,48,12,0,Math.PI*2,0,Math.PI/2),hullM,-2.2,DECK+4.4,-.3,{s:[1,.32,1]});
+for(const y of [DECK+.12,DECK+4.3])put(hab,new THREE.CylinderGeometry(2.16,2.16,.22,48),grey,-2.2,y,-.3);
+put(hab,new THREE.TorusGeometry(.62,.13,10,32),grey,-2.2,DECK+2.5,1.83);put(hab,new THREE.CircleGeometry(.6,32),glow,-2.2,DECK+2.5,1.82,{cast:false});
+rod(hab,[-2.2,DECK+5,-.3],[-2.2,DECK+6.4,-.3],.05,steel);put(hab,new THREE.SphereGeometry(.12,10,8),red,-2.2,DECK+6.45,-.3,{cast:false});
+// module B: shorter, panelled, orange band, row of windows
+put(hab,new THREE.CylinderGeometry(1.9,1.9,3.4,48),hullM,2.6,DECK+1.7,.2);
+put(hab,new THREE.CylinderGeometry(1.94,1.94,.5,48),orange,2.6,DECK+2.9,.2);
+put(hab,new THREE.SphereGeometry(1.9,48,12,0,Math.PI*2,0,Math.PI/2),grey,2.6,DECK+3.4,.2,{s:[1,.3,1]});
+for(const a of [-.5,0,.5])put(hab,new RoundedBoxGeometry(.5,.66,.12,2,.08),glow,2.6+Math.sin(a)*1.92,DECK+1.75,.2+Math.cos(a)*1.92,{ry:a,cast:false});
+put(hab,new THREE.CylinderGeometry(.8,.8,1.4,24),hullM,.3,DECK+1.4,0,{rz:Math.PI/2});put(hab,new THREE.CylinderGeometry(.86,.86,.18,24),orange,.3,DECK+1.4,0,{rz:Math.PI/2});
+// deck props: crates, front railing, ladder
+put(hab,new RoundedBoxGeometry(1.1,.8,.9,2,.08),hullM,.6,DECK+.4,-3.7);put(hab,new RoundedBoxGeometry(1,1,1,2,.1),grey,4.5,DECK+.5,-2.4);put(hab,new RoundedBoxGeometry(.8,.6,.7,2,.08),orange,-4.4,DECK+.3,1.4);
+for(const x of [-2.7,-1.5,-.3,.9])rod(hab,[x,DECK,4.95],[x,DECK+.95,4.95],.04,steel,6);rod(hab,[-2.7,DECK+.95,4.95],[.9,DECK+.95,4.95],.045,steel,6);
+for(const x of [1.45,2.45])rod(hab,[x,DECK,5.1],[x,0,6.6],.05,steel,6);
+for(let i=1;i<7;i++){const t=i/7;rod(hab,[1.45,DECK*(1-t),5.1+1.5*t],[2.45,DECK*(1-t),5.1+1.5*t],.035,steel,6)}
+
+// 2) TUNNEL: ribbed walkway from module A down to the storm shelter (crew run here when a storm hits)
+{const tp=[[-1.9,2.4+DECK-1.05,-5.6],[-4.4,3.7,-5.6],[-6.6,2.5,-5.5],[-8.1,1.55,-5.4],[-9.05,1.45,-5.4]].map(([x,y,z])=>W(x,hM(x,z)+y,z));
+  const cv=new THREE.CatmullRomCurve3(tp),L=cv.getLength();base.add(mesh(new THREE.TubeGeometry(cv,64,.66,18),white));
+  const Z=new THREE.Vector3(0,0,1);for(let s=.35;s<L-.2;s+=.42){const r=mesh(new THREE.TorusGeometry(.69,.075,6,22),grey);r.position.copy(cv.getPointAt(s/L));r.quaternion.setFromUnitVectors(Z,cv.getTangentAt(s/L));base.add(r)}
+  for(const t of [0,1]){const r=mesh(new THREE.TorusGeometry(.74,.12,8,24),orange);r.position.copy(cv.getPointAt(t));r.quaternion.setFromUnitVectors(Z,cv.getTangentAt(t));base.add(r)}
+  const mid=cv.getPointAt(.55);for(const dz of [-.5,.5])rod(base,[mid.x,mid.y-.6,mid.z+dz],[mid.x,hM(mid.x,-mid.z),mid.z+dz*1.6],.06,steel,6)}
+
+// 3) STORM SHELTER: regolith mound over a buried module
+{const g=new THREE.SphereGeometry(1,48,24,0,Math.PI*2,0,Math.PI/2);const p=g.attributes.position,R=rng(5);for(let i=0;i<p.count;i++){const y=p.getY(i),k=1+(Math.sin(p.getX(i)*7)+Math.cos(p.getZ(i)*6))*.025*(1-y)+(R()-.5)*.02;p.setXYZ(i,p.getX(i)*k,y,p.getZ(i)*k)}g.computeVertexNormals();
+  const sh=grp(-11,0,0,-.15);put(sh,g,regM,0,0,0,{s:[5.8,3.4,4.8]})}
+{const en=grp(-10,-5.2);put(en,new RoundedBoxGeometry(2,2.1,2.4,4,.25),hullM,0,1.05,0);put(en,new RoundedBoxGeometry(1.5,1.85,.14,2,.06),orange,0,.98,1.2);put(en,new THREE.BoxGeometry(1.05,1.45,.06),door,0,.9,1.26,{cast:false});
+  put(en,new THREE.BoxGeometry(2.1,.12,2.5),grey,0,2.12,0)}
+
+// 4) COMMS TOWER: lattice mast, floodlights over the base, dish locked on Earth
+{const tw=grp(10,4),H=9,wd=y=>.9-.55*y/H,C=[[1,1],[1,-1],[-1,-1],[-1,1]];
+  for(const [sx,sz] of C)rod(tw,[sx*.9,0,sz*.9],[sx*.35,H,sz*.35],.07,steel,6);
+  for(let i=1;i<=6;i++){const y0=(i-1)*H/6,y1=i*H/6,w0=wd(y0),w1=wd(y1);for(let k=0;k<4;k++){const [ax,az]=C[k],[bx,bz]=C[(k+1)%4];
+    rod(tw,[ax*w1,y1,az*w1],[bx*w1,y1,bz*w1],.04,steel,5);rod(tw,[ax*w0,y0,az*w0],[bx*w1,y1,bz*w1],.03,steel,5);rod(tw,[bx*w0,y0,bz*w0],[ax*w1,y1,az*w1],.03,steel,5)}}
+  put(tw,new THREE.CylinderGeometry(.7,.7,.14,6),grey,0,H,0);put(tw,new RoundedBoxGeometry(1.2,.5,1.2,2,.08),hullM,0,.25,0);
+  const fl=new THREE.Group();fl.position.set(0,7.1,0);fl.rotation.y=-.67;tw.add(fl);put(fl,new THREE.BoxGeometry(2.2,.12,.12),steel,0,0,.45);
+  for(const [x,y] of [[-.55,.28],[.55,.28],[-.55,-.28],[.55,-.28]]){put(fl,new RoundedBoxGeometry(.5,.42,.3,2,.06),grey,x,y,.55);put(fl,new THREE.PlaneGeometry(.38,.3),flood,x,y,.71,{cast:false})}
+  rod(tw,[0,H,0],[0,H+.9,0],.08,steel);put(tw,new THREE.SphereGeometry(.12,10,8),red,.55,H+.15,.55,{cast:false});
+  const dg=new THREE.Group();dg.position.set(0,H+1.3,0);tw.add(dg);base.updateMatrixWorld(true);dg.lookAt(dg.getWorldPosition(new THREE.Vector3()).add(EARTH_W.clone().multiplyScalar(1000)));
+  const cap=mesh(new THREE.SphereGeometry(1.5,32,12,0,Math.PI*2,0,.9),M('#eef1f4',{side:THREE.DoubleSide}));cap.rotation.x=-Math.PI/2;cap.position.z=1.25;dg.add(cap);
+  rod(dg,[0,0,-.3],[0,0,.95],.035,steel,5);put(dg,new THREE.SphereGeometry(.11,10,8),grey,0,0,1);put(dg,new THREE.CylinderGeometry(.22,.22,.3,12),grey,0,0,-.4,{rx:Math.PI/2})}
+
+// 5) SOLAR: tall vertical arrays on masts (NASA's polar design, ~10 m; F65), turned toward the low Sun
+const MASTS=[[-17,12],[-12.5,14],[-8,16]];
+for(const [x,z] of MASTS){const g=grp(x,z);put(g,new RoundedBoxGeometry(1.4,.7,1.4,2,.1),hullM,0,.35,0);put(g,new THREE.CylinderGeometry(.15,.22,10,12),legM,0,5,0);
+  for(let k=0;k<3;k++){const a=k*2.094+.4;rod(g,[0,3.4,0],[Math.sin(a)*2.3,0,Math.cos(a)*2.3],.035,steel,5)}
+  const pg=new THREE.Group();pg.position.set(0,6.75,0);pg.rotation.y=sunH;g.add(pg);
+  put(pg,new THREE.BoxGeometry(3.4,6.6,.06),panelBack,0,0,.22);const f=put(pg,new THREE.BoxGeometry(3.2,6.4,.1),[panelBack,panelBack,panelBack,panelBack,solarM,panelBack],0,0,.3);
+  put(pg,new THREE.CylinderGeometry(.12,.12,.5,10),grey,0,0,.08,{rx:Math.PI/2})}
+{const g=grp(-12.5,14);put(g,new THREE.SphereGeometry(.2,12,8),red,0,10.15,0,{cast:false})}
+// power unit (batteries + radiator) and ground cables
+{const g=grp(-4,10,sunH);put(g,new RoundedBoxGeometry(3,1.4,1.8,3,.15),hullM,0,.7,0);put(g,new THREE.BoxGeometry(3.04,.2,1.84),orange,0,1.05,0);
+  for(let i=0;i<5;i++)put(g,new THREE.BoxGeometry(.08,.5,1.5),grey,-1.1+i*.55,1.65,0)}
+const cable=(pts)=>{for(let i=0;i<pts.length-1;i++){const [x1,z1]=pts[i],[x2,z2]=pts[i+1];const a=W(x1,hM(x1,z1)+.07,z1),b=W(x2,hM(x2,z2)+.07,z2);rod(base,a.toArray(),b.toArray(),.06,dark,5)}};
+for(const [x,z] of MASTS)cable([[x+.7,z-.6],[(x-4)/2+.7,(z+10)/2-1],[-4.6,9.2]]);cable([[-3,9.1],[-1,4],[1.5,-1.5],[2.6,-3.4]]);
+
+// 6) ROVER: pressurised, six wheels, big front window (parked; tracks lead out to the crater)
+const RV=[11.5,-10.5];
+{const g=grp(RV[0],RV[1],.35);put(g,new THREE.BoxGeometry(4.4,.35,2),dark,0,.85,0);
+  for(const x of [-1.5,0,1.5])for(const z of [-1.25,1.25]){put(g,new THREE.CylinderGeometry(.55,.55,.42,24),dark,x,.55,z,{rx:Math.PI/2});put(g,new THREE.CylinderGeometry(.24,.24,.45,12),grey,x,.55,z,{rx:Math.PI/2})}
+  put(g,new RoundedBoxGeometry(3.8,1.7,2.1,4,.45),hullM,-.2,1.95,0);put(g,new THREE.BoxGeometry(3.6,.2,2.14),orange,-.2,1.42,0);
+  put(g,new RoundedBoxGeometry(.5,.95,1.8,3,.2),glass,1.62,2.18,0);put(g,new THREE.BoxGeometry(.05,.07,1.5),cyan,1.88,1.72,0,{cast:false});
+  for(const x of [.5,-.6])for(const z of [-1.07,1.07])put(g,new RoundedBoxGeometry(.7,.48,.06,2,.08),glass,x,2.3,z);
+  put(g,new THREE.TorusGeometry(.5,.1,8,24),grey,-2.12,1.95,0,{ry:Math.PI/2});put(g,new THREE.CircleGeometry(.48,24),steel,-2.13,1.95,0,{ry:-Math.PI/2});
+  for(const z of [-.65,.65])put(g,new THREE.BoxGeometry(.06,.18,.32),glow,2.22,1.05,z,{cast:false});
+  put(g,new THREE.BoxGeometry(1.6,.06,1.3),[panelBack,panelBack,solarM,panelBack,panelBack,panelBack],-.8,2.88,0,{rz:.12});rod(g,[.7,2.75,.6],[.7,3.9,.6],.035,steel,5);put(g,new THREE.SphereGeometry(.09,8,6),red,.7,3.95,.6,{cast:false})}
+
+// 7) CREW: placeholder astronauts in the v5 suit (white, navy visor, colour band on the arms)
+function astro(x,z,ry,band){const g=grp(x,z,ry),bm=M(band);
+  for(const sx of [-.13,.13])put(g,new THREE.CapsuleGeometry(.14,.4,4,10),suit,sx,.36,0);
+  put(g,new THREE.CapsuleGeometry(.27,.34,4,12),suit,0,1,0,{s:[1,1,.8]});put(g,new RoundedBoxGeometry(.52,.62,.3,2,.08),grey,0,1.08,-.27);
+  for(const sx of [-1,1]){put(g,new THREE.CapsuleGeometry(.1,.4,4,8),suit,sx*.36,.98,0,{rz:sx*.15});put(g,new THREE.CylinderGeometry(.115,.115,.09,12),bm,sx*.375,1.1,0,{rz:sx*.15})}
+  put(g,new THREE.SphereGeometry(.31,20,14),suit,0,1.6,0);put(g,new THREE.SphereGeometry(.315,20,12,Math.PI/2-.95,1.9,.75,1.25),glass,0,1.6,0);
+  put(g,new THREE.BoxGeometry(.14,.08,.05),cyan,0,1.16,.23,{cast:false});return g}
+astro(4.6,-13.3,-.5,'#f08c3c');astro(-11.4,12.4,-2.54,'#21dbe3');
+
+// 8) ground detail: rover tracks (fade out with distance) and rounded rocks
+function tracks(ctrl,offs,alpha){const cv=new THREE.CatmullRomCurve3(ctrl.map(([x,z])=>new THREE.Vector3(x,0,z))),N=Math.ceil(cv.getLength()/.6),P=[],C=[],I=[];
+  for(let i=0;i<=N;i++){const t=i/N,p=cv.getPointAt(t),d=cv.getTangentAt(t),a=Math.min(1,i/5)*Math.pow(1-t,.8)*alpha;
+    for(const o of offs){const x=p.x-d.z*o,z=p.z+d.x*o,w=W(x,hM(x,z)+.06,z);P.push(w.x,w.y,w.z);C.push(.1,.11,.14,a)}}
+  for(let i=0;i<N;i++){const a=i*4,b=a+4;for(const s of [0,2])I.push(a+s,a+s+1,b+s,a+s+1,b+s+1,b+s)}
+  const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(P,3));g.setAttribute('color',new THREE.Float32BufferAttribute(C,4));g.setIndex(I);
+  const m=new THREE.Mesh(g,new THREE.MeshBasicMaterial({vertexColors:true,transparent:true,depthWrite:false,side:THREE.DoubleSide,toneMapped:false}));m.renderOrder=1;base.add(m)}
+const ROAD=[[9.4,-11.3],[14,-9.6],[20,-6],[28,2],[40,18],[62,42],[95,75],[140,120]]; // the worn path the rover takes toward the dark crater
+tracks(ROAD,[-1.5,1.5,1.5,1.5],.2);tracks(ROAD,[-1.15,-.6,.6,1.15],.38);
+const rockGeo=(()=>{let g=new THREE.IcosahedronGeometry(1,2);g.deleteAttribute('normal');g.deleteAttribute('uv');g=mergeVertices(g);const p=g.attributes.position;
+  for(let i=0;i<p.count;i++){const x=p.getX(i),y=p.getY(i),z=p.getZ(i),k=1+.18*Math.sin(x*3.1+y*1.7)*Math.cos(z*2.3-y)+.07*Math.sin(x*7+z*5);p.setXYZ(i,x*k,y*k,z*k)}g.computeVertexNormals();return g})();
+{const R=rng(11),inst=new THREE.InstancedMesh(rockGeo,reg,190);const m4=new THREE.Matrix4(),q=new THREE.Quaternion(),e=new THREE.Euler();let n=0;
+  const place=(x,z,s)=>{e.set(R()*3,R()*3,R()*3);q.setFromEuler(e);m4.compose(W(x,hM(x,z)+s*.2,z),q,new THREE.Vector3(s,s*.6,s*(.8+R()*.4)));inst.setMatrixAt(n++,m4)};
+  for(let i=0;i<400&&n<160;i++){const x=(R()-.5)*420,z=(R()-.5)*420;if(Math.abs(x)<26&&Math.abs(z)<22)continue;place(x,z,.2+R()*R()*1.6)}
+  for(let i=0;i<14;i++){const a=R()*Math.PI*2;if(Math.sin(a)<-.5)continue;place(-11+Math.cos(a)*6.1,Math.sin(a)*5.1,.25+R()*.4)} // stones piled round the shelter
   inst.count=n;inst.castShadow=true;inst.receiveShadow=true;scene.add(inst)}
+
+// night lamps (day-5 long shadow): habitat windows, shelter door, tower floodlights
+const lamps=[];for(const p of [[-.2,5,-12],[4.6,4.4,-12],[-10,1.6,-9.5],[7,6.5,-1.5]]){const l=new THREE.PointLight('#ffb35c',0,60,2);l.position.copy(W(p[0],hM(p[0],p[2])+p[1],p[2]));scene.add(l);lamps.push(l)}
 
 /* ---------------- sky: stars + Earth ---------------- */
 {const R=rng(9),N=2500,p=new Float32Array(N*3);for(let i=0;i<N;i++){const u=R()*2-1,a=R()*Math.PI*2,r=300000,s=Math.sqrt(1-u*u);p[i*3]=r*s*Math.cos(a);p[i*3+1]=Math.abs(r*u);p[i*3+2]=r*s*Math.sin(a)}
   const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.BufferAttribute(p,3));scene.add(new THREE.Points(g,new THREE.PointsMaterial({color:'#fff3d6',size:1.8,sizeAttenuation:false,transparent:true,opacity:.8,toneMapped:false})))}
-{const c=document.createElement('canvas');c.width=c.height=256;const x=c.getContext('2d');x.beginPath();x.arc(128,128,120,0,7);x.clip();x.fillStyle='#3f7fd8';x.fillRect(0,0,256,256);
-  x.fillStyle='#3d9a5e';for(const [px,py,rx,ry] of [[150,150,40,55],[90,90,30,22],[175,80,22,30]]){x.beginPath();x.ellipse(px,py,rx,ry,.4,0,7);x.fill()}
-  x.strokeStyle='#f2f6ff';x.lineWidth=11;x.lineCap='round';for(const [a,b,r] of [[.2,1.4,80],[2.2,3.3,60],[3.8,5,95],[4.6,5.6,40]]){x.beginPath();x.arc(128,128,r,a,b);x.stroke()}
-  x.fillStyle='rgba(6,12,30,.9)';x.beginPath();x.arc(471,128,240,0,7);x.fill(); // thin night side: the Sun is behind us, so Earth looks nearly full
-  const tex=new THREE.CanvasTexture(c);tex.colorSpace=THREE.SRGBColorSpace;const sp=new THREE.Sprite(new THREE.SpriteMaterial({map:tex,toneMapped:false,depthWrite:false}));
-  const D=150000,r=D*Math.tan(.95*D2R);sp.position.copy(W(EARTH_D[0]*D,EARTH_D[1]*D,EARTH_D[2]*D));sp.scale.set(2*r,2*r,1);scene.add(sp)}
+// Earth: real continents + clouds (NASA Blue Marble maps from the three.js examples), drawn flat in the
+// storybook palette: posterised land/sea/ice, two-tone clouds with soft shadows, crisp day/night line, blue rim.
+const earth=new THREE.Group();earth.userData.earth=true;
+const EU={dayMap:{value:null},seaMap:{value:null},cloudMap:{value:null},hasMaps:{value:0},sunW:{value:new THREE.Vector3(LIGHT.sun[0],LIGHT.sun[1],-LIGHT.sun[2])},drift:{value:0},
+  ocean:{value:new THREE.Color('#2f6fd0')},shallow:{value:new THREE.Color('#4a95e6')},land:{value:new THREE.Color('#4fae6a')},dry:{value:new THREE.Color('#d8b46a')},ice:{value:new THREE.Color('#f2f6fb')},
+  night:{value:new THREE.Color('#111c44')},rim:{value:new THREE.Color('#9fdcff')},cloudLo:{value:new THREE.Color('#c9d6ea')}};
+{const blank=new THREE.DataTexture(new Uint8Array([0,0,0,255]),1,1);blank.needsUpdate=true;EU.dayMap.value=EU.seaMap.value=EU.cloudMap.value=blank;
+  const TL=new THREE.TextureLoader(),SRC='assets/earth/',CDN='https://cdn.jsdelivr.net/gh/mrdoob/three.js@r160/examples/textures/planets/';let got=0;const ok=k=>t=>{t.anisotropy=8;EU[k].value=t;if(++got===3)EU.hasMaps.value=1};
+  for(const [f,k] of [['earth_atmos_2048.jpg','dayMap'],['earth_specular_2048.jpg','seaMap'],['earth_clouds_1024.png','cloudMap']])
+    TL.load(SRC+f,ok(k),undefined,()=>TL.load(CDN+f,ok(k),undefined,()=>console.warn('Earth map failed; using the simple globe')))}
+const EV=`varying vec2 vUv;varying vec3 vN;varying vec3 vV;varying vec3 vP;
+  #include <common>
+  #include <logdepthbuf_pars_vertex>
+  void main(){vUv=uv;vP=normalize(position);vN=normalize(mat3(modelMatrix)*normal);vec4 wp=modelMatrix*vec4(position,1.0);vV=cameraPosition-wp.xyz;gl_Position=projectionMatrix*viewMatrix*wp;
+  #include <logdepthbuf_vertex>
+  }`;
+const EHEAD=`uniform sampler2D dayMap,seaMap,cloudMap;uniform float hasMaps,drift;uniform vec3 sunW,ocean,shallow,land,dry,ice,night,rim,cloudLo;varying vec2 vUv;varying vec3 vN;varying vec3 vV;varying vec3 vP;
+  #include <logdepthbuf_pars_fragment>
+  float hs(vec3 p){p=fract(p*.3183099+.1);p*=17.;return fract(p.x*p.y*p.z*(p.x+p.y+p.z));}
+  float vn(vec3 x){vec3 i=floor(x),f=fract(x);f=f*f*(3.-2.*f);return mix(mix(mix(hs(i),hs(i+vec3(1,0,0)),f.x),mix(hs(i+vec3(0,1,0)),hs(i+vec3(1,1,0)),f.x),f.y),mix(mix(hs(i+vec3(0,0,1)),hs(i+vec3(1,0,1)),f.x),mix(hs(i+vec3(0,1,1)),hs(i+vec3(1,1,1)),f.x),f.y),f.z);}
+  float fbm(vec3 p){float a=.5,s=0.;for(int i=0;i<5;i++){s+=a*vn(p);p=p*2.03+vec3(1.7,9.2,3.1);a*=.5;}return s;}
+  // storybook clouds: swirly noise banded like real weather (cloudy equator + storm belts, clear subtropical deserts),
+  // plus the dense clouds from the real cloud map (cover stored in alpha)
+  float cl(vec2 uv,vec3 p){float a=drift*6.2832,c=cos(a),s=sin(a);p=vec3(c*p.x-s*p.z,p.y,s*p.x+c*p.z);
+    vec3 q=p*vec3(4.2,7.,4.2);q+=.7*vec3(fbm(q*.6),fbm(q*.6+4.1),fbm(q*.6+8.3));float n=fbm(q*1.25);
+    float lat=p.y,wt=max(exp(-pow(lat/.16,2.)),exp(-pow((abs(lat)-.8)/.15,2.)));float t=.6-.15*wt;
+    return max(texture2D(cloudMap,uv).a*hasMaps,smoothstep(t,t+.16,n)*.42);}
+  float band(float e,float v){float w=fwidth(v)*.75+.004;return smoothstep(e-w,e+w,v);}`;
+const earthSurf=new THREE.Mesh(new THREE.SphereGeometry(1,96,64),new THREE.ShaderMaterial({uniforms:EU,vertexShader:EV,fragmentShader:EHEAD+`
+  void main(){
+  #include <logdepthbuf_fragment>
+    vec3 n=normalize(vN);float ndl=dot(n,sunW);vec3 col;
+    if(hasMaps>.5){vec3 d=texture2D(dayMap,vUv).rgb;float sea=band(.5,texture2D(seaMap,vUv).r),lum=dot(d,vec3(.3,.59,.11));
+      float sat=max(d.r,max(d.g,d.b))-min(d.r,min(d.g,d.b)),lat=abs(vUv.y-.5)*2.;vec3 L=mix(land,dry,band(.06,d.r-d.g*.92));L=mix(L,ice,max(band(.72,lat)*band(.45,lum),band(.7,lum)*(1.-band(.14,sat))));
+      vec3 S=mix(ocean,shallow,band(.2,lum));S=mix(S,ice,band(.93,lat));col=mix(L,S,sea);}
+    else{float q=sin(vUv.x*31.4+sin(vUv.y*9.)*2.)*sin(vUv.y*15.7+sin(vUv.x*12.)*1.5);col=mix(ocean,land,band(.3,q));}
+    col*=1.-.24*smoothstep(.06,.2,cl(vUv+vec2(drift+.0035,-.003),vP+vec3(.004,-.004,0.)));
+    float day=band(0.,ndl),sh=mix(.82,1.,band(.28,ndl));vec3 c=mix(mix(col,night,.84),col*sh,day);
+    float fr=pow(1.-max(0.,dot(n,normalize(vV))),2.6);c=mix(c,rim,fr*.8*smoothstep(-.15,.35,ndl));
+    gl_FragColor=vec4(c,1.);}`}));
+const earthCloud=new THREE.Mesh(new THREE.SphereGeometry(1.012,96,64),new THREE.ShaderMaterial({uniforms:EU,vertexShader:EV,transparent:true,depthWrite:false,fragmentShader:EHEAD+`
+  void main(){
+  #include <logdepthbuf_fragment>
+    vec3 n=normalize(vN);float ndl=dot(n,sunW),v=cl(vUv+vec2(drift,0.),vP),thin=smoothstep(.03,.15,v),thick=band(.22,v); // the cloud map keeps most cover below .3
+    vec3 c=mix(cloudLo,vec3(1.),thick)*mix(.82,1.,band(.28,ndl));float day=band(0.,ndl);c=mix(night*1.6,c,day);
+    gl_FragColor=vec4(c,(thin*.6+thick*.4)*mix(.35,1.,day));}`}));
+const earthHalo=new THREE.Mesh(new THREE.SphereGeometry(1.07,64,32),new THREE.ShaderMaterial({uniforms:EU,vertexShader:EV,transparent:true,depthWrite:false,side:THREE.BackSide,blending:THREE.AdditiveBlending,fragmentShader:EHEAD+`
+  void main(){
+  #include <logdepthbuf_fragment>
+    vec3 n=normalize(vN);float f=pow(clamp(abs(dot(n,normalize(vV)))/.36,0.,1.),1.6);
+    gl_FragColor=vec4(rim*f*.55*smoothstep(-.3,.4,dot(n,sunW)),1.);}`}));
+{const D=150000,r=D*Math.tan(.95*D2R);earth.position.copy(EARTH_W).multiplyScalar(D);earth.scale.setScalar(r);earth.rotation.z=.2;
+  earthSurf.rotation.y=-1.95;earthSurf.add(earthCloud);earth.add(earthSurf,earthHalo);scene.add(earth)}
 
 /* ---------------- outlines: ridge crest, Shackleton rim, ice craters ---------------- */
 const lines=new THREE.Group();scene.add(lines);
@@ -322,7 +465,7 @@ const CAMS={
   sky:{pos:W(-16,8,-262),tgt:W(-16+EARTH_D[0]*3000,8+EARTH_D[1]*3000+40,-262+EARTH_D[2]*3000),fov:26},
   base:{pos:W(-16,hT(-16,-262)+6,-262),tgt:W(1,4.2,0),fov:10.5},
   trip:{pos:W(-900,1100,-1500),tgt:W(450,-40,700),fov:34},
-  solar:{pos:W(-36,10,-52),tgt:W(-12.5,8.5,14),fov:30},hab:{pos:W(18,5.5,-42),tgt:W(2,3,-6),fov:28},shelter:{pos:W(-26,4.5,-30),tgt:W(-11,2,0),fov:30},
+  solar:{pos:W(-36,9,-52),tgt:W(-12.5,6.2,14),fov:30},hab:{pos:W(18,6,-42),tgt:W(2,4.2,-6),fov:28},shelter:{pos:W(-26,4.5,-30),tgt:W(-11,2,0),fov:30},
 };
 const controls=new OrbitControls(camera,renderer.domElement);controls.enableDamping=true;controls.dampingFactor=.08;controls.minDistance=20;controls.maxDistance=80000;controls.maxPolarAngle=Math.PI*.497;controls.autoRotateSpeed=.25;
 // crater-trip route + rover marker (shown on trip/event screens)
@@ -332,10 +475,10 @@ const route=new THREE.Group();scene.add(route);
   const rv=new THREE.Mesh(new THREE.SphereGeometry(14,20,12),new THREE.MeshBasicMaterial({color:'#ffd38a'}));rv.position.copy(pts[32]);route.add(rv)}
 // pins and 3D labels
 const SV=d=>`<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">${d}</svg>`;
-const PINS={hab:{p:W(2,7.5,-6),ic:SV('<rect x="2.5" y="8" width="19" height="9" rx="4.5" fill="currentColor" stroke="none"/><path d="M6 17v3M18 17v3"/>'),nm:'Habitat'},
-  shelter:{p:W(-11,5,0),ic:SV('<path d="M12 3l8 3v5c0 5-3.4 8.5-8 10-4.6-1.5-8-5-8-10V6z" fill="currentColor" stroke="none"/>'),nm:'Shelter'},
-  solar:{p:W(-12.5,14.5,14),ic:SV('<rect x="5" y="3" width="14" height="11" rx="1"/><path d="M5 8.5h14M12 3v11M12 14v7M8 21h8"/>'),nm:'Solar arrays'},
-  rover:{p:W(11,3.6,-9),ic:SV('<path d="M3 15l2-6h10l2 3h4v3z" fill="currentColor" stroke="none"/><circle cx="7" cy="17.5" r="2.2" fill="currentColor" stroke="none"/><circle cx="17" cy="17.5" r="2.2" fill="currentColor" stroke="none"/>'),nm:'Rover · crater trips'},
+const PINS={hab:{p:W(2,hM(2,-6)+8.2,-6),ic:SV('<rect x="2.5" y="8" width="19" height="9" rx="4.5" fill="currentColor" stroke="none"/><path d="M6 17v3M18 17v3"/>'),nm:'Habitat'},
+  shelter:{p:W(-11,hM(-11,0)+5,0),ic:SV('<path d="M12 3l8 3v5c0 5-3.4 8.5-8 10-4.6-1.5-8-5-8-10V6z" fill="currentColor" stroke="none"/>'),nm:'Shelter'},
+  solar:{p:W(-12.5,hM(-12.5,14)+11.6,14),ic:SV('<rect x="5" y="3" width="14" height="11" rx="1"/><path d="M5 8.5h14M12 3v11M12 14v7M8 21h8"/>'),nm:'Solar arrays'},
+  rover:{p:W(RV[0],hM(RV[0],RV[1])+4.4,RV[1]),ic:SV('<path d="M3 15l2-6h10l2 3h4v3z" fill="currentColor" stroke="none"/><circle cx="7" cy="17.5" r="2.2" fill="currentColor" stroke="none"/><circle cx="17" cy="17.5" r="2.2" fill="currentColor" stroke="none"/>'),nm:'Rover · crater trips'},
   earth:{p:W(-16+EARTH_D[0]*150000,EARTH_D[1]*150000-7000,-262+EARTH_D[2]*150000),ic:SV('<path d="M4 9a10 10 0 0 0 11 11z" fill="currentColor" stroke="none"/><path d="M9.5 14.5 16 8M16 8a3 3 0 0 1 3 3M16 4a7 7 0 0 1 7 7"/>'),nm:'Earth link'}};
 const L3={base:{p:()=>W(0,14,0),t:'YOUR BASE',s:'≈50 m across · to scale'},shack:{p:()=>W(SH.x-1500,hT(SH.x-1500,SH.z+SH.R*.8)+300,SH.z+SH.R*.8),t:'SHACKLETON CRATER',s:'21 km wide · 4 km deep'},
   ridge:{p:()=>W(0,hT(0,-4200)+20,-4200),t:'CONNECTING RIDGE',s:'high ground · sunlit most of the time',warm:1},ice:{p:()=>W(-750,hT(-750,1300)+30,1300),t:'DARK CRATERS · ice?',s:'never sunlit · 1–2 km away'},
@@ -543,21 +686,23 @@ let REDUCE=matchMedia('(prefers-reduced-motion: reduce)').matches;
 const nav=document.getElementById('nav');const groups=[...new Set(SCREENS.map(s=>s.g))];
 nav.innerHTML=groups.map(g=>`<div class="navrow"><span class="g">${g}</span>${SCREENS.filter(s=>s.g===g).map(s=>`<button data-id="${s.id}">${s.name}</button>`).join('')}</div>`).join('');
 nav.addEventListener('click',e=>{const b=e.target.closest('button');if(b)go(b.dataset.id)});
-stage.addEventListener('click',e=>{const tg=e.target.closest('[data-toggle]');if(tg){REDUCE=!REDUCE;go(cur.id,true);return}const t=e.target.closest('[data-go]');if(t)go(t.dataset.go)});
+stage.addEventListener('click',e=>{if(e.target.closest('[data-reset]')){flyTo(CAMS[cur.cam]);return}const tg=e.target.closest('[data-toggle]');if(tg){REDUCE=!REDUCE;go(cur.id,true);return}const t=e.target.closest('[data-go]');if(t)go(t.dataset.go)});
 stage.addEventListener('keydown',e=>{if(e.key!=='Enter'&&e.key!==' ')return;const t=e.target.closest('[data-go],[data-toggle]');if(!t)return;e.preventDefault();t.click()});
 document.getElementById('prev').onclick=()=>{const i=SCREENS.findIndex(s=>s.id===cur.id);go(SCREENS[(i-1+SCREENS.length)%SCREENS.length].id)};
 document.getElementById('next').onclick=()=>{const i=SCREENS.findIndex(s=>s.id===cur.id);go(SCREENS[(i+1)%SCREENS.length].id)};
 
 let cur=null,anim=null,lightMode=null;
-function setLight(m){if(m===lightMode)return;lightMode=m;const L=LIGHT[m],up=m==='sun';terrainMat.uniforms.sunD.value.set(...L);sun.position.copy(W(L[0]*1500,L[1]*1500,L[2]*1500));sun.target.position.set(0,0,0);sun.intensity=up?2.1:0;hemi.intensity=up?.75:.35;lamps.forEach(l=>l.intensity=up?30:160)}
+function setLight(m){if(m===lightMode)return;lightMode=m;const L=LIGHT[m],up=m==='sun';terrainMat.uniforms.sunD.value.set(...L);sun.position.copy(W(L[0]*1500,L[1]*1500,L[2]*1500));sun.target.position.set(0,0,0);sun.intensity=up?2.1:0;hemi.intensity=up?.75:.35;lamps.forEach(l=>l.intensity=up?0:40)}
+function flyTo(C,instant){
+  if(REDUCE&&!instant){if(camera.position.distanceTo(C.pos)>1||controls.target.distanceTo(C.tgt)>1){const fd=document.getElementById('fade');fd.style.opacity=1;anim=null;setTimeout(()=>{camera.position.copy(C.pos);controls.target.copy(C.tgt);camera.fov=C.fov;camera.updateProjectionMatrix();fd.style.opacity=0},300)}}
+  else if(instant){anim=null;camera.position.copy(C.pos);controls.target.copy(C.tgt);camera.fov=C.fov;camera.updateProjectionMatrix()}
+  else{const far=Math.max(camera.position.distanceTo(C.pos),controls.target.distanceTo(C.tgt));anim={t0:performance.now(),dur:far<50?Math.max(450,far*12):Math.min(2200,900+far*.05),p0:camera.position.clone(),q0:controls.target.clone(),f0:camera.fov,C,arc:Math.min(1500,far*.08)}}}
 function go(id,instant){const S=SCREENS.find(s=>s.id===id);cur=S;
   nav.querySelectorAll('button').forEach(b=>b.classList.toggle('on',b.dataset.id===id));document.getElementById('note').innerHTML=S.note;
-  setLight(S.dark?'dark':'sun');lines.visible=!!S.lines;route.visible=!!S.route;scene.traverse(o=>{if(o.isSprite)o.visible=!S.dark;if(o.material&&o.material.isShadowMaterial)o.visible=['base','solar','hab','shelter','sky'].includes(S.cam)});
+  setLight(S.dark?'dark':'sun');lines.visible=!!S.lines;route.visible=!!S.route;scene.traverse(o=>{if(o.isSprite||o.userData.earth)o.visible=!S.dark;if(o.material&&o.material.isShadowMaterial)o.visible=['base','solar','hab','shelter','sky'].includes(S.cam)});
   const C=CAMS[S.cam];controls.autoRotate=!!C.orbit&&!REDUCE;frame.classList.toggle('rm',REDUCE);
-  if(REDUCE&&!instant&&camera.position.distanceTo(C.pos)>1){const fd=document.getElementById('fade');fd.style.opacity=1;anim=null;setTimeout(()=>{camera.position.copy(C.pos);controls.target.copy(C.tgt);camera.fov=C.fov;camera.updateProjectionMatrix();fd.style.opacity=0},300)}
-  else if(instant){camera.position.copy(C.pos);controls.target.copy(C.tgt);camera.fov=C.fov;camera.updateProjectionMatrix()}
-  else if(!anim||anim.C!==C){const far=camera.position.distanceTo(C.pos);anim={t0:performance.now(),dur:far<50?10:Math.min(2200,900+far*.05),p0:camera.position.clone(),q0:controls.target.clone(),f0:camera.fov,C,arc:Math.min(1500,far*.08)}}
-  let h='';if(S.art)h+=`<div class="artl" role="img" aria-label="Illustration: ${S.name}">${S.art()}</div>`;if(S.dim)h+='<div class="dim"></div>';
+  if(instant||REDUCE||!anim||anim.C!==C)flyTo(C,instant);
+  let h=S.art?'':`<button class="ui reset" data-reset aria-label="Reset camera view"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M4.5 12a7.5 7.5 0 1 0 2.2-5.3"/><path d="M4 4v4.5h4.5"/><circle cx="12" cy="12" r="1.6" fill="currentColor" stroke="none"/></svg>Reset view</button>`;if(S.art)h+=`<div class="artl" role="img" aria-label="Illustration: ${S.name}">${S.art()}</div>`;if(S.dim)h+='<div class="dim"></div>';
   if(S.pins)for(const [k,p] of Object.entries(PINS))if(!(S.dark&&k==='earth'))h+=`<div class="pin ${S.sel===k?'sel':''} ${S.ring===k?'ring':''} ${S.id==='tutorial'&&!['hab','shelter'].includes(k)?'faded':''} click" data-pin="${k}" data-go="${k==='shelter'?'jobs':S.id}"><div class="o">${p.ic}</div><div class="stem"></div>${S.sel===k||S.ring===k?`<div class="nm">${p.nm}</div>`:''}</div>`;
   for(const k of (S.labs||[]))h+=`<div class="lab3 ${L3[k].warm?'warm':''}" data-lab="${k}"><div class="box"><div class="t">${L3[k].t}</div><div class="s">${L3[k].s}</div></div><div class="stem"></div><div class="dt"></div></div>`;
   stage.innerHTML=h+S.html();iconize(stage);a11y(stage);renderer.domElement.setAttribute('aria-hidden','true');}
@@ -571,7 +716,9 @@ const ease=t=>t<.5?4*t*t*t:1-Math.pow(-2*t+2,3)/2,v3=new THREE.Vector3();
 const toStage=p=>{v3.copy(p).project(camera);return v3.z>1?null:[(v3.x+1)/2*1280,(1-v3.y)/2*720]};
 function tick(now){
   if(anim){const t=Math.min(1,(now-anim.t0)/anim.dur),k=ease(t);camera.position.lerpVectors(anim.p0,anim.C.pos,k);camera.position.y+=Math.sin(k*Math.PI)*anim.arc;controls.target.lerpVectors(anim.q0,anim.C.tgt,k);camera.fov=anim.f0+(anim.C.fov-anim.f0)*k;camera.updateProjectionMatrix();if(t>=1)anim=null}
+  const dt=Math.min(.1,(now-(tick.t||now))/1000);tick.t=now;if(!REDUCE){earthSurf.rotation.y+=dt*.035;EU.drift.value+=dt*.0025}
   controls.update();if(!cur.art)composer.render();
+  const rb=stage.querySelector('[data-reset]');if(rb){const C=CAMS[cur.cam],tol=C.pos.distanceTo(C.tgt)*.02+.5;rb.classList.toggle('show',!anim&&(camera.position.distanceTo(C.pos)>tol||controls.target.distanceTo(C.tgt)>tol))}
   stage.querySelectorAll('[data-pin]').forEach(el=>{const s=toStage(PINS[el.dataset.pin].p);if(!s){el.style.display='none';return}el.style.display='flex';el.style.left=s[0]+'px';el.style.top=s[1]+'px'});
   stage.querySelectorAll('[data-lab]').forEach(el=>{const s=toStage(L3[el.dataset.lab].p());if(!s||s[0]<0||s[0]>1280||s[1]<0||s[1]>720){el.style.display='none';return}el.style.display='block';el.style.left=s[0]+'px';el.style.top=s[1]+'px'});
   stage.querySelectorAll('[data-anchor]').forEach(el=>{const s=toStage(PINS[el.dataset.anchor].p);if(!s)return;el.style.left=Math.max(10,Math.min(1280-340,s[0]+ +el.dataset.dx))+'px';el.style.top=Math.max(10,s[1]+ +el.dataset.dy)+'px'});

@@ -118,3 +118,5 @@ Purple is OK on the title and story screens if it suits the space theme (Bea, 20
 Bea likes B's art style but not the slice, and wants no Mars on the title yet. New drafts in `ideas/ui-mockups/title-drafts-b.html`:
 - **B1 Moon Horizon (recommended):** Moon's curve with the camera over the pole, low Sun on the horizon, Shackleton's dark floor with an ice "?", base as a glowing marker on the sunny ridge.
 - **B2 Half Moon + Zoom:** whole half-lit Moon, south pole marked on the light/dark line, round zoom bubble shows the base beside the dark crater.
+
+**Chosen (2026-11-15): B1 Moon Horizon → D-033.** Crater label now reads "inside is always in shadow" (F75).

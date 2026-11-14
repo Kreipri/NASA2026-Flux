@@ -23,6 +23,15 @@ Status: `decided` | `proposed` | `open` | `superseded`
 
 ---
 
+## D-033: Title screen is B1, Moon Horizon
+**Status:** decided (Bea, 2026-11-15)
+- Flat vector storybook style: rounded gradient logo, purple nebula sky, soft glow and twinkle (uses the title/story purple exception under D-023).
+- Scene: the Moon's curve seen from above the south pole. The Sun sits on the horizon (F07). Shackleton Crater's inside is in shadow (F75), with the ice shown only as a "?" sparkle. The base is a glowing marker on the sunny ridge, labeled "Your base" and not to scale.
+- UI: logo + "Junior Astronaut Training", a "The Moon · South Pole" chip, one "Start mission" button, Settings, "Real NASA data · Sources". **No Mars on the title yet.**
+- The logo text is a placeholder until the game name is picked (`ideas/title-drafts-v1.md`).
+- **Layout (Bea's sketch, 2026-11-15):** name top-left, 3 stacked menu buttons under it (Start mission / Real NASA data / Settings), base large on the right on the horizon, rover trail winding to the bottom-right. Mockup uses "Space Base Commander" from the sketch. Built in `ideas/ui-mockups/scenes-start-v1.html`.
+- Mockup: `ideas/ui-mockups/title-drafts-b.html` (B1). Notes: `ideas/title-screen-drafts-v1.md`.
+
 ## D-028: 7-week mission (1 turn = 1 week, alert days zoom in)
 **Status:** decided (Bea, 2026-11-15). Supersedes D-020's 7-day `week` default once the engine is updated. Timeline and beats: `ideas/timeline-7-weeks-v1.md`. 49 days fits NASA's base concept (~1-2 months, F27). Needs an engine rescale, a new timeline and a sim rerun. Details in `ideas/objective-v1.md` v1.1.
 
