@@ -10,6 +10,7 @@ Prototyping. A playable **terminal prototype** exists (`npm run play`, 7-day mis
 ## What's Decided (details in `DECISIONS.md`)
 - **Game:** kid-friendly (ages 7-12) survival resource-management game, browser-based, outpost management only (no launch/landing gameplay).
 - **Characters (D-024–D-026):** human player-commander, possible future customization. **Curio is the helper AI, separate from the field rover.** Current draft: `ideas/character-concepts-v3.md`, proposing an on-screen Curiosity-inspired avatar + Bram (dog), Remy (rabbit), Mica (squirrel monkey), with subtle optional animal-history tributes. Species/names/visuals unapproved. Professions are backgrounds with overlapping duties, not a required NASA crew composition.
+- **Character art (D-029):** Bea requested child-friendly vector clip-art style. First generated concept sheet: `ideas/character-designs/crew-sheet-v1.png`; exact prompt and review notes beside it. Includes an example human commander. PNG concept art; individual designs remain unapproved.
 - **Setting:** real place, the **Shackleton Connecting Ridge** near the lunar south pole. Sunlit most of the year with short eclipses; permanently shadowed, extremely cold craters nearby where ice may exist (uncertain). Moon first, Mars later via a site config file (D-005, D-006, D-010).
 - **Teaching goal:** "Light is a resource. Where you work decides your power, cold, and radiation risk."
 - **Meters:** Power, Oxygen, Dose budget (radiation), and crew **Stamina** (sets daily crew time). The Science points meter was replaced by the on-screen report card (D-019).
@@ -29,7 +30,8 @@ Prototyping. A playable **terminal prototype** exists (`npm run play`, 7-day mis
 |---|---|
 | `CONTEXT.md` | Challenge brief, data-source links, judging lens |
 | `MILESTONES.md` | Hackathon goals, milestones, and the **submission checklist** (current focus) |
-| `DECISIONS.md` | Every decision (through D-026) and the open-questions list |
+| `DECISIONS.md` | Every decision (through D-029) and the open-questions list |
+| `ideas/character-designs/` | **Current: `chibi-v4/`** outfit + suit options (rec role gear + visor helmet) and `mica-options.svg`: squirrel monkey rejected, choosing tortoise / cat (rec) / simple monkey; `curio-options.svg`: Curio as a small robot with a Curiosity-style head (wheels / wheel-feet (rec) / legs). All awaiting Bea's pick. **`figma-export/`**: 54 per-character SVGs with named layers for drag-and-drop into Figma (no Figma connector in this setup). `chibi-v3/` (D-030): small cute crew SVG sheet (inside / outside / feelings rows) from `build.mjs`, preview PNG in `preview/`. `vector-v2/` (rejected styles) and sheet v1 PNG are history |
 | `ideas/character-concepts-v3.md` | **Current character proposal:** Curio as helper AI (separate field rover), Bram/Remy/Mica astronaut drafts; v2 retains verified rover/history/profession research |
 | `ideas/story-and-core-loop-v1.md` | Story, characters (fiction), turn loop, 14-action table, tutorial mockup |
 | `ideas/research-data-sources.md` | DONKI, RadLab, OSDR, Trek, CSA findings, with live-test results |
@@ -37,6 +39,12 @@ Prototyping. A playable **terminal prototype** exists (`npm run play`, 7-day mis
 | `ideas/ui-mockups/title-drafts-b.html` | **Current title direction:** B's style on a whole Moon. B1 Moon horizon over the south pole (rec), B2 half Moon + zoom bubble. No Mars on title |
 | `ideas/ui-mockups/title-drafts.html` | Visual mockups of title drafts A, B, C (SVG, no 3D) |
 | `ideas/title-screen-drafts-v1.md` | **Proposed** title screen: 5 drafts from Bea's "Space flux" Pinterest board (rec: A, Lamp on the Ridge) |
+| `ideas/storyboard-start-end-v1.md` | **Proposed** storyboard: game start (title → prelude → briefing → 3D tour → week 1) and ending (Earth rises → your story → stamp → next crew → lesson → Mars → debrief) |
+| `ideas/story-script-v2.md` | **For Bea to finalize:** the story script with simple words, SHOW lines, tappable words, the Mission Control/Curio split (D-031) and the sourced ending (base stays, F69). Replaces v1 |
+| `ideas/title-drafts-v1.md` | Title options (rec: "First Crew: Moon Base") |
+| `ideas/storyline-v2.md` | **Story text source** (proposed final copy): prelude, briefing, Curio tour, 7 weekly beats with crew lines, storm templates, ending, Ask Curio |
+| `ideas/gameplay-changes-7-weeks.md` | **Build spec** for the 7-week engine changes (for the next agent or collaborator) |
+| `ideas/timeline-7-weeks-v1.md` | **D-028** 7-week timeline: Earth up/down cycle, long shadow, 4 storm slots from the real deck, week beats, tasks |
 | `ideas/objective-v1.md` | **Proposed** main objective reconciling brief + NASA reasons + kids; simulator wrapper question open |
 | `ideas/fact-sources.md` | **Fact registry**: every fact shown in game, with kid wording, source link, badge, status. No row = doesn't ship |
 | `ideas/real-events-deck.md` | **Proposed** 7 real storms (checked live) + real eclipse + quake/impact events |
@@ -76,14 +84,15 @@ Prototyping. A playable **terminal prototype** exists (`npm run play`, 7-day mis
 - **Numbers are tuned by bots, not kids.** `npm run sim` (planner / careful / greedy / reckless / idle / random) must keep the split in `ideas/balance-pass-v2.md` (planner ~81% approved, careless styles 0%). Rerun it after any change to `src/config/*.json`.
 - Most OSDR studies are **mice or cells, not astronauts**. Label honestly.
 - Moon Trek, OSDR terms, and OSDR keyword results are **still unverified** (JS-only pages).
-- **Two entries are numbered D-018** (attribution rule, and the engine/bot sim). Both were made in parallel by different agents; refer to them by title. Next new decision is D-027.
+- **Decision numbering:** D-018 remains duplicated (attribution / engine). Character decisions are D-024–D-026 and D-029; mission-fiction and seven-week decisions are D-027/D-028. Character art was explicitly renumbered from a colliding D-027 to D-029 at handoff. Next new decision is D-031 (D-030 = chibi character style).
 - **Character draft is not a locked cast:** v3 is current; Bram/Remy/Mica and species/tributes remain proposals. Curio's helper-only role is confirmed. Do not apply v2's physical rover/recharge/sampling discussion to Curio. Its proposed rover-shaped avatar is fictional; field equipment stays separate. Attribute Soviet/Army animal missions to their actual programs; NASA hosting a history page doesn't make the flight NASA's. Do not repeat StarChild's incorrect broad "first living creatures to return" claim.
 - **Crew accuracy:** F23 rechecked with NASA training/biography sources; M4 text now uses backgrounds and shared duties. Existing HTML still uses old role shorthand and needs alignment if/when UI edits are requested. No dedicated-doctor requirement or one-person-only job restrictions.
 - The user wants **light usage**: concise text, no subagents or big workflows unless asked, no Figma/HTML builds in ideation (see `CLAUDE.md`).
 
 ## Next Steps (suggested order)
-1. **Bea playtests the 7-day mission** in the terminal (`npm run play`, starts `week`). Read `.run/playlog.txt` + her `note` lines, tune `src/config/moon.json`, rerun `npm run sim`.
-2. **Review the cast draft:** `ideas/character-concepts-v3.md` (Curio helper avatar + Bram/Remy/Mica). Curio is not the field rover. Settle species/names/visual treatment and optional tributes; preserve the verified background/duty distinction. Human commander confirmed; customization later if time permits.
+1. **Build the 7-week mission (D-028)** from the spec `ideas/gameplay-changes-7-weeks.md` (12 must-dos: weekly turns, alert days, Earth cycle, real storm deck, new tasks, per-draw sim, key-moment log). Assigned to another agent or Bea's collaborator. The old 7-day playtest step is retired.
+1b. **Storyline (Bea + agent):** finalize in `ideas/storyline-v2.md`; the engine pulls its copy from there.
+2. **Review the first character sheet:** `ideas/character-designs/crew-sheet-v1.png` against `ideas/character-concepts-v3.md`. Curio is the helper avatar, not field equipment; human commander is an example appearance. Settle species/names/proportions and optional tributes before production assets. User chose vector clip-art style; exact designs await feedback.
 3. **Web UI** (D-016): Vite + React skin over the same engine. Ask Bea first.
 4. **Data plan:** bundle more archived storms so the second storm can be real (ARCHIVE) instead of SIMULATED.
 5. Write the short **datasets explanation** for judges.
@@ -116,7 +125,17 @@ src/data/      Trimmed May 2024 storm data (built by scripts/build-storm-data.ts
 Add `docs/` for the judges' write-up.
 
 ## Session Log
-- 2026-11-15 (Objective v1.1, Opus 5.5): D-024 (real to characters, fiction compresses facts; ice = survey). Proposed 7 weeks with weekly turns + alert days. Added F29, F60-F62 (ice purposes, astronaut routine).
+- 2026-11-15 (Difficulty split, Opus 5.5): D-032 decided: call home + false alarm in Solar max only; power at zero = power-saving mode. Updated the spec, timeline and script week 5. Title "Space Base Commander" checked: no exact clash.
+- 2026-11-15 (Gameplay adjustments, Opus 5.5): Added story-driven must-dos #13-20 to `gameplay-changes-7-weeks.md` (speaker per line, alert choice effects, call home, forecast data, cue ids, ending inputs). Called-home copy fixed: the engine ends on oxygen or dose; power at zero = emergency mode. "Space Commander" title checked: taken.
+- 2026-11-15 (Story script v2, Opus 5.5): Simplified the language (rules: show first, ≤12 words a sentence, tappable words). Checked NASA: the base habitat stays on the Moon between crews (F69). Mission Control's real jobs (F70, F71) → D-031 proposed voice split. Added F69-F74 and title drafts.
+- 2026-11-15 (Story script, Opus 5.5): Wrote `ideas/story-script-v1.md`, the full story and ending in reading order for Bea to finalize. Briefing voice moved to Mission Control; called-home ending written. No new facts.
+- 2026-11-15 (Storyboard + sources, Opus 5.5): Wrote `ideas/storyboard-start-end-v1.md`. Sourced every unsourced line (F63-F68: rock ages, dinosaurs, vertical panels, Apollo samples, SRAG advice, dust on panels). Ending = next crew arrives. Rule saved: always find a source, never just flag.
+- 2026-11-15 (Agent-switch checkpoint, Codex): Verified character sheet PNG, exact prompt, README, v3 character brief, decisions, and handoff are saved locally. Last visual is the first proposal awaiting Bea's feedback; Curio is a helper avatar, separate from field equipment. No new commit or push made for the art. Renumbered this session's character-art decision to D-029 to resolve a new D-027 collision without changing another session's decisions.
+- 2026-11-15 (Storyline v2, Opus 5.5): Wrote the final copy draft `ideas/storyline-v2.md` with the v3 cast (Curio, Bram, Remy, Mica) and 7 weeks. Renumbered my clashing decisions to D-027/D-028. Open: Mica's dinosaur line needs a source; ending crew-swap vs fly home.
+- 2026-11-15 (Character design sheet, Codex): Bea requested vector clip-art character designs (D-029, originally logged as D-027). Generated and visually reviewed `ideas/character-designs/crew-sheet-v1.png` with the built-in image tool; saved exact prompt and README. Curio in helper panel, Bram/Remy/Mica astronauts, sample human commander. First proposal only; PNG, no editable SVG or UI/engine integration.
+- 2026-11-15 (Build spec, Opus 5.5): Wrote `ideas/gameplay-changes-7-weeks.md` for whoever builds D-028. Focus now: finalizing the storyline.
+- 2026-11-15 (7 weeks, Opus 5.5): Bea approved D-028 (renumbered from a clashing D-025). Wrote `ideas/timeline-7-weeks-v1.md` (weekly turns, alert days, 2 Earth blackouts, long shadow week 4, eclipse week 5, 4 storm slots, new task goals). Engine/CLI still run the 7-day `week`; rescale + sim not started.
+- 2026-11-15 (Objective v1.1, Opus 5.5): D-027 (renumbered from a clashing D-024; real to characters, fiction compresses facts; ice = survey). Proposed 7 weeks with weekly turns + alert days. Added F29, F60-F62 (ice purposes, astronaut routine).
 - 2026-11-15 (Cast draft v3, Codex): Bea clarified Curio is the helper AI, not the exploration rover (D-026). Saved current profiles for Curio + Bram (dog/base systems), Remy (rabbit/crew health), Mica (squirrel monkey/exploring). Marked v2 physical-Curio concept as earlier exploration; proposed optional dog/Baker tributes. No art, UI, or gameplay changes.
 - 2026-11-15 (Objective, Opus 5.5): Reconciled the main objective in `ideas/objective-v1.md` (first crew in the new base, 1 week, 4 tests = NASA's reasons). Wrapper (simulator vs straight mission) awaits Bea. Added F28.
 - 2026-11-15 (Character follow-up, Codex): Bea prefers a familiar rover spinoff with a backstory and is considering animal-history Easter eggs. Saved v2 (Curiosity recommended; quiet tributes; no locked cast), verified NASA sources, corrected M4/F23's profession-vs-duty framing, logged D-025. Curiosity's non-solar power is a material design distinction. No art, HTML, or gameplay changes.

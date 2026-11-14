@@ -1,0 +1,30 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 240" width="200" height="240"><g id="mica-cat-clothes-hoodie"><g id="tail"><path d="M126 196 Q174 202 170 160 Q166 132 150 140" stroke="#2F2E3B" stroke-width="11" fill="none" stroke-linecap="round"/><circle cx="150" cy="140" r="6" fill="#fff"/></g><g id="hood"><ellipse cx="100" cy="150" rx="40" ry="15" fill="#23935F" /></g><g id="legs">
+    <rect x="80" y="190" width="16" height="28" rx="8" fill="#FFFFFF"/>
+    <rect x="80" y="188" width="16" height="13" rx="8" fill="#5B6B8C"/>
+    <rect x="80" y="208" width="16" height="9" rx="3" fill="#fff"/>
+    <ellipse cx="87" cy="220" rx="11.5" ry="7" fill="#fff" /><rect x="76" y="222" width="23" height="4" rx="2" fill="#2A3A66"/>
+    <rect x="104" y="190" width="16" height="28" rx="8" fill="#FFFFFF"/>
+    <rect x="104" y="188" width="16" height="13" rx="8" fill="#5B6B8C"/>
+    <rect x="104" y="208" width="16" height="9" rx="3" fill="#fff"/>
+    <ellipse cx="113" cy="220" rx="11.5" ry="7" fill="#fff" /><rect x="102" y="222" width="23" height="4" rx="2" fill="#2A3A66"/></g><g id="body"><g fill="#34B97C"><rect x="68" y="140" width="64" height="66" rx="27"/></g><clipPath id="t73"><rect x="68" y="140" width="64" height="66" rx="27"/></clipPath><g clip-path="url(#t73)"><rect x="60" y="196" width="80" height="12" fill="#23935F"/></g>
+        <rect x="82" y="178" width="36" height="15" rx="7" fill="#23935F"/>
+        <path d="M93 154 L92 170" stroke="#fff" stroke-width="2.4" fill="none" stroke-linecap="round" stroke-linejoin="round"/><path d="M107 154 L108 170" stroke="#fff" stroke-width="2.4" fill="none" stroke-linecap="round" stroke-linejoin="round"/></g><g id="head">
+      <path d="M58 96 L56 52 L90 74Z" fill="#2F2E3B"/><path d="M142 96 L144 52 L110 74Z" fill="#2F2E3B"/>
+      <path d="M63 86 L62 62 L82 76Z" fill="#FFAFC0"/><path d="M137 86 L138 62 L118 76Z" fill="#FFAFC0"/>
+      <ellipse cx="100" cy="110" rx="48" ry="42" fill="#2F2E3B" />
+      <path d="M96 70 Q100 66 104 70 L112 110 Q100 106 88 110Z" fill="#FFFFFF"/>
+      <ellipse cx="89" cy="128" rx="15" ry="12" fill="#FFFFFF" /><ellipse cx="111" cy="128" rx="15" ry="12" fill="#FFFFFF" /><ellipse cx="100" cy="138" rx="12" ry="9" fill="#FFFFFF" />
+      <ellipse cx="81" cy="108" rx="7" ry="8" fill="#CFE87A" /><ellipse cx="81" cy="109" rx="3.6" ry="5.5" fill="#2B1F1A" /><circle cx="83" cy="105" r="1.6" fill="#fff"/><ellipse cx="119" cy="108" rx="7" ry="8" fill="#CFE87A" /><ellipse cx="119" cy="109" rx="3.6" ry="5.5" fill="#2B1F1A" /><circle cx="121" cy="105" r="1.6" fill="#fff"/>
+      <ellipse cx="68" cy="124" rx="7" ry="4.5" fill="#FF8FA0" opacity=".6"/><ellipse cx="132" cy="124" rx="7" ry="4.5" fill="#FF8FA0" opacity=".6"/>
+      <path d="M95 121 h10 q-1.5 5 -5 6 q-3.5 -1 -5 -6Z" fill="#FF8FA6"/><path d="M93 130 Q96.5 135 100 130 Q103.5 135 107 130" stroke="#2B1F1A" stroke-width="2.6" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+      <path d="M60 128 h-14 M61 134 l-13 4 M140 128 h14 M139 134 l13 4" stroke="#C9C9D3" stroke-width="1.8" fill="none" stroke-linecap="round" stroke-linejoin="round"/></g><g id="arms"><g transform="translate(75,160) rotate(16)">
+    <rect x="-8.5" y="-6" width="17" height="32" rx="8.5" fill="#FFFFFF"/>
+    <rect x="-9" y="-6" width="18" height="32" rx="9" fill="#34B97C" />
+    
+    <rect x="-9" y="22" width="18" height="6" rx="3" fill="#23935F"/>
+    <circle cx="0" cy="26" r="8.5" fill="#FFFFFF"/></g><g transform="translate(125,160) rotate(-16)">
+    <rect x="-8.5" y="-6" width="17" height="32" rx="8.5" fill="#FFFFFF"/>
+    <rect x="-9" y="-6" width="18" height="32" rx="9" fill="#34B97C" />
+    
+    <rect x="-9" y="22" width="18" height="6" rx="3" fill="#23935F"/>
+    <circle cx="0" cy="26" r="8.5" fill="#FFFFFF"/></g></g></g></svg>

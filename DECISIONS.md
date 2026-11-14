@@ -23,6 +23,35 @@ Status: `decided` | `proposed` | `open` | `superseded`
 
 ---
 
+## D-028: 7-week mission (1 turn = 1 week, alert days zoom in)
+**Status:** decided (Bea, 2026-11-15). Supersedes D-020's 7-day `week` default once the engine is updated. Timeline and beats: `ideas/timeline-7-weeks-v1.md`. 49 days fits NASA's base concept (~1-2 months, F27). Needs an engine rescale, a new timeline and a sim rerun. Details in `ideas/objective-v1.md` v1.1.
+
+## D-027: Mission is real to the characters; fiction only compresses facts
+**Status:** decided (Bea, 2026-11-15)
+- In-world, the commander and crew are on a real mission (not a simulator). Only the player knows it's a game. Fiction compresses real facts into one mission. Real past storms are made honest by their ARCHIVE badge and source card (real date), not by the story.
+- Ice purpose = **survey** (where is water, could future crews use it), not use. Matches D-020 and `ice-science-check.md`.
+
+## D-032: Call home + false alarm are harder-mode only; power at zero = power-saving mode
+**Status:** decided (Bea, 2026-11-15). The `call` job and the Feb 2024 false-alarm storm only appear in **Solar max** (harder mode). In normal mode, storm slot 3 draws a small or medium real storm, and in week 5 Remy asks for check-ups and exercise instead. Running out of power never ends the mission: the base goes into power-saving (emergency) mode, as the engine already does. Only air or radiation dose can end a run ("crew called home"). Files: `gameplay-changes-7-weeks.md` #6, #9, #12, #15, #17, #18 · `story-script-v2.md` week 5 · `timeline-7-weeks-v1.md` §3.
+
+## D-031: Who talks when: Mission Control briefs and warns, Curio teaches and fills gaps
+**Status:** proposed (Bea leaning this way, 2026-11-15). **Mission Control** does its real jobs (F70, F71, F67): weekly briefs (the plan), storm and system warnings when Earth is up, giving the mission, calling the crew home. **Curio** fills the gaps: intro and tour (tutorial), "why" answers, word pop-ups, onboard alarms and "the plan Mission Control left" when Earth is down, week summaries, "Your story". Curio suggests and never gives orders. Script: `ideas/story-script-v2.md` §1. Also adopted there: the base stays on the Moon after the crew leaves (F69); the ending shows the crew lifting off, Curio keeping the base running, and the next crew landing later (no crew overlap shown).
+
+## D-030: Character style is small and cute (chibi); vector-v2 styles rejected
+**Status:** decided (Bea, 2026-11-15: "ew i dont like that art style. i want cuter smaller characters", with 4 reference images: a screen-faced robot mascot set and a children's character sheet of a fox, duck and hedgehog).
+- Take the *style traits* only, never the reference characters: head ~60% of height, tiny stub body and limbs, dot eyes, blush, no outlines, bright flat fills, one darker tone, an expression set.
+- Draft: `ideas/character-designs/chibi-v3/` (`crew-chibi.svg`, generator `build.mjs`, single files `chibi-<name>.svg`). Default look is indoors in a teal flight suit with no helmet; helmet + white suit for outside. Curio gets a pixel face on a screen-shaped camera head and stays inside its help panel when outside. Species/names unchanged and still proposed.
+- vector-v2 (A flat / B sticker / C badges) is history.
+- **v4 options (proposed):** `ideas/character-designs/chibi-v4/` redoes Mica and offers 3 out-of-suit outfits + 3 suits. Agent rec: role gear + visor helmet. Personal colours: Bram blue, Remy pink, Mica green, You orange.
+
+## D-029: Character art uses child-friendly vector clip-art style
+**Status:** decided (Bea's design-draft request, 2026-11-15); individual character designs remain proposed.
+- Renumbered from D-027 at the agent-switch checkpoint to avoid a collision with the separate mission-fiction decision; content unchanged.
+- Draft characters in a child-friendly vector clip-art style, consistent with the broader flat/vector direction. User explicitly authorized a visual design pass.
+- First proposal: `ideas/character-designs/crew-sheet-v1.png` (built-in image generation; vector-style PNG concept art, not an editable vector source). Exact prompt and review notes saved beside it.
+- Includes Curio inside a helper panel, Bram/Remy/Mica in shared suits, and one placeholder human commander. No final species, names, appearances, or production assets approved by this request; no UI/engine changes.
+- **Vector v2 (proposed, 2026-11-15):** real SVG versions in three styles in `ideas/character-designs/vector-v2/` (A flat, B sticker, C portrait badges). Agent recommends A for full-body art + C for dialogue/HUD. Style not chosen yet.
+
 ## D-026: Curio is the helper AI, separate from the exploration rover
 **Status:** decided (Bea's clarification, 2026-11-15).
 - Curio is the helper AI bot/companion, not the field rover deployed for mapping or samples. Replaces v2's physical-Curio/recharging/sampling concept. Existing exploration rover actions and costs remain separate.
@@ -42,14 +71,6 @@ Status: `decided` | `proposed` | `open` | `superseded`
 - Bea is leaning toward cute, friendly animal astronauts for the three specialists. Species and names are not decided.
 - Initial draft: `ideas/character-concepts-v1.md` (CADRE + beaver/rabbit/mole were agent proposals only). Current discussion: `ideas/character-concepts-v2.md`, following Bea's preference for a familiar rover's backstory and possible animal-history Easter eggs. Existing four-person crew and gameplay costs remain.
 
-## D-024: Mission is real to the characters; fiction only compresses facts
-**Status:** decided (Bea, 2026-11-15)
-- In-world, the commander and crew are on a real mission (not a simulator). Only the player knows it's a game. Fiction compresses real facts into one mission. Real past storms are made honest by their ARCHIVE badge and source card (real date), not by the story.
-- Ice purpose = **survey** (where is water, could future crews use it), not use. Matches D-020 and `ice-science-check.md`.
-
-## Proposed: 7 weeks (1 turn = 1 week, alert days zoom in)
-**Status:** proposed (2026-11-15; Bea suggested it, agent recommends it). 49 days fits NASA's base concept (~1-2 months, F27). Needs an engine rescale, a new timeline and a sim rerun. Details in `ideas/objective-v1.md` v1.1.
-
 ## Open: Main objective reconciled (brief + real NASA reasons + kids)
 **Status:** proposed (2026-11-15, Bea was unsure what the main objective is). Would supersede D-020's "prove this ridge" wording and refine the "Junior Astronaut" proposal.
 - `ideas/objective-v1.md`: "Be the first crew to live in the new Moon base. Keep everyone safe for a week, and prove the base does what it was built for." The 4 tests map to NASA's real reasons: living off Earth / testing for Mars (Light, Shelter), radiation research (Radiation), resources (Ice).
@@ -66,7 +87,7 @@ Status: `decided` | `proposed` | `open` | `superseded`
 - Also a real dated lunar eclipse (Mar 3 2026, ~58 min total) as a forecast power dip. Moonquakes and impact flashes go in as labelled game events based on NASA findings.
 - Risk: storm sizes range ~25x to ~1,600x. Scale the dose and check the sim win rate per storm.
 
-## Proposed: Storyline v1 (intro → in-game beats → personalized ending)
+## Proposed: Storyline v1 → v2 (final copy draft in `ideas/storyline-v2.md`; v1 is history)
 **Status:** proposed (2026-11-14, Bea asked for a text draft)
 - Draft: `ideas/storyline-v1.md`. Crew = 3 voices for the trade-off (Engineer/power, Doctor/dose, Geologist/ice). The intro storm card is replaced by a crew card, so the day 2 flare lands as a surprise.
 - In play: morning brief + 1 crew ask + 1 evening line a day. Days 2-4 teach with Mission Control's help; days 5-7 test without it (Earth blackout). Day 6 surprise storm is the climax.

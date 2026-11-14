@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 20 260 390" width="260" height="390"><rect x="20" y="140" width="220" height="244" rx="34" fill="#1F2B4A"/><path d="M50 168 h64 a18 18 0 0 1 18 18 v14 a18 18 0 0 1 -18 18 h-34 l-12 12 v-12 h-18 a18 18 0 0 1 -18 -18 v-14 a18 18 0 0 1 18 -18Z" fill="#FBF8F2"/>
+  <text x="82" y="210" text-anchor="middle" font-size="30" fill="#1F2B4A" font-family="Nunito, 'Arial Rounded MT Bold', 'Helvetica Rounded', system-ui, sans-serif" font-weight="800">?</text>
+  <rect x="166" y="248" width="9" height="50" rx="4" fill="#E1D6BF"/>
+  <g transform="rotate(-9 170 236)">
+    <rect x="128" y="208" width="84" height="44" rx="17" fill="#F5EFE2"/>
+    <rect x="136" y="214" width="68" height="32" rx="14" fill="#1F2B4A"/>
+    <circle cx="154" cy="230" r="11" fill="#2E9E95"/><circle cx="154" cy="230" r="5.5" fill="#18213A"/><circle cx="156.5" cy="227.5" r="2" fill="#fff"/>
+    <circle cx="186" cy="230" r="11" fill="#2E9E95"/><circle cx="186" cy="230" r="5.5" fill="#18213A"/><circle cx="188.5" cy="227.5" r="2" fill="#fff"/>
+  </g>
+  <rect x="62" y="292" width="132" height="46" rx="16" fill="#F5EFE2"/>
+  <rect x="62" y="318" width="132" height="20" rx="10" fill="#E1D6BF"/>
+  <rect x="148" y="302" width="34" height="9" rx="4.5" fill="#2E9E95"/>
+  <path d="M84 292 a10 10 0 0 1 20 0Z" fill="#F2A93B"/>
+  <circle cx="80" cy="346" r="18" fill="#18213A"/><circle cx="80" cy="346" r="7" fill="#F5EFE2"/><circle cx="128" cy="346" r="18" fill="#18213A"/><circle cx="128" cy="346" r="7" fill="#F5EFE2"/><circle cx="176" cy="346" r="18" fill="#18213A"/><circle cx="176" cy="346" r="7" fill="#F5EFE2"/></svg>

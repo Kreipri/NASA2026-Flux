@@ -1,3 +1,5 @@
+> **History.** Superseded by `storyline-v2.md` (final copy draft, 2026-11-15).
+
 # Storyline v1.1: prelude → mission briefing → play → ending (proposed, 2026-11-14)
 
 **Status:** draft for Bea's review. Builds on `experience-arc-v1.md` and the v6.2 story cards in `ui-mockups/all-screens.html`. Assumes the proposed Junior Astronaut framing (see DECISIONS, "Objective reframed"). Week timeline from D-020. Everything here is `[✎ Story]` unless it carries a NASA badge. **Every ✓ fact must have a row (F-ID) in `fact-sources.md`, which powers the tap-to-see source card.** Crew names, the mascot ("Base Bot") and the title are still placeholders.
@@ -41,7 +43,7 @@ Why: it answers the question kids actually ask ("didn't we already go?") and mak
 | M2 | Sun circling low around the horizon (animated) | "Here the Sun never rises high or sets. It **slides around the edge of the sky**. That means almost-endless **sunlight = power**." `[? Why?]` chip opens the tilt fact | ✓ NASA |
 | M3 | Black crater below a lit rim | "Some craters here **never** see the Sun. They're colder than Pluto, and may hide **ice**. Ice could become water to drink, air to breathe, even rocket fuel." | ✓ NASA (Lunar Flashlight, lander refuelling pages) |
 | M4 | Three crew portraits | "Your crew are all astronauts. They trained in **engineering, medicine, and rocks**. Everyone helps with different jobs. Their plans use the same power and time. **You make the call, Commander.**" | ✎ Story (+ real-backgrounds note, F23); profiles explain "geologist = rock scientist" |
-| M5 | Base at sunrise, 7 day-dots | "Your mission: **7 days**. Keep everyone safe and finish 4 tasks. Ready, Commander?" | ✎ Story |
+| M5 | Base at sunrise, 7 day-dots | "Your mission: **7 weeks** as the first crew in the new base. Keep everyone safe and finish 4 tasks. Ready, Commander?" (D-028) | ✎ Story |
 
 The storm card is dropped on purpose. The day 2 flare lands as a surprise, and Base Bot's tour shows the shelter.
 Verified 2026-11-15: ice → water, oxygen and rocket fuel (NASA). Amounts are still uncertain, which the game already says. Mars teaser verified (§4).
@@ -60,7 +62,7 @@ Verified 2026-11-15: ice → water, oxygen and rocket fuel (NASA). Amounts are s
 2. **Crew ask:** one crew member asks for something that maps to a real job (Geologist → crater, Doctor → shelter, Engineer → panels or power-saving). Saying no is fine. They react, they don't punish.
 3. **Evening line:** one crew reaction to what you did, plus at most one **"Did you know?"** fact tied to what just happened.
 
-### 3c. Day-by-day beats (7-day week)
+### 3c. Day-by-day beats (7-day week). **Superseded by `timeline-7-weeks-v1.md` (D-028)**
 
 | Day | What happens (engine) | Story beat | Crew ask | "Did you know?" |
 |---|---|---|---|---|
@@ -139,7 +141,7 @@ Rules: facts are never AI-generated. At most 1 "Did you know?" a day. Questions 
 
 ---
 
-## 6. Mission length (recommendation)
+## 6. Mission length. **Superseded: 7 weeks decided (D-028)**
 **Keep 7 days for Mission 1.** Add a longer mode later as the realistic "base" stay.
 - 7 days is honest: the first Artemis landings plan about 6 days on the surface. One storm (2-3 days) plus one shadow fits inside it, and ~15 min suits ages 7-12.
 - The mismatch: real early landings send **2** to the surface. Crews of **4** belong to the later Base Camp stays of about a month. Fix in the copy: "a training mission" (fiction, labelled) rather than a claim about a real mission.

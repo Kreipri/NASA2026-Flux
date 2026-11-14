@@ -2,6 +2,8 @@
 
 **2026-11-15.** Current draft, replacing v2's physical-Curio concept. **Confirmed by Bea:** Curio is the helper AI bot, separate from the rover used for exploration. Names, animal species, visual treatments, and backstories below remain proposals.
 
+**First visual pass:** Bea requested child-friendly vector clip-art designs. See `character-designs/crew-sheet-v1.png` and `character-designs/README.md` for the generated concept sheet, prompt, and review notes. It includes an example human commander; no appearance or cast choice is finalized.
+
 ## Cast at a glance
 
 | Character | Identity | Mission contribution |

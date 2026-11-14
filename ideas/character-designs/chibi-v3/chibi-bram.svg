@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="20 10 160 225" width="160" height="225"><g transform="translate(0 0)">
+    
+    <path d="M128 194 Q152 192 152 170" stroke="#F0A04F" stroke-width="9" fill="none" stroke-linecap="round"/>
+    <rect x="80" y="192" width="16" height="26" rx="8" fill="#21899A"/>
+    <rect x="104" y="192" width="16" height="26" rx="8" fill="#21899A"/>
+    <ellipse cx="87" cy="220" rx="11.5" ry="7" fill="#FFFFFF" /><ellipse cx="113" cy="220" rx="11.5" ry="7" fill="#FFFFFF" />
+    <rect x="68" y="140" width="64" height="66" rx="27" fill="#2DAAB5"/>
+    <circle cx="114" cy="174" r="8" fill="#fff"/><path d="M110 172 l1 2 2.2 .3 -1.6 1.5 .4 2.2 -2 -1.1 -2 1.1 .4 -2.2 -1.6 -1.5 2.2 -.3Z M118 172 l1 2 2.2 .3 -1.6 1.5 .4 2.2 -2 -1.1 -2 1.1 .4 -2.2 -1.6 -1.5 2.2 -.3Z" fill="#E08E12" transform="translate(0 -2)"/><ellipse cx="100" cy="108" rx="49" ry="43" fill="#F0A04F" />
+      <ellipse cx="117" cy="101" rx="13" ry="12" fill="#D9852F" />
+      <ellipse cx="100" cy="128" rx="22" ry="15" fill="#FFE6C4" />
+      <ellipse cx="83" cy="104" rx="4.6" ry="5.6" fill="#2B1F1A" /><ellipse cx="117" cy="104" rx="4.6" ry="5.6" fill="#2B1F1A" /><ellipse cx="70" cy="120" rx="7" ry="4.5" fill="#FF8FA0" opacity=".55"/><ellipse cx="130" cy="120" rx="7" ry="4.5" fill="#FF8FA0" opacity=".55"/>
+      <ellipse cx="100" cy="119" rx="7.5" ry="5.2" fill="#3A2418" />
+      <path d="M93 128 Q96.5 133 100 128 Q103.5 133 107 128" stroke="#2B1F1A" stroke-width="2.6" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+      <ellipse cx="58" cy="110" rx="14" ry="26" fill="#A65A26" transform="rotate(14 58 110)"/>
+      <ellipse cx="142" cy="110" rx="14" ry="26" fill="#A65A26" transform="rotate(-14 142 110)"/><g transform="translate(75,160) rotate(16)"><rect x="-8.5" y="-6" width="17" height="32" rx="8.5" fill="#2DAAB5" /><circle cx="0" cy="26" r="8.5" fill="#F0A04F"/></g><g transform="translate(125,160) rotate(-16)"><rect x="-8.5" y="-6" width="17" height="32" rx="8.5" fill="#2DAAB5" /><circle cx="0" cy="26" r="8.5" fill="#F0A04F"/></g></g></svg>
