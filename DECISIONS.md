@@ -15,13 +15,81 @@ Status: `decided` | `proposed` | `open` | `superseded`
 - [x] ~~How AI is used~~ -> decided, see D-004.
 - [x] ~~Story objective~~ -> decided, see D-013 (site report card). Story draft: `ideas/story-and-core-loop-v1.md` (awaiting Bea's full review).
 - [x] ~~Action list and costs~~ -> decided v1, see D-015 + D-018 (`ideas/balance-pass-v1.md`). Bot sim done; needs kid playtest.
-- [ ] **Crew names and mascot:** fictional, original, not Fallout. Crew is 4: you (commander) + engineer, doctor, geologist (D-019).
+- [ ] **Crew species, names and mascot design:** human player-commander confirmed (D-024). Curio is the helper AI, separate from the exploration rover (D-026); rover-history inspiration and animal-spaceflight Easter eggs remain the direction. Current draft: `ideas/character-concepts-v3.md` proposes Curio + Bram (dog), Remy (rabbit), Mica (squirrel monkey). Species/names/visuals remain drafts. Crew stays 4 (D-019); professions/duties distinction in D-025.
 - [x] ~~Tech stack~~ -> see D-016 (Vite + TS + React, plain-TS engine).
 - [ ] **Data plan:** DONKI can be called from the browser (verified). RadLab needs bundled snapshots. Decide live-vs-archive mix and the fallback. (Prototype: ARCHIVE only.)
 - [x] ~~Source Shackleton's size and distance from the pole~~ -> verified, see D-014 and `ideas/research-setting-facts.md` (verification pass).
 - [~] **Verify snippet-only facts:** most done (D-014). Still open: Chang'e-4 (non-NASA), Orion 150 mSv, ISS 6-month dose, 1.3 s delay, "Centennial" 10 cm.
 
 ---
+
+## D-026: Curio is the helper AI, separate from the exploration rover
+**Status:** decided (Bea's clarification, 2026-11-15).
+- Curio is the helper AI bot/companion, not the field rover deployed for mapping or samples. Replaces v2's physical-Curio/recharging/sampling concept. Existing exploration rover actions and costs remain separate.
+- Current proposal: `ideas/character-concepts-v3.md`: an on-screen Curiosity-inspired avatar for explanations, tour, source cards, and Ask Curio. This character role does not require a new live AI integration or physical bot model; exact presentation remains proposed.
+- Same draft proposes Bram (dog, engineering background), Remy (rabbit, medical background), and Mica (squirrel monkey, geology background), with optional Belka/Strelka and Baker tributes. These are unapproved species/names/designs, not historical animals or a fixed NASA crew manifest.
+
+## D-025: Character professions stay accurate; simplify duties for children
+**Status:** decided (Bea's accuracy instruction, 2026-11-15); exact character identities remain open.
+- Preserve the earlier research distinction: engineering, medicine, and geology are credible astronaut backgrounds, not three required positions on every NASA team. Our fictional crew may use those backgrounds, with shared training and overlapping duties.
+- Use simple mission duty labels where useful to children; don't imply a degree is a flight assignment or that only one character can perform each kind of work. M4 in `ideas/storyline-v1.md` and fact F23 corrected/rechecked; HTML mockups not changed.
+- Current character proposal: `ideas/character-concepts-v2.md`. Bea prefers a familiar rover spinoff such as Curiosity over the earlier CADRE recommendation; animal-history tributes remain exploratory. Agent recommends Curiosity inspiration + subtle optional tributes, not a locked choice. Real Curiosity uses radioisotope power; any solar-dependent Moon adaptation is fiction.
+
+## D-024: Human player-commander; NASA-grounded bot direction
+**Status:** decided (Bea, 2026-11-15); animal crew remains a preference, not a final selection.
+- Commander is human and represents the player. Customization is a possible future addition if time permits, not a prototype requirement.
+- Bot concept should connect to a robot NASA actually engineered, possibly a rover/drone adaptation. Exact reference and treatment remain open; distinguish a stylized real robot from an original inspired design.
+- Bea is leaning toward cute, friendly animal astronauts for the three specialists. Species and names are not decided.
+- Initial draft: `ideas/character-concepts-v1.md` (CADRE + beaver/rabbit/mole were agent proposals only). Current discussion: `ideas/character-concepts-v2.md`, following Bea's preference for a familiar rover's backstory and possible animal-history Easter eggs. Existing four-person crew and gameplay costs remain.
+
+## D-024: Mission is real to the characters; fiction only compresses facts
+**Status:** decided (Bea, 2026-11-15)
+- In-world, the commander and crew are on a real mission (not a simulator). Only the player knows it's a game. Fiction compresses real facts into one mission. Real past storms are made honest by their ARCHIVE badge and source card (real date), not by the story.
+- Ice purpose = **survey** (where is water, could future crews use it), not use. Matches D-020 and `ice-science-check.md`.
+
+## Proposed: 7 weeks (1 turn = 1 week, alert days zoom in)
+**Status:** proposed (2026-11-15; Bea suggested it, agent recommends it). 49 days fits NASA's base concept (~1-2 months, F27). Needs an engine rescale, a new timeline and a sim rerun. Details in `ideas/objective-v1.md` v1.1.
+
+## Open: Main objective reconciled (brief + real NASA reasons + kids)
+**Status:** proposed (2026-11-15, Bea was unsure what the main objective is). Would supersede D-020's "prove this ridge" wording and refine the "Junior Astronaut" proposal.
+- `ideas/objective-v1.md`: "Be the first crew to live in the new Moon base. Keep everyone safe for a week, and prove the base does what it was built for." The 4 tests map to NASA's real reasons: living off Earth / testing for Mars (Light, Shelter), radiation research (Radiation), resources (Ice).
+- 7 days = the base's first week (story choice). NASA's base concept has stays of about a month (F27). Never say "NASA plans 7-day stays". Correction: 7 days is not framed as a "first landing".
+- Wrapper choice open: A. training simulator of real data (recommended; makes old storms and replays honest), or B. a straight future mission.
+
+## Proposed: Fact registry is the single source list for in-game facts
+**Status:** proposed (2026-11-15, Bea: "we cite sources when we display facts")
+- `ideas/fact-sources.md`: one row per fact (ID, kid wording, source link, badge, where used, status). It becomes `src/content/facts.json` and feeds the D-008 source card. A fact with no row, or one marked ✗, doesn't ship.
+
+## Proposed: Real events deck (7 real storms + lunar eclipse)
+**Status:** proposed (2026-11-15, Bea likes real storms and events for variety)
+- `ideas/real-events-deck.md`. Checked live: 7 storms with both DONKI events and CRaTER dose (Mar 2012, May 2012, Sep 2017, Oct 2021, Jan 2022, Feb 2024, May 2024). Feb 2024 is a real **false alarm** (X6.3 flare, no particle event, flat dose). May 2012 is a **sneaky** storm (particles, no X flare). RadLab has no CRaTER data after mid-2024, so Oct 2024 and Nov 2025 would need SIMULATED dose.
+- Also a real dated lunar eclipse (Mar 3 2026, ~58 min total) as a forecast power dip. Moonquakes and impact flashes go in as labelled game events based on NASA findings.
+- Risk: storm sizes range ~25x to ~1,600x. Scale the dose and check the sim win rate per storm.
+
+## Proposed: Storyline v1 (intro → in-game beats → personalized ending)
+**Status:** proposed (2026-11-14, Bea asked for a text draft)
+- Draft: `ideas/storyline-v1.md`. Crew = 3 voices for the trade-off (Engineer/power, Doctor/dose, Geologist/ice). The intro storm card is replaced by a crew card, so the day 2 flare lands as a surprise.
+- In play: morning brief + 1 crew ask + 1 evening line a day. Days 2-4 teach with Mission Control's help; days 5-7 test without it (Earth blackout). Day 6 surprise storm is the climax.
+- v1.1 (Bea's feedback): 4-card prelude (Apollo visited, now we stay, Moon as practice for Mars), 5-card Mission 1 briefing, a Sun time-lapse to show the lesson, "Ask Base Bot" kid-question chips, a "Did you know?" fact each day, and variety options (recommend a real storm deck + event deck; base-spot choice later).
+- Fact check: crew = real *backgrounds* (engineers, physician on Artemis III, geologist in the 2025 class, Schmitt on Apollo 17), not fixed job titles. 7 days is realistic for early landings (Artemis IV ~6 days, crew of 2); Base Camp stays are ~1-2 months for 4. Proposed "Long stay: 28 days" mode replaces "Harder: 14 days". The Sun skims the horizon because of the 1.5° tilt, **not** tidal locking. Tidal locking explains why Earth sits on the polar horizon and drops out of view (the libration part is TO VERIFY).
+- Ending opens with Earth rising ("tell us everything"). Praise is built from logged key moments, then crew lines, tier, lesson, Mars tease. Needs small engine flags.
+
+## Proposed: Objective reframed as Junior Astronaut training missions (would revise D-020)
+**Status:** proposed (2026-11-14, from Bea: "not centred on the ridge storyline; it's a general lesson; a Mars level is planned")
+- Frame: you are a junior astronaut doing training missions. Mission 1 = Moon south pole; Mission 2 = Mars (later, via site config, D-006).
+- Goal on any planet: **keep the crew safe for 7 days + complete the mission's 4 tasks.** Moon tasks stay Light / Radiation / Shelter / Ice (main + 2 bonus each, D-021).
+- Tiers renamed (same stars): MISSION COMPLETE (crew safe + 4 main tasks) / HONORS (11★) / GOLD PATCH (12★). Replaces "SITE APPROVED / prove this ridge can host a Moon base".
+- The Connecting Ridge stays as Mission 1's real setting, not the plot. Story opens with the general lesson ("air, power and safety are never free"). Applied in `ideas/ui-mockups/all-screens.html`; engine/CLI text and `ideas/experience-arc-v1.md` not changed yet.
+
+## D-023: Base scene is real-time 3D (three.js) with a vector look, at real scale
+**Status:** decided (Bea, 2026-11-14). Refines D-022: still vector-styled, but rendered from a real 3D model instead of drawn 2D. The uncluttered-screen rule stays.
+- Vector look in 3D: terrain in flat colour bands with crisp edges, cel-shaded (toon) base parts with dark outlines, crisp shadows, no textures. Main view: long lens from near the base. Site view (~5 km up) for briefing and crater trips, with a camera fly between them.
+- Real scale: base ~50 m, Shackleton 21 km / 4 km deep, ~13 km away; small shadowed craters 1-2 km away are the rover targets. Terrain shadows baked from the Sun direction (soft edges).
+- **Palette (Bea OK'd the taste fixes, 2026-11-14):** neutral cool-grey regolith + navy, no violet/lavender anywhere (truer to the Moon). One SVG icon set, no emoji.
+  - **Exception (Bea, 2026-11-14):** title and story screens may use some purple shades (sky, nebula) if they pair with the space theme. Ground stays cool Moon grey.
+- **Look (Bea, 2026-11-14):** the 3D uses the storybook palette and flat two-tone shading (no outlines, crisp per-pixel light bands, navy sky) so story → gameplay has no harsh style jump.
+- **Scope (Bea, 2026-11-14):** 3D is for gameplay screens only. Title, story cards and the ending story use a different graphic style (open, see `ideas/ui-screens-v1.md` v6 follow-up).
+- Draft: `ideas/ui-mockups/ridge-3d.html`. Adds three.js to the D-016 stack (UI stays HTML on top). Risk: GPU load on old school Chromebooks; keep a low-quality setting.
 
 ## Proposed: Experience arc (intro story -> mission -> ending praise -> optional replay) + fun facts
 **Status:** proposed (Bea's direction 2026-11-14, awaiting OK on details)
@@ -175,3 +243,15 @@ A single short, meaningful narrative arc is preferred over open-ended content. A
 ## Advisory: Inspect other branches in a separate worktree
 **Status:** proposed (2026-11-14)
 - For local testing while current edits remain in place, use a separate worktree. Commands and alternatives: `ideas/checking-other-branches.md`. No Git state changed.
+
+## Proposed: Publish current design work on design/mission-ui
+**Status:** proposed (2026-11-14)
+- Branch from current `cli-prototype` HEAD for the pending UI/story drafts and assets. See `ideas/git-workflow.md`. No branch or remote changes made.
+
+## Proposed: Incremental branch cleanup
+**Status:** proposed (2026-11-14)
+- Keep main plus short-lived task branches. Preserve current work, integrate existing branches before deleting them, and avoid rewriting history merely to split old features. Plan: `ideas/git-workflow.md`.
+
+## Proposed: Preserve post-merge drafts on design/mission-ui
+**Status:** proposed (2026-11-15)
+- Following Bea’s merge of cli-prototype into main, save current uncommitted drafts on a new design branch, then integrate origin/main. This preserves drafts before updating their base; no Git changes performed while advising.

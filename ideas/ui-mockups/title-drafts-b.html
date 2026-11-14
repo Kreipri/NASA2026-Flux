@@ -1,0 +1,268 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Title Drafts B</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Lexend:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  :root{ --mut:var(--muted-foreground,#aab0cf); --fg:var(--foreground,#eef0fb); --amber:#ffb547; --amber-deep:#2a1a06; --line:#3a3f6e; }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--background,#0a0e22);color:var(--fg);font-family:Lexend,system-ui,sans-serif}
+  main{max-width:1120px;margin:0 auto;padding:4px 0 16px}
+  section{margin:0 0 40px}
+  .label{display:flex;gap:12px;align-items:baseline;margin:0 0 10px;flex-wrap:wrap}
+  .label b{font-size:17px;font-weight:600}
+  .label span{color:var(--mut);font-size:14px}
+  .label .tag{font-size:12px;padding:3px 8px;border-radius:99px;background:var(--amber);color:var(--amber-deep);font-weight:600}
+  .notes{color:var(--mut);font-size:14px;margin:10px 2px 0;line-height:1.5}
+
+  .screen{position:relative;aspect-ratio:16/9;border-radius:14px;overflow:hidden;container-type:inline-size;background:#0d1433;box-shadow:0 0 0 1px var(--line)}
+  .screen > svg{position:absolute;inset:0;width:100%;height:100%;display:block}
+  .ui{position:absolute;inset:0;padding:3cqw 3.5cqw}
+  .logo{margin:0;font-family:Fredoka;font-weight:700;font-size:5.4cqw;line-height:1;
+    background:linear-gradient(180deg,#ffe2a8 10%,#ffb547 55%,#ff8a7a);-webkit-background-clip:text;background-clip:text;color:transparent;
+    filter:drop-shadow(0 .4cqw 0 #3a1f6e)}
+  .sub{margin:.5cqw 0 0;font-family:Fredoka;font-weight:500;font-size:1.5cqw;color:#e6dcff}
+  .chip{display:inline-flex;align-items:center;gap:.5cqw;font-family:Fredoka;font-weight:600;font-size:1.15cqw;color:#e6dcff;background:rgba(20,16,52,.6);border:1px solid rgba(230,220,255,.3);border-radius:99px;padding:.35cqw 1cqw}
+  .chip i{width:.7cqw;height:.7cqw;border-radius:50%;background:var(--amber);box-shadow:0 0 .8cqw var(--amber)}
+  .btn{font-family:Lexend;font-weight:600;font-size:1.8cqw;border-radius:99px;padding:1.1cqw 3cqw;display:inline-flex;gap:.7cqw;align-items:center;border:0;cursor:pointer;background:var(--amber);color:var(--amber-deep);box-shadow:0 0 2.5cqw rgba(255,181,71,.45)}
+  .btn svg{width:1.4cqw;height:1.4cqw}
+  .gear{position:absolute;left:3.5cqw;bottom:3cqw;width:3.2cqw;height:3.2cqw;border-radius:50%;display:grid;place-items:center;border:1px solid rgba(255,255,255,.3);background:rgba(10,14,34,.45)}
+  .gear svg{width:55%;height:55%}
+  .data{position:absolute;right:3.5cqw;bottom:3.6cqw;font-size:1.25cqw;color:#d6d9ee}
+  .data a{color:#fff;text-underline-offset:.2em}
+
+  /* B1 */
+  .b1-top{text-align:center}
+  .b1-bot{position:absolute;left:0;right:0;bottom:3cqw;display:flex;flex-direction:column;align-items:center;gap:1cqw}
+  /* B2 */
+  .b2-col{position:absolute;left:5cqw;top:5cqw;display:flex;flex-direction:column;align-items:flex-start;gap:1.2cqw}
+  .b2-col .btn{margin-top:.6cqw}
+
+  .twinkle{animation:tw 3.5s ease-in-out infinite}
+  .bob{animation:bob 7s ease-in-out infinite}
+  .beacon{animation:beacon 2.4s ease-in-out infinite;transform-box:fill-box;transform-origin:center}
+  @keyframes tw{0%,100%{opacity:.25}50%{opacity:1}}
+  @keyframes bob{0%,100%{transform:translateY(0)}50%{transform:translateY(-10px)}}
+  @keyframes beacon{0%,100%{opacity:.35;transform:scale(.85)}50%{opacity:.9;transform:scale(1.15)}}
+  @media (prefers-reduced-motion: reduce){*{animation:none!important}}
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <path id="spark" d="M0,-10 C1.5,-2 2,-1.5 10,0 C2,1.5 1.5,2 0,10 C-1.5,2 -2,1.5 -10,0 C-2,-1.5 -1.5,-2 0,-10Z"/>
+    <symbol id="i-play" viewBox="0 0 24 24"><path d="M7 4.5v15l12-7.5z" fill="currentColor"/></symbol>
+    <symbol id="i-gear" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3.2" fill="none" stroke="#e6e9f5" stroke-width="2"/><path d="M12 2.5v3M12 18.5v3M2.5 12h3M18.5 12h3M5.3 5.3l2.1 2.1M16.6 16.6l2.1 2.1M5.3 18.7l2.1-2.1M16.6 7.4l2.1-2.1" stroke="#e6e9f5" stroke-width="2" stroke-linecap="round"/></symbol>
+    <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#3a1d6c"/><stop offset=".5" stop-color="#211f58"/><stop offset="1" stop-color="#0d1433"/></linearGradient>
+    <radialGradient id="sunglow"><stop offset="0" stop-color="#fff3d6" stop-opacity=".9"/><stop offset=".2" stop-color="#ffd59a" stop-opacity=".3"/><stop offset="1" stop-color="#ffd59a" stop-opacity="0"/></radialGradient>
+    <radialGradient id="amberglow"><stop offset="0" stop-color="#ffb547" stop-opacity=".85"/><stop offset="1" stop-color="#ffb547" stop-opacity="0"/></radialGradient>
+    <filter id="neb"><feGaussianBlur stdDeviation="60"/></filter>
+    <filter id="soft"><feGaussianBlur stdDeviation="5"/></filter>
+  </defs>
+</svg>
+
+<main>
+<!-- ================= B1 ================= -->
+<section>
+  <div class="label"><span class="tag">Recommended</span><b>B1 · Moon Horizon</b><span>Zoomed onto the south pole: Shackleton Crater's dark floor, with your base on the sunny ridge</span></div>
+  <div class="screen">
+    <svg viewBox="0 0 1600 900" preserveAspectRatio="xMidYMid slice" role="img" aria-label="The curved surface of the Moon near the south pole, a large dark crater, and a glowing marker for your base on a sunlit ridge. Earth above the horizon.">
+      <defs>
+        <radialGradient id="b1-moon" cx=".25" cy=".05" r=".9">
+          <stop offset="0" stop-color="#e4e6f2"/><stop offset=".35" stop-color="#b9bdd4"/><stop offset=".8" stop-color="#6e7398"/><stop offset="1" stop-color="#4a4e78"/>
+        </radialGradient>
+        <linearGradient id="b1-vig" x1="0" y1="0" x2="0" y2="1"><stop offset=".55" stop-color="#140f3a" stop-opacity="0"/><stop offset="1" stop-color="#140f3a" stop-opacity=".75"/></linearGradient>
+        <clipPath id="b1-clip"><circle cx="800" cy="2340" r="1840"/></clipPath>
+        <clipPath id="b1-earth"><circle cx="1360" cy="230" r="40"/></clipPath>
+        <clipPath id="b1-sh"><ellipse cx="840" cy="610" rx="250" ry="66"/></clipPath>
+      </defs>
+      <rect width="1600" height="900" fill="url(#sky)"/>
+      <g filter="url(#neb)">
+        <ellipse cx="330" cy="260" rx="380" ry="150" fill="#8a3fb0" opacity=".32"/>
+        <ellipse cx="1250" cy="380" rx="380" ry="120" fill="#2bb5b0" opacity=".14"/>
+      </g>
+      <g class="stars" data-n="130" data-h="520"></g>
+      <!-- low Sun skimming the horizon -->
+      <circle cx="160" cy="500" r="260" fill="url(#sunglow)"/>
+      <circle cx="160" cy="498" r="30" fill="#fff6e0"/>
+      <!-- Earth -->
+      <g clip-path="url(#b1-earth)">
+        <circle cx="1360" cy="230" r="40" fill="#2f7fc0"/>
+        <path d="M1336 216 q13 -11 26 -1 q7 10 -5 16 q-14 2 -21 -15z" fill="#5fd0a0"/>
+        <circle cx="1386" cy="226" r="40" fill="#0d1433" opacity=".72"/>
+      </g>
+      <!-- Moon -->
+      <circle cx="800" cy="2340" r="1856" fill="#ffd9b0" opacity=".12" filter="url(#soft)"/>
+      <circle cx="800" cy="2340" r="1840" fill="url(#b1-moon)"/>
+      <g clip-path="url(#b1-clip)">
+        <!-- rim light on the Sun side -->
+        <path d="M0,560 Q400,505 800,500" fill="none" stroke="#fff3dc" stroke-opacity=".7" stroke-width="4"/>
+        <!-- small craters: lit on the Sun side (left), shadow on the right -->
+        <g id="craters">
+          <g transform="translate(330 560)"><ellipse rx="70" ry="14" fill="#9297b6"/><ellipse cx="6" rx="56" ry="10" fill="#7a7fa2"/><path d="M-56 0 a56 10 0 0 1 112 0" fill="none" stroke="#eceef8" stroke-width="2"/></g>
+          <g transform="translate(1240 560)"><ellipse rx="90" ry="17" fill="#868ba9"/><ellipse cx="8" rx="72" ry="12" fill="#666b90"/></g>
+          <g transform="translate(220 700)"><ellipse rx="120" ry="34" fill="#9297b6"/><ellipse cx="10" rx="96" ry="26" fill="#757a9e"/><path d="M-96 0 a96 26 0 0 1 192 0" fill="none" stroke="#eceef8" stroke-width="2"/></g>
+          <g transform="translate(1380 740)"><ellipse rx="150" ry="44" fill="#767b9e"/><ellipse cx="12" rx="122" ry="34" fill="#5b6086"/></g>
+          <g transform="translate(560 820)"><ellipse rx="90" ry="28" fill="#868ba9"/><ellipse cx="8" rx="72" ry="21" fill="#6b7094"/></g>
+          <g transform="translate(1100 840)"><ellipse rx="70" ry="22" fill="#767b9e"/><ellipse cx="6" rx="56" ry="16" fill="#5b6086"/></g>
+          <g transform="translate(620 545)"><ellipse rx="34" ry="7" fill="#9297b6"/><ellipse cx="3" rx="27" ry="5" fill="#7a7fa2"/></g>
+          <g transform="translate(1060 540)"><ellipse rx="40" ry="8" fill="#868ba9"/><ellipse cx="3" rx="32" ry="6" fill="#6b7094"/></g>
+        </g>
+        <!-- Shackleton Crater: floor in permanent shadow, far wall catches light -->
+        <ellipse cx="840" cy="604" rx="272" ry="76" fill="#a9aec8"/>
+        <ellipse cx="840" cy="610" rx="250" ry="66" fill="#12152f"/>
+        <g clip-path="url(#b1-sh)">
+          <path d="M1000,548 C1080,570 1100,620 1060,668 C1110,640 1120,580 1090,548Z" fill="#6c7199" opacity=".9"/>
+          <ellipse cx="820" cy="640" rx="200" ry="40" fill="#0b0d22" opacity=".7"/>
+        </g>
+        <path d="M590 610 a250 66 0 0 1 500 0" fill="none" stroke="#f2f3fb" stroke-opacity=".8" stroke-width="3"/>
+        <!-- ice? in the dark floor -->
+        <use href="#spark" transform="translate(800 628) scale(1.5)" fill="#7ff0e6" class="twinkle"/>
+        <use href="#spark" transform="translate(880 642) scale(.8)" fill="#7ff0e6" class="twinkle" style="animation-delay:1.2s"/>
+        <text x="826" y="636" font-family="Fredoka" font-weight="700" font-size="28" fill="#7ff0e6">?</text>
+        <!-- Connecting ridge running from the rim toward the viewer, sunlit -->
+        <path d="M560,652 C500,680 440,720 410,770 C470,778 560,750 620,712 C660,686 640,660 560,652Z" fill="#c9cde0"/>
+        <path d="M560,652 C500,680 440,720 410,770" fill="none" stroke="#fff" stroke-opacity=".85" stroke-width="3"/>
+        <!-- base marker (not to scale) -->
+        <circle cx="530" cy="708" r="80" fill="url(#amberglow)" class="beacon"/>
+        <rect x="500" y="692" width="60" height="26" rx="13" fill="#f4f5fb"/>
+        <circle cx="517" cy="705" r="5" fill="#ffb547"/><circle cx="534" cy="705" r="5" fill="#ffb547"/>
+        <line x1="572" y1="716" x2="572" y2="672" stroke="#9aa0bd" stroke-width="3"/>
+        <rect x="558" y="656" width="28" height="18" fill="#33509c" stroke="#9fbcff" stroke-width="1.5"/>
+        <rect width="1600" height="900" fill="url(#b1-vig)"/>
+      </g>
+      <!-- labels -->
+      <g font-family="Fredoka" font-weight="500" font-size="20" fill="#f1ecff">
+        <line x1="1060" y1="574" x2="1150" y2="500" stroke="#f1ecff" stroke-opacity=".6"/>
+        <text x="1156" y="492">Shackleton Crater</text>
+        <text x="1156" y="516" font-size="16" fill="#cfc6f0">floor never sees the Sun</text>
+        <line x1="496" y1="694" x2="430" y2="640" stroke="#f1ecff" stroke-opacity=".6"/>
+        <text x="300" y="632">Your base</text>
+        <text x="300" y="656" font-size="16" fill="#cfc6f0">sunny ridge</text>
+      </g>
+    </svg>
+    <div class="ui">
+      <div class="b1-top"><h2 class="logo">Mission: Outpost</h2><p class="sub">Junior Astronaut Training</p></div>
+      <div class="b1-bot">
+        <span class="chip"><i></i>The Moon · South Pole</span>
+        <button class="btn"><svg><use href="#i-play"/></svg>Start mission</button>
+      </div>
+      <span class="gear" aria-label="Settings"><svg><use href="#i-gear"/></svg></span>
+      <span class="data">Real NASA data · <a href="#">Sources</a></span>
+    </div>
+  </div>
+  <p class="notes">The Moon's real curve, with the camera above the pole. The Sun sits on the horizon, as it really does there. Keeps B's look (rounded logo, purple nebula, glow) but now reads as "a real place on the Moon". The base is a glowing marker, not to scale.</p>
+</section>
+
+<!-- ================= B2 ================= -->
+<section>
+  <div class="label"><b>B2 · Half Moon + Zoom</b><span>The whole Moon, half lit, with a zoom bubble on the south pole</span></div>
+  <div class="screen">
+    <svg viewBox="0 0 1600 900" preserveAspectRatio="xMidYMid slice" role="img" aria-label="A half-lit Moon. A dotted circle marks the south pole and links to a round zoom bubble showing the base on a sunlit ridge beside a dark crater.">
+      <defs>
+        <linearGradient id="b2-lit" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#eef0f8"/><stop offset=".7" stop-color="#b4b9d2"/><stop offset="1" stop-color="#8e93b3"/></linearGradient>
+        <linearGradient id="b2-term" x1="0" x2="1"><stop offset="0" stop-color="#2a2d58" stop-opacity="0"/><stop offset="1" stop-color="#2a2d58"/></linearGradient>
+        <clipPath id="b2-moon"><circle cx="1130" cy="440" r="320"/></clipPath>
+        <clipPath id="b2-lens"><circle cx="560" cy="610" r="196"/></clipPath>
+        <linearGradient id="b2-lsky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#2c1a5e"/><stop offset="1" stop-color="#1a1f4a"/></linearGradient>
+        <linearGradient id="b2-ridge" x1="0" x2="1"><stop offset="0" stop-color="#e6e8f3"/><stop offset="1" stop-color="#9da2bf"/></linearGradient>
+      </defs>
+      <rect width="1600" height="900" fill="url(#sky)"/>
+      <g filter="url(#neb)">
+        <ellipse cx="1180" cy="240" rx="380" ry="160" fill="#8a3fb0" opacity=".32"/>
+        <ellipse cx="380" cy="760" rx="380" ry="140" fill="#2bb5b0" opacity=".12"/>
+      </g>
+      <g class="stars" data-n="150" data-h="900"></g>
+      <g class="bob">
+        <!-- Moon: dark half faintly lit by Earthshine -->
+        <circle cx="1130" cy="440" r="340" fill="#b9a8ff" opacity=".1" filter="url(#soft)"/>
+        <circle cx="1130" cy="440" r="320" fill="#2a2d58"/>
+        <g clip-path="url(#b2-moon)">
+          <rect x="810" y="120" width="320" height="640" fill="url(#b2-lit)"/>
+          <!-- maria and craters on the lit half -->
+          <g fill="#a3a8c4">
+            <path d="M900 300 q60 -50 130 -10 q30 50 -20 80 q-70 20 -110 -70z"/>
+            <path d="M960 470 q50 -20 90 20 q10 50 -40 60 q-50 0 -50 -80z"/>
+          </g>
+          <g fill="#c9cde0" stroke="#8e93b3" stroke-width="3">
+            <circle cx="880" cy="420" r="22"/><circle cx="1060" cy="230" r="16"/><circle cx="1000" cy="620" r="26"/><circle cx="1090" cy="380" r="12"/><circle cx="930" cy="560" r="10"/>
+          </g>
+          <rect x="1070" y="120" width="70" height="640" fill="url(#b2-term)"/>
+          <g fill="#353965"><circle cx="1240" cy="300" r="26"/><circle cx="1300" cy="520" r="34"/><circle cx="1200" cy="640" r="18"/></g>
+        </g>
+        <path d="M1130 120 a320 320 0 0 0 0 640" fill="none" stroke="#fff3dc" stroke-opacity=".6" stroke-width="4"/>
+        <!-- south pole marker, right on the light/dark line -->
+        <circle cx="1130" cy="742" r="30" fill="none" stroke="#ffb547" stroke-width="4" stroke-dasharray="6 7"/>
+        <circle cx="1130" cy="742" r="8" fill="#ffb547" class="beacon"/>
+        <path d="M1100 752 C980 800 860 780 740 700" fill="none" stroke="#ffb547" stroke-opacity=".8" stroke-width="3" stroke-dasharray="2 10" stroke-linecap="round"/>
+        <text x="1172" y="800" font-family="Fredoka" font-weight="500" font-size="20" fill="#f1ecff">South Pole</text>
+      </g>
+      <!-- zoom bubble -->
+      <circle cx="560" cy="610" r="214" fill="#ffb547" opacity=".18" filter="url(#soft)"/>
+      <g clip-path="url(#b2-lens)">
+        <rect x="360" y="410" width="400" height="400" fill="url(#b2-lsky)"/>
+        <g fill="#fff"><circle cx="460" cy="470" r="1.6"/><circle cx="640" cy="450" r="1.3"/><circle cx="700" cy="520" r="1.8"/><circle cx="560" cy="500" r="1.2"/><circle cx="420" cy="540" r="1.2"/></g>
+        <circle cx="400" cy="600" r="120" fill="url(#sunglow)"/>
+        <circle cx="400" cy="598" r="14" fill="#fff6e0"/>
+        <path d="M360,610 L420,592 480,604 540,586 620,600 700,588 760,598 V810 H360Z" fill="#3c4170"/>
+        <path d="M360,610 L420,592 480,604" fill="none" stroke="#ffd9b0" stroke-opacity=".5" stroke-width="2"/>
+        <!-- shadowed crater -->
+        <ellipse cx="640" cy="690" rx="150" ry="44" fill="#a9aec8"/>
+        <ellipse cx="642" cy="694" rx="134" ry="36" fill="#12152f"/>
+        <path d="M508 694 a134 36 0 0 1 268 0" fill="none" stroke="#f2f3fb" stroke-opacity=".7" stroke-width="2.5"/>
+        <use href="#spark" transform="translate(640 700) scale(1.3)" fill="#7ff0e6" class="twinkle"/>
+        <text x="662" y="708" font-family="Fredoka" font-weight="700" font-size="24" fill="#7ff0e6">?</text>
+        <!-- sunlit ridge with base -->
+        <path d="M360,700 C400,660 450,640 500,652 C530,660 540,690 520,740 L520,810 H360Z" fill="url(#b2-ridge)"/>
+        <path d="M360,700 C400,660 450,640 500,652" fill="none" stroke="#fff" stroke-opacity=".8" stroke-width="3"/>
+        <path d="M486,660 L640,668 L640,676 L500,676Z" fill="#141838" opacity=".35"/>
+        <circle cx="460" cy="640" r="40" fill="url(#amberglow)" opacity=".7"/>
+        <rect x="430" y="626" width="56" height="24" rx="12" fill="#f4f5fb"/>
+        <circle cx="446" cy="638" r="4" fill="#ffb547"/><circle cx="462" cy="638" r="4" fill="#ffb547"/>
+        <line x1="498" y1="652" x2="498" y2="606" stroke="#9aa0bd" stroke-width="2.5"/>
+        <rect x="484" y="592" width="28" height="18" fill="#33509c" stroke="#9fbcff" stroke-width="1.5"/>
+        <path d="M360,780 C460,760 620,770 760,760 V810 H360Z" fill="#232850"/>
+      </g>
+      <circle cx="560" cy="610" r="196" fill="none" stroke="#f1ecff" stroke-width="8"/>
+      <circle cx="560" cy="610" r="186" fill="none" stroke="#fff" stroke-opacity=".15" stroke-width="2"/>
+      <!-- bubble tab -->
+      <rect x="436" y="790" width="248" height="38" rx="19" fill="#f1ecff"/>
+      <text x="560" y="815" text-anchor="middle" font-family="Fredoka" font-weight="600" font-size="19" fill="#2a1d5c">Shackleton Crater rim</text>
+    </svg>
+    <div class="ui">
+      <div class="b2-col">
+        <h2 class="logo">Mission: Outpost</h2>
+        <p class="sub">Junior Astronaut Training</p>
+        <button class="btn"><svg><use href="#i-play"/></svg>Start mission</button>
+      </div>
+      <span class="gear" aria-label="Settings"><svg><use href="#i-gear"/></svg></span>
+      <span class="data">Real NASA data · <a href="#">Sources</a></span>
+    </div>
+  </div>
+  <p class="notes">The most kid-legible way to say "where on the Moon": the whole Moon, then a zoom. The pole sits right on the light/dark line, which fits the lesson about light. Keeps the floating diorama feel of the old slice, inside a round bubble. Busier than B1, and the bubble's close-up art is a second scene to keep in sync with the 3D base.</p>
+</section>
+</main>
+
+<script>
+  let s = 11; const r = () => (s = (s * 16807) % 2147483647) / 2147483647;
+  document.querySelectorAll('g.stars').forEach(g => {
+    const n = +g.dataset.n, h = +g.dataset.h, NS = 'http://www.w3.org/2000/svg';
+    for (let i = 0; i < n; i++) {
+      const c = document.createElementNS(NS, 'circle');
+      c.setAttribute('cx', (r() * 1600).toFixed(1)); c.setAttribute('cy', (r() * h).toFixed(1));
+      c.setAttribute('r', (r() * 1.6 + .5).toFixed(2)); c.setAttribute('fill', r() > .85 ? '#ffe2b0' : '#ffffff');
+      c.setAttribute('opacity', (r() * .6 + .3).toFixed(2)); g.appendChild(c);
+    }
+    for (let i = 0; i < 9; i++) {
+      const u = document.createElementNS(NS, 'use');
+      u.setAttribute('href', '#spark'); u.setAttribute('fill', i % 3 ? '#ffffff' : '#ffd59a');
+      u.setAttribute('transform', `translate(${(r()*1600).toFixed(0)} ${(r()*h*.85).toFixed(0)}) scale(${(r()*.9+.6).toFixed(2)})`);
+      u.setAttribute('class', 'twinkle'); u.style.animationDelay = (r() * 3).toFixed(2) + 's'; g.appendChild(u);
+    }
+  });
+</script>
+</body>
+</html>
