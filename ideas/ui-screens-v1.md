@@ -366,3 +366,14 @@ From Bea's 3 references (Mars lander-habitat, Blue Moon lander, Moon-base render
 - **Reset view:** a pill button under the top-right tools that appears only when the camera is off its preset and flies back on tap.
 - Risks: Chromebook GPU cost (domain-warped cloud noise, more meshes, 3 textures ~1 MB). The ground tracks barely show from the long-lens hub view; they're only visible in close-ups.
 
+## v8: base in the crew clip-art style (2026-11-15, Bea's direction)
+Translating the `crew-v5` rules to 3D:
+- **Squircle shapes:** rounded-edge cylinders (lathe) and big-radius boxes; chunkier parts. No panel textures, guy wires, cables or thin lattice.
+- **Gradient per part:** vertex colours run from the base colour on top to slate #4F5772 at the bottom. Screens go from navy #1D2B4C to #4465B2; amber plates from #F7C081 to #BF833E.
+- **Light:** a soft toon ramp (0.7–1.0), strong ambient (2.6) and a weak, neutral sun (0.75), so backlit parts stay light. Ground shadows still show through the shadow catcher, plus soft blobs under every object.
+- **Inner rim:** metal parts lighten near the silhouette (a shader rim).
+- **Accents:** navy screens with a white shine streak (windows, porthole, solar panels, rover window, visors); cyan beacons with halos; the suit's chest panel (amber plate + cyan light + navy buttons) on module A and the power unit.
+- **Crew:** chibi astronauts like the sprite: big helmet with side pods, cyan top light, navy boots, arm band.
+- Open: the terrain still has its banded storybook shader. Softening it toward clip-art gradients is the next step if wanted. The HUD helper face is still the old Base Bot, not Curio.
+- **v8.1 outlines (Bea's request):** inverted-hull outlines in dark slate #27304C, a constant ~3.6 px on screen (scales with frame width). The light rim is now a crisp band, so each part reads as dark line + light bevel, like a sticker. Screens, glows and tiny parts (<0.09 m) have no outline. The mockup has an Outlines on/off button for comparison. Note: this breaks the Curio sheet's 'no dark outlines' rule. Either keep the 3D as the exception, or add matching outlines to the 2D art later. Open: the Earth, rocks and terrain have no outlines yet.
+

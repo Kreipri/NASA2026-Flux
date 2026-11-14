@@ -1,0 +1,238 @@
+{
+  "_about": "Site config (D-006), v2 day-based loop (D-019). All numbers are GAME numbers (SIMULATED); real anchors in ideas/balance-pass-v2.md.",
+  "site": "Shackleton Connecting Ridge, lunar south pole",
+  "crew": {
+    "_about": "FICTION crew of 4 (you + 3), matching NASA's Base Camp concept of up to four astronauts. Each astronaut works a morning and an afternoon = 2 blocks.",
+    "size": 4,
+    "blocksPerAstronaut": 2
+  },
+  "start": {
+    "power": 80,
+    "o2": 90,
+    "dose": 0,
+    "stamina": 80
+  },
+  "perDay": {
+    "solar": 60,
+    "shortEclipseSolarFactor": 0.5,
+    "dustSolarPenalty": 10,
+    "panelFaultSolarPenalty": 20,
+    "upkeepPower": 20,
+    "powerSaveUpkeep": 10,
+    "breathO2": 8,
+    "emergencyO2": 8,
+    "scrubberFaultO2": 5,
+    "baseDose": 2,
+    "dustEveryDays": 2,
+    "maxDust": 3
+  },
+  "stamina": {
+    "dailyRecovery": 10,
+    "insideBlock": -2,
+    "outsideBlock": -6,
+    "unusedBlock": 3,
+    "powerSaveCold": -10,
+    "emergencyCold": -10,
+    "blocksByStamina": [
+      {
+        "min": 50,
+        "blocks": 8
+      },
+      {
+        "min": 25,
+        "blocks": 6
+      },
+      {
+        "min": 0,
+        "blocks": 4
+      }
+    ]
+  },
+  "storm": {
+    "habitat": 10,
+    "shelterByLevel": [
+      5,
+      4,
+      2,
+      1
+    ],
+    "outsidePerBlock": 8,
+    "risingFactor": 0.5,
+    "risingMinDoseRate": 15,
+    "strongMinDoseRate": 100
+  },
+  "ice": {
+    "baseChance": 0.3,
+    "scoutBonus": 0.25,
+    "maxChance": 0.8,
+    "airDiscountPerSample": 0,
+    "maxDiscountSamples": 2
+  },
+  "faults": {
+    "baseChance": 0.1,
+    "dustyChance": 0.3
+  },
+  "emergencyExitPower": 20,
+  "warn": {
+    "o2": 25,
+    "dose": 75,
+    "power": 25,
+    "stamina": 50
+  },
+  "groups": [
+    {
+      "id": "goal",
+      "title": "MISSION GOAL: report card evidence"
+    },
+    {
+      "id": "alive",
+      "title": "KEEP THE BASE ALIVE: power, air, repairs"
+    },
+    {
+      "id": "safe",
+      "title": "KEEP THE CREW SAFE: radiation and rest"
+    }
+  ],
+  "actions": [
+    {
+      "id": "logsun",
+      "group": "goal",
+      "goal": "LIGHT",
+      "label": "Log sunlight & shadows",
+      "blocks": 1,
+      "power": -2,
+      "o2": 0,
+      "dose": 0,
+      "outside": false
+    },
+    {
+      "id": "measure",
+      "group": "goal",
+      "goal": "RADIATION",
+      "label": "Measure radiation",
+      "blocks": 1,
+      "power": -4,
+      "o2": 0,
+      "dose": 0,
+      "outside": false,
+      "needsPower": true
+    },
+    {
+      "id": "scout",
+      "group": "goal",
+      "goal": "ICE",
+      "label": "Scout with hop-drone",
+      "blocks": 1,
+      "power": -15,
+      "o2": 0,
+      "dose": 0,
+      "outside": false,
+      "needsPower": true
+    },
+    {
+      "id": "rover",
+      "group": "goal",
+      "goal": "ICE",
+      "label": "Rover to dark crater",
+      "blocks": 4,
+      "power": -50,
+      "o2": -8,
+      "dose": 4,
+      "outside": true
+    },
+    {
+      "id": "regolith",
+      "group": "goal",
+      "goal": "SHELTER",
+      "label": "Pile soil on shelter",
+      "blocks": 4,
+      "power": -10,
+      "o2": -4,
+      "dose": 2,
+      "outside": true
+    },
+    {
+      "id": "clean",
+      "group": "alive",
+      "label": "Clean dust off panels",
+      "blocks": 2,
+      "power": 0,
+      "o2": -2,
+      "dose": 1,
+      "outside": true,
+      "emergencyOk": true
+    },
+    {
+      "id": "air",
+      "group": "alive",
+      "label": "Tune the air system",
+      "blocks": 1,
+      "power": -20,
+      "o2": 30,
+      "dose": 0,
+      "outside": false
+    },
+    {
+      "id": "repair",
+      "group": "alive",
+      "label": "Repair a fault",
+      "blocks": 2,
+      "power": -10,
+      "o2": 0,
+      "dose": 0,
+      "outside": false,
+      "emergencyOk": true
+    },
+    {
+      "id": "powersave",
+      "group": "alive",
+      "label": "Power-saving mode",
+      "blocks": 1,
+      "power": 0,
+      "o2": 0,
+      "dose": 0,
+      "outside": false,
+      "emergencyOk": true
+    },
+    {
+      "id": "shelter",
+      "group": "safe",
+      "goal": "SHELTER",
+      "label": "Shelter during peak",
+      "blocks": 4,
+      "power": 5,
+      "o2": 0,
+      "dose": 0,
+      "outside": false,
+      "emergencyOk": true
+    },
+    {
+      "id": "rest",
+      "group": "safe",
+      "label": "Rest day (2 crew)",
+      "blocks": 2,
+      "power": 0,
+      "o2": -1,
+      "dose": 0,
+      "outside": false,
+      "emergencyOk": true,
+      "stamina": 20
+    },
+    {
+      "id": "call",
+      "group": "safe",
+      "label": "Call Mission Control",
+      "blocks": 1,
+      "power": -5,
+      "o2": 0,
+      "dose": 0,
+      "outside": false,
+      "needsLink": true,
+      "emergencyOk": true
+    }
+  ],
+  "trip": {
+    "backPower": -25,
+    "backO2": -4
+  }
+}

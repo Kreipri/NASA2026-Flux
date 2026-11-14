@@ -34,7 +34,8 @@
   .next{flex:none;font:600 2.2cqw Fredoka;color:var(--amber-deep);background:var(--amber);border-radius:99px;padding:1.2cqw 2.6cqw;box-shadow:0 .4cqw 0 #b9731d,0 0 2cqw rgba(255,181,71,.4)}
   .next.big{font-size:2.6cqw;padding:1.3cqw 3.4cqw}
   .face{flex:none;width:8cqw;height:8cqw;border-radius:50%;background:#1d2a55;border:.25cqw solid var(--teal);overflow:hidden;display:grid;place-items:center}
-  .face img{width:88%;height:88%}
+  .face{position:relative}
+  .face img{position:absolute;left:50%;top:0;width:98%;height:auto;transform:translate(-50%,9%)}
   .face.mc{border-color:#ffcf6e;background:#2a2350}
   .face.mc svg{width:56%;height:56%}
   .note{position:absolute;max-width:28cqw;background:#fbf9ff;color:#251b52;border-radius:1.3cqw;padding:1.2cqw 1.5cqw;font:500 1.8cqw/1.32 Fredoka;box-shadow:0 .6cqw 1.6cqw rgba(0,0,0,.35)}
@@ -98,7 +99,7 @@
   .blink{animation:blink 1.1s steps(2) infinite}
   .zoom{animation:zoom 9s ease-out forwards}
   .drop{transform-box:fill-box;transform-origin:center bottom;animation:drop 3.5s ease-in forwards}
-  .swing{transform-box:view-box;transform-origin:780px 588px;animation:swing 9s linear infinite}
+  .swing{transform-box:view-box;transform-origin:780px 592px;animation:swing 9s linear infinite}
   .orbit{transform-box:view-box;transform:rotate(-90deg);animation:orbit 9s linear infinite}
   @keyframes tw{0%,100%{opacity:.25}50%{opacity:1}}
   @keyframes beacon{0%,100%{opacity:.4;transform:scale(.9)}50%{opacity:.95;transform:scale(1.1)}}
@@ -280,13 +281,12 @@
         <g transform="translate(860 700)"><ellipse rx="110" ry="18" fill="#9297b6"/><ellipse cx="8" rx="88" ry="13" fill="#757a9e"/></g>
         <g fill="#7d82a6"><ellipse cx="760" cy="852" rx="38" ry="12"/><ellipse cx="180" cy="610" rx="22" ry="6"/><ellipse cx="980" cy="620" rx="16" ry="5"/></g>
         <g fill="#e3e5f1"><path d="M742 846 q14 -22 34 -4z"/><path d="M168 606 q8 -12 22 -2z"/></g>
-        <path d="M1010,606 C900,640 910,690 1060,724 C1230,764 1400,800 1440,900 L1640,900 C1600,790 1400,736 1210,700 C1080,676 1050,646 1110,612Z" fill="#e3e6f2" opacity=".5"/>
+        <path d="M1110,664 C1000,690 910,690 1060,724 C1230,764 1400,800 1440,900 L1640,900 C1600,790 1400,736 1210,700 C1080,676 1050,646 1110,612Z" fill="#e3e6f2" opacity=".5"/>
         <path d="M1045,610 C950,644 958,684 1110,718 C1290,758 1450,800 1505,900" fill="none" stroke="#8e93b3" stroke-width="3.5" stroke-dasharray="12 10" opacity=".8"/>
         <path d="M1080,612 C995,648 1005,680 1160,712 C1335,750 1500,795 1575,900" fill="none" stroke="#8e93b3" stroke-width="3.5" stroke-dasharray="12 10" opacity=".8"/>
-        <use href="#baseShadow" transform="translate(1086 604) scale(1.33)"/>
         <rect width="1600" height="900" fill="url(#vig)"/>
       </g>
-      <use href="#base" transform="translate(1086 604) scale(1.33)"/>
+      <path d="M840,662 L1560,662 L2200,684 L1073,684Z" fill="url(#shadowFade)" opacity=".55"/><ellipse cx="1190" cy="662" rx="367" ry="14" fill="#141833" opacity=".35" filter="url(#soft)"/><image href="{{BASE_ART}}" x="800" y="385" width="780" height="287"/>
     </svg>
     <div class="ui">
       <h1 class="ttl"><span>SPACE BASE</span>COMMANDER</h1>
@@ -369,15 +369,14 @@
       <circle cx="40" cy="492" r="260" fill="url(#sunglow)"/><circle cx="40" cy="490" r="26" fill="#fff6e0"/>
       <path d="M0,500 Q800,470 1600,500 V900 H0Z" fill="url(#ground)"/>
       <g class="fadein">
-        <use href="#baseShadow" transform="translate(960 560) scale(1.05)"/>
-        <use href="#base" transform="translate(960 560) scale(1.05)"/>
+        <path d="M820,508 L1360,508 L2000,530 L990,530Z" fill="url(#shadowFade)" opacity=".55"/><ellipse cx="1080" cy="508" rx="282" ry="11" fill="#141833" opacity=".35" filter="url(#soft)"/><image href="{{BASE_ART}}" x="780" y="295" width="600" height="221"/>
       </g>
-      <ellipse cx="380" cy="572" rx="120" ry="16" fill="#0b1030" opacity=".45"/>
-      <g class="pop" style="animation-delay:.6s"><image href="{{CMDR}}" x="240" y="236" width="280" height="336"/></g>
+      <ellipse cx="420" cy="612" rx="120" ry="16" fill="#0b1030" opacity=".45"/>
+      <g class="pop" style="animation-delay:.6s"><image href="{{CMDR}}" x="280" y="250" width="280" height="370"/></g>
       <g class="pop" style="animation-delay:1.3s">
-        <rect x="480" y="252" width="230" height="58" rx="14" fill="#ffb547"/>
-        <path d="M492 310 l10 22 l14 -22z" fill="#ffb547"/>
-        <text x="595" y="291" text-anchor="middle" font-family="Fredoka" font-weight="700" font-size="30" letter-spacing="2" fill="#2a1a06">COMMANDER</text>
+        <rect x="520" y="262" width="230" height="58" rx="14" fill="#ffb547"/>
+        <path d="M532 320 l10 22 l14 -22z" fill="#ffb547"/>
+        <text x="635" y="301" text-anchor="middle" font-family="Fredoka" font-weight="700" font-size="30" letter-spacing="2" fill="#2a1a06">COMMANDER</text>
       </g>
     </svg>
     <div class="ui">
@@ -428,8 +427,8 @@
         </g>
         <rect x="250" y="118" width="960" height="500" rx="18" fill="none" stroke="#0c1230" stroke-width="4"/>
       </g>
-      <ellipse cx="1380" cy="620" rx="90" ry="12" fill="#0b1030" opacity=".4"/>
-      <g class="pop" style="animation-delay:.3s"><image href="{{CURIO}}" x="1260" y="330" width="240" height="288"/></g>
+      <ellipse cx="1405" cy="612" rx="100" ry="13" fill="#0b1030" opacity=".45"/>
+      <g class="pop" style="animation-delay:.3s"><image href="{{CURIO}}" x="1270" y="222" width="270" height="394"/></g>
     </svg>
     <div class="ui">
       <span class="skip">Skip ▸▸</span>
@@ -454,8 +453,8 @@
       </g>
       <path d="M0,470 L140,454 260,466 400,446 560,462 720,450 900,464 1080,448 1240,462 1420,452 1600,464 V900 H0Z" fill="#3a3f6e"/>
       <path d="M0,520 C300,500 600,508 900,504 C1200,500 1400,512 1600,508 V900H0Z" fill="url(#ground)"/>
-      <g class="swing"><use href="#baseShadow" transform="translate(780 588) scale(1.15)"/></g>
-      <use href="#base" transform="translate(780 588) scale(1.15)"/>
+      <g class="swing"><path d="M440,592 L1120,592 L1720,616 L700,616Z" fill="url(#shadowFade)" opacity=".6"/></g><ellipse cx="780" cy="592" rx="360" ry="13" fill="#141833" opacity=".35" filter="url(#soft)"/>
+      <image href="{{BASE_ART}}" x="400" y="322" width="760" height="279"/>
     </svg>
     <div class="ui">
       <span class="skip">Skip ▸▸</span>
@@ -533,9 +532,9 @@
 
 <!-- ================= M4 ================= -->
 <section>
-  <div class="label"><b>M4 · Meet your crew</b><span>They pop in one by one · each tap shows the next bubble · Next names who's next</span></div>
+  <div class="label"><b>M4 · Meet your crew</b><span>Three taps: Biscuit, then Mochi, then Pebble. The speaker lights up; the others dim</span></div>
   <div class="screen">
-    <svg viewBox="0 0 1600 900" preserveAspectRatio="xMidYMid slice" role="img" aria-label="Inside the cozy base: a round window with Earth, a plant shelf, a wall screen, warm lamps, and a locker behind each crewmate. Bram the dog with a wrench, Remy the rabbit with a heart, and Mica the monkey with a rock stand on the floor. Bram is speaking.">
+    <svg viewBox="0 0 1600 900" preserveAspectRatio="xMidYMid slice" role="img" aria-label="Inside the cozy base: a round window with Earth, a plant shelf, a wall screen, warm lamps, and a locker behind each crewmate. Biscuit the dog with a wrench, Mochi the bunny with a heart, and Pebble the cat with a rock stand on the floor.">
       <defs>
         <linearGradient id="m4-wall" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#2d2670"/><stop offset="1" stop-color="#1b2352"/></linearGradient>
         <linearGradient id="m4-floor" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#323b74"/><stop offset="1" stop-color="#1a2048"/></linearGradient>
@@ -588,33 +587,52 @@
       <ellipse cx="800" cy="606" rx="520" ry="34" fill="#ffcf6e" opacity=".1"/>
       <!-- crew, standing on the floor -->
       <g transform="translate(0 -126)">
-        <g class="pop" style="animation-delay:.2s">
+        <g class="pop crewm" data-crew="bram" style="animation-delay:.2s">
           <ellipse cx="440" cy="732" rx="90" ry="12" fill="#0b1030" opacity=".5"/>
           <image href="{{BRAM}}" x="310" y="420" width="260" height="312"/>
           <circle cx="440" cy="392" r="34" fill="#3b82f6" stroke="#fff" stroke-width="4"/><path d="M428 404 l18 -18 m-4 -6 a9 9 0 1 1 10 10" stroke="#fff" stroke-width="5" fill="none" stroke-linecap="round"/>
         </g>
-        <g class="pop" style="animation-delay:.7s">
+        <g class="pop crewm" data-crew="remy" style="animation-delay:.7s">
           <ellipse cx="800" cy="732" rx="90" ry="12" fill="#0b1030" opacity=".5"/>
-          <image href="{{REMY}}" x="670" y="420" width="260" height="312" style="filter:brightness(.72) saturate(.85)"/>
-          <circle cx="800" cy="392" r="34" fill="#c25079" stroke="#d6d9ea" stroke-width="4"/><path d="M800 408 c-20 -12 -20 -28 -8 -30 c4 0 7 2 8 6 c1 -4 4 -6 8 -6 c12 2 12 18 -8 30z" fill="#e6e9f5"/>
+          <image href="{{REMY}}" x="670" y="420" width="260" height="312"/>
+          <circle cx="800" cy="392" r="34" fill="#f06292" stroke="#fff" stroke-width="4"/><path d="M800 408 c-20 -12 -20 -28 -8 -30 c4 0 7 2 8 6 c1 -4 4 -6 8 -6 c12 2 12 18 -8 30z" fill="#fff"/>
         </g>
-        <g class="pop" style="animation-delay:1.2s">
+        <g class="pop crewm" data-crew="mica" style="animation-delay:1.2s">
           <ellipse cx="1160" cy="732" rx="90" ry="12" fill="#0b1030" opacity=".5"/>
-          <image href="{{MICA}}" x="1030" y="420" width="260" height="312" style="filter:brightness(.72) saturate(.85)"/>
-          <circle cx="1160" cy="392" r="34" fill="#1d7a52" stroke="#d6d9ea" stroke-width="4"/><path d="M1144 404 l8 -18 l14 -4 l10 12 l-6 12z" fill="#e6e9f5"/>
+          <image href="{{MICA}}" x="1030" y="420" width="260" height="312"/>
+          <circle cx="1160" cy="392" r="34" fill="#22a06b" stroke="#fff" stroke-width="4"/><path d="M1144 404 l8 -18 l14 -4 l10 12 l-6 12z" fill="#fff"/>
         </g>
-        <g class="fadein" style="animation-delay:1.6s" transform="translate(-60 0)">
-          <path d="M540,196 h380 a24 24 0 0 1 24 24 v96 a24 24 0 0 1 -24 24 h-300 l-60 42 l12 -42 h-32 a24 24 0 0 1 -24 -24 v-96 a24 24 0 0 1 24 -24z" fill="#fbf9ff"/>
-          <rect x="540" y="180" width="104" height="34" rx="9" fill="#3b82f6"/>
-          <text x="592" y="204" text-anchor="middle" font-family="Lexend" font-weight="600" font-size="19" letter-spacing="2" fill="#fff">BRAM</text>
-          <text x="556" y="262" font-family="Fredoka" font-weight="500" font-size="34" fill="#251b52">Panels, air, batteries.</text>
-          <text x="556" y="310" font-family="Fredoka" font-weight="500" font-size="34" fill="#251b52">If it hums, I fix it.</text>
+        <g class="fadein" style="animation-delay:1.4s">
+        <g class="bub" data-bubble="bram" style="">
+          <rect x="480" y="196" width="380" height="144" rx="24" fill="#fbf9ff"/>
+          <path d="M470,338 l30 46 l14 -46z" fill="#fbf9ff"/>
+          <rect x="480" y="180" width="184" height="34" rx="9" fill="#3b82f6"/>
+          <text x="572.0" y="204" text-anchor="middle" font-family="Lexend" font-weight="600" font-size="19" letter-spacing="2" fill="#fff">BISCUIT</text>
+          <text x="496" y="262" font-family="Fredoka" font-weight="500" font-size="34" fill="#251b52">Panels, air, batteries.</text>
+          <text x="496" y="310" font-family="Fredoka" font-weight="500" font-size="34" fill="#251b52">If it hums, I fix it.</text>
+        </g>
+        <g class="bub" data-bubble="remy" style="display:none">
+          <rect x="600" y="196" width="400" height="144" rx="24" fill="#fbf9ff"/>
+          <path d="M770,338 l30 46 l14 -46z" fill="#fbf9ff"/>
+          <rect x="600" y="180" width="144" height="34" rx="9" fill="#f06292"/>
+          <text x="672.0" y="204" text-anchor="middle" font-family="Lexend" font-weight="600" font-size="19" letter-spacing="2" fill="#fff">MOCHI</text>
+          <text x="616" y="262" font-family="Fredoka" font-weight="500" font-size="34" fill="#251b52">I keep everyone healthy.</text>
+          <text x="616" y="310" font-family="Fredoka" font-weight="500" font-size="34" fill="#251b52">You too, Commander!</text>
+        </g>
+        <g class="bub" data-bubble="mica" style="display:none">
+          <rect x="700" y="196" width="580" height="144" rx="24" fill="#fbf9ff"/>
+          <path d="M1100,338 l30 46 l14 -46z" fill="#fbf9ff"/>
+          <rect x="700" y="180" width="164" height="34" rx="9" fill="#22a06b"/>
+          <text x="782.0" y="204" text-anchor="middle" font-family="Lexend" font-weight="600" font-size="19" letter-spacing="2" fill="#fff">PEBBLE</text>
+          <text x="718" y="262" font-family="Fredoka" font-weight="500" font-size="34" fill="#251b52">Moon rocks can be 4 billion</text>
+          <text x="718" y="310" font-family="Fredoka" font-weight="500" font-size="34" fill="#251b52">years old. Older than dinosaurs!</text>
+        </g>
         </g>
       </g>
     </svg>
     <div class="ui">
       <span class="skip">Skip ▸▸</span>
-      <div class="cap"><span class="face"><img src="{{CURIO_FACE}}" alt="Curio"></span><div class="body"><span class="who">CURIO</span><p class="t">Meet your crew! Real crews have <span class="word" data-w="engineer">engineers</span>, doctors and <span class="word" data-w="geologist">geologists</span>.</p><div class="badges"><span class="badge" data-f="F23">✓ NASA fact</span></div></div><span class="next">Meet Remy ▶</span></div>
+      <div class="cap"><span class="face"><img src="{{CURIO_FACE}}" alt="Curio"></span><div class="body"><span class="who">CURIO</span><p class="t">Meet your crew! Real crews have <span class="word" data-w="engineer">engineers</span>, doctors and <span class="word" data-w="geologist">geologists</span>.</p><div class="badges"><span class="badge" data-f="F23">✓ NASA fact</span><span class="badge micaf" data-f="F63 F64" style="display:none">✓ Pebble's fact</span></div></div><span class="next" data-steps="crew">Meet Mochi ▶</span></div>
     </div>
   </div>
 </section>
@@ -696,7 +714,11 @@
     F74: ['Too much space radiation is bad for the body.', 'NASA: Why Space Radiation Matters', 'https://www.nasa.gov/missions/analog-field-testing/why-space-radiation-matters/'],
     F13: ['The Moon has almost no air (that is why its daytime sky is black).', 'NASA Science: 9 Phenomena at the Moon\'s South Pole', 'https://science.nasa.gov/solar-system/moon/phenomena-nasa-astronauts-will-encounter-at-moons-south-pole/'],
     F65: ['The Sun is low at the pole, so NASA is building tall solar panels on masts.', 'NASA: Solar Array Technology for the Moon', 'https://www.nasa.gov/news-release/three-companies-to-help-nasa-advance-solar-array-technology-for-moon/'],
-    F76: ['Ridges near the south pole get sunshine most of the time.', 'NASA Scientific Visualization Studio #4716', 'https://svs.gsfc.nasa.gov/4716']
+    F76: ['Ridges near the south pole get sunshine most of the time.', 'NASA Scientific Visualization Studio #4716', 'https://svs.gsfc.nasa.gov/4716'],
+    F63: ['Moon rocks can be over 4 billion years old.', 'NASA Science: Genesis Rock', 'https://science.nasa.gov/solar-system/moon/genesis-rock/'],
+    F64: ['The dinosaurs died out about 65 million years ago.', 'NASA Science: Deep Impact and the Mass Extinction of Species 65 Million Years Ago', 'https://science.nasa.gov/earth/deep-impact-and-the-mass-extinction-of-species-65-million-years-ago/'],
+    F24: ['About 3 m (10 ft) of Moon soil can shield a shelter from radiation.', 'NASA Technical Reports Server: 20130009378', 'https://ntrs.nasa.gov/citations/20130009378'],
+    F67: ['In a radiation storm, NASA\'s advice is to go to the most shielded place.', 'NASA Space Radiation Analysis Group: How we protect astronauts', 'https://srag.jsc.nasa.gov/SpaceRadiation/How/How.cfm']
   };
   const srcHTML = ids => ids.split(' ').map(id => { const f = FACTS[id]; return `<div>${f[0]}<small>${f[1]} · <a href="${f[2]}" target="_blank" rel="noopener">${f[2].replace(/^https:\/\/(www\.)?/, '').replace(/\/$/, '')}</a></small></div>`; }).join('');
 
@@ -712,6 +734,7 @@
     'crew': {t:'A team of people who work together, like on a ship or a base.', pic:'<g fill="#f1f2f9"><circle cx="14" cy="20" r="6"/><circle cx="34" cy="20" r="6"/><circle cx="24" cy="16" r="7"/></g><g fill="#5fd0c8"><rect x="8" y="27" width="12" height="12" rx="5"/><rect x="28" y="27" width="12" height="12" rx="5"/><rect x="17" y="24" width="14" height="16" rx="6"/></g>'},
     'radiation': {t:'Invisible energy from space. Too much is bad for your body.', pic:'<circle cx="16" cy="16" r="8" fill="#ffcf6e"/><path d="M24 22 l6 2 l-3 4 l7 3 l-3 4 l7 3" fill="none" stroke="#ffb547" stroke-width="3" stroke-linecap="round"/>'},
     'solar panels': {t:'Flat panels that turn sunlight into electricity.', pic:'<rect x="10" y="8" width="20" height="28" rx="2" fill="#33509c" stroke="#9fbcff" stroke-width="2"/><path d="M20 8v28M10 22h20" stroke="#9fbcff" stroke-width="1.5"/><rect x="19" y="36" width="3" height="8" fill="#9aa0bd"/><circle cx="38" cy="12" r="5" fill="#ffcf6e"/>'},
+    'dose': {t:'How much radiation your body has taken in.', pic:'<circle cx="18" cy="16" r="7" fill="#f1f2f9"/><rect x="11" y="24" width="14" height="16" rx="6" fill="#f1f2f9"/><rect x="30" y="12" width="10" height="28" rx="5" fill="#2a2d5c"/><rect x="32" y="26" width="6" height="12" rx="3" fill="#b4e05c"/>'},
     'Pluto': {t:'A small, icy world very far from the Sun.', pic:'<circle cx="24" cy="24" r="14" fill="#c9a98a"/><path d="M18 26 q6 -8 14 -2 q-2 8 -10 7z" fill="#f2e2cf"/>'}
   };
 
@@ -749,6 +772,20 @@
   document.querySelectorAll('.badge[data-f]').forEach(b => {
     attach(b, `<div class="hd">✓ CHECKED WITH NASA</div><div class="src" style="margin-top:0">${srcHTML(b.dataset.f)}</div>`);
   });
+
+  // M4: one tap per crewmate. Returns true while there are more crewmates to meet.
+  const CREW=['bram','remy','mica'],NEXT_LBL={bram:'Meet Mochi ▶',remy:'Meet Pebble ▶',mica:'Next ▶'};
+  function crewShow(scr,who){
+    scr.querySelectorAll('[data-bubble]').forEach(b=>b.style.display=b.dataset.bubble===who?'':'none');
+    scr.querySelectorAll('.crewm image').forEach(im=>im.style.filter=im.closest('.crewm').dataset.crew===who?'':'brightness(.82) saturate(.75)');
+    scr.querySelectorAll('.crewm circle[r="34"]').forEach(c=>c.style.opacity=c.closest('.crewm').dataset.crew===who?1:.6);
+    scr.querySelector('.micaf').style.display=who==='mica'?'':'none';
+    scr.querySelector('.next[data-steps]').textContent=NEXT_LBL[who];scr.dataset.crew=who}
+  function storyAdvance(scr){const n=scr.querySelector('.next[data-steps="crew"]');if(!n)return false;
+    const i=CREW.indexOf(scr.dataset.crew||'bram');if(i<2){crewShow(scr,CREW[i+1]);return true}return false}
+  function storyReset(scr){if(scr.querySelector('.next[data-steps="crew"]'))crewShow(scr,'bram')}
+  document.querySelectorAll('.next[data-steps="crew"]').forEach(n=>{const scr=n.closest('.screen');crewShow(scr,'bram');
+    if(!document.getElementById('story'))n.addEventListener('click',()=>{if(!storyAdvance(scr))crewShow(scr,'bram')})});
 
   // P1 counter: 12 helmets pop in one by one
   document.querySelectorAll('g.heads').forEach(g => {

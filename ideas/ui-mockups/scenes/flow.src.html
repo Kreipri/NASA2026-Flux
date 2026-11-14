@@ -1,0 +1,288 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Opening Flow</title>
+<!-- SOURCE FILE. Build with: python3 ideas/ui-mockups/scenes/build_flow.py  →  ideas/ui-mockups/flow-start-v1.html
+     Story screens come from scenes-start.src.html; the 3D engine comes from all-screens.html. -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Lexend:wght@400;600&display=swap" rel="stylesheet">
+<style>
+{{SCENES_CSS}}
+
+  /* ---------- flow player ---------- */
+  .flowbar{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin:0 0 8px}
+  .flowbar .g{font:600 11px Lexend;color:var(--mut);text-transform:uppercase;letter-spacing:.08em;margin:0 4px 0 6px}
+  .flowbar button{font:500 12px Lexend;padding:4px 9px;border:1px solid var(--border,#3a3f6e);background:transparent;color:var(--mut);border-radius:8px;cursor:pointer}
+  .flowbar button.on{background:#2a2466;color:#fff;border-color:#7c6fe0}
+  .player{position:relative;aspect-ratio:16/9;overflow:hidden;border-radius:14px;background:#0d1433;container-type:inline-size;box-shadow:0 0 0 1px var(--line);touch-action:none}
+  .player > canvas{position:absolute;inset:0;width:100%!important;height:100%!important;display:block}
+  #story{position:absolute;inset:0;z-index:1;transition:opacity 1.1s ease}
+  #story.out{opacity:0;pointer-events:none}
+  #story .screen{position:absolute;inset:0;aspect-ratio:auto;border-radius:0;box-shadow:none;display:none}
+  #story .screen.on{display:block}
+  .player .hud{position:absolute;inset:0;z-index:2;background:transparent;box-shadow:none;border-radius:0;aspect-ratio:auto;pointer-events:none}
+  .hud > *{pointer-events:auto}
+  #fade{position:absolute;inset:0;background:#0d1433;opacity:0;transition:opacity .3s;pointer-events:none;z-index:5}
+  .foot{display:flex;justify-content:space-between;gap:10px;align-items:center;margin-top:8px;font:13px/1.45 Lexend;color:var(--mut)}
+  .foot b{color:var(--fg);font-weight:600}
+  .foot button{font:600 13px Lexend;padding:5px 12px;border:1px solid var(--border,#3a3f6e);background:transparent;color:var(--fg);border-radius:8px;cursor:pointer}
+  .next,.menu .go,.skip,[data-go]{cursor:pointer}
+  .err{position:absolute;inset:0;display:grid;place-items:center;color:#fff;font:600 16px Lexend;z-index:9}
+
+  /* ---------- 3D overlays (kid-sized, same look as the story cards) ---------- */
+  .pin3{z-index:3;position:absolute;transform:translate(-50%,-100%);display:flex;flex-direction:column;align-items:center;background:none;border:0;padding:0;cursor:pointer}
+  .pin3 .o{width:4.6cqw;height:4.6cqw;border-radius:50%;background:#fbf9ff;color:#2a1d5c;display:grid;place-items:center;box-shadow:0 .4cqw 0 #2a1650,0 0 1.6cqw rgba(0,0,0,.35)}
+  .pin3 .o svg{width:55%;height:55%}
+  .pin3 .stem{width:.25cqw;height:1.8cqw;background:#fbf9ff;opacity:.85}
+  .pin3 .nm{position:absolute;left:5.2cqw;top:.6cqw;white-space:nowrap;font:600 1.6cqw Fredoka;color:#2a1d5c;background:#fbf9ff;border-radius:99px;padding:.3cqw 1cqw}
+  .pin3.ring .o{background:var(--amber);box-shadow:0 .4cqw 0 #b9731d,0 0 0 .8cqw rgba(255,181,71,.3),0 0 3cqw #ffb547;animation:pulse3 1.6s infinite}
+  .pin3.dim{opacity:.45}
+  @keyframes pulse3{50%{box-shadow:0 .4cqw 0 #b9731d,0 0 0 1.4cqw rgba(255,181,71,.12),0 0 3cqw #ffb547}}
+  .lab3{position:absolute;transform:translate(-50%,-100%);text-align:center;white-space:nowrap;pointer-events:none}
+  .lab3 .box{background:rgba(14,12,40,.86);border:1px solid rgba(230,220,255,.4);border-radius:1.1cqw;padding:.6cqw 1.3cqw}
+  .lab3 b{display:block;font:700 1.9cqw Fredoka;color:#fbf9ff}
+  .lab3 small{display:block;font:500 1.35cqw Fredoka;color:#d8d0f6}
+  .lab3.warm .box{border-color:#ffb547}.lab3.warm b{color:#ffcf6e}
+  .lab3 i{display:block;width:.2cqw;height:2.2cqw;margin:0 auto;background:rgba(251,249,255,.8)}
+  .top3{position:absolute;left:2.6cqw;top:2.2cqw;display:flex;gap:1cqw;align-items:center}
+  .wk{background:rgba(14,12,40,.86);border:1px solid rgba(230,220,255,.25);border-radius:1.4cqw;padding:.7cqw 1.4cqw;color:#fbf9ff;font:700 2cqw Fredoka;display:flex;gap:1cqw;align-items:center}
+  .wk small{font:500 1.4cqw Fredoka;color:#d8d0f6}
+  .wk .dots{display:flex;gap:.45cqw}.wk .dots i{width:1.1cqw;height:1.1cqw;border-radius:50%;border:.2cqw solid #7ff0e6}.wk .dots i.now{background:var(--amber);border-color:var(--amber)}
+  .chip3{background:rgba(14,12,40,.86);border:1px solid rgba(230,220,255,.25);border-radius:99px;padding:.6cqw 1.2cqw;font:600 1.5cqw Fredoka;color:#fbf9ff;display:flex;gap:.6cqw;align-items:center}
+  .chip3 .d{width:1cqw;height:1cqw;border-radius:50%;background:#7ff09a}
+  .meters3{position:absolute;right:2.6cqw;top:6.4cqw;background:rgba(14,12,40,.86);border:1px solid rgba(230,220,255,.25);border-radius:1.6cqw;padding:1cqw 1.3cqw;display:grid;gap:.7cqw;width:23cqw}
+  .meters3 .m{display:grid;grid-template-columns:2.4cqw 1fr 3.2cqw;gap:.8cqw;align-items:center;font:600 1.5cqw Fredoka;color:#fbf9ff}
+  .meters3 .m svg{width:2.2cqw;height:2.2cqw}
+  .meters3 .bar{height:1.3cqw;border-radius:99px;background:#2a2d5c;overflow:hidden}.meters3 .bar i{display:block;height:100%;border-radius:99px}
+  .meters3 .lb{grid-column:2/4;font:500 1.2cqw Fredoka;color:#cfc6f0;margin-top:-.5cqw}
+  .hl{outline:.35cqw solid var(--amber);outline-offset:.4cqw;box-shadow:0 0 3cqw rgba(255,181,71,.55)!important;animation:hlp 1.6s infinite}
+  @keyframes hlp{50%{outline-offset:.8cqw}}
+  .crew3{position:absolute;right:2.6cqw;bottom:21cqw;background:rgba(14,12,40,.86);border:1px solid rgba(230,220,255,.25);border-radius:1.4cqw;padding:.8cqw 1.2cqw;font:600 1.5cqw Fredoka;color:#fbf9ff;text-align:center}
+  .crew3 .blocks{display:grid;grid-template-columns:repeat(8,2.2cqw);gap:.45cqw;margin-top:.5cqw}
+  .crew3 .blocks i{height:2.2cqw;border-radius:.5cqw;background:#5fd0c8}
+  .say{position:absolute;max-width:24cqw;background:#fbf9ff;color:#251b52;border-radius:1.3cqw;padding:.9cqw 1.3cqw;font:500 1.75cqw/1.3 Fredoka;box-shadow:0 .6cqw 1.6cqw rgba(0,0,0,.35)}
+  .say .n{display:inline-block;font:600 1.1cqw Lexend;letter-spacing:.1em;color:#fff;border-radius:.5cqw;padding:.15cqw .7cqw;margin-bottom:.4cqw}
+  .say::after{content:"";position:absolute;left:2cqw;bottom:-.9cqw;width:1.8cqw;height:1.8cqw;background:#fbf9ff;transform:rotate(45deg)}
+  .say.up::after{bottom:auto;top:-.9cqw;left:5cqw}
+  .lapse{position:absolute;left:50%;top:2.4cqw;transform:translateX(-50%);font:700 1.8cqw Fredoka;color:#2a1a06;background:#ffcf6e;border-radius:99px;padding:.5cqw 1.6cqw}
+  .face.crew{background:#2a2350}
+  .face.crew{display:block}
+  .face.crew.bram{border-color:#3b82f6}.face.crew.remy{border-color:#f06292}.face.crew.mica{border-color:#22a06b}
+  .who.bram{background:#3b82f6;color:#fff}.who.remy{background:#f06292;color:#fff}.who.mica{background:#22a06b;color:#fff}
+  .hud > .tip:not(.show){pointer-events:none}
+  .crew3 .blocks i.on{background:var(--amber)}
+  .meters3 .dl{font-size:1cqw;margin-left:.2cqw;color:#ffcf6e}
+  .jobs{z-index:4;position:absolute;left:2.6cqw;top:8cqw;width:40cqw;background:#fbf9ff;color:#251b52;border-radius:1.8cqw;padding:1.3cqw;box-shadow:0 .8cqw 2.4cqw rgba(0,0,0,.45)}
+  .jobs .jh{display:flex;justify-content:space-between;align-items:center;font:700 2.3cqw Fredoka;color:#3a1f6e;margin-bottom:.8cqw}
+  .jobs .x{font:700 2cqw Fredoka;width:3.6cqw;height:3.6cqw;border-radius:50%;display:grid;place-items:center;background:#ece8ff;cursor:pointer}
+  .job{position:relative;border:.2cqw solid #e2dcff;border-radius:1.2cqw;padding:.9cqw 4.4cqw .9cqw 1.1cqw;margin-bottom:.7cqw;cursor:pointer}
+  .job:hover,.job:focus-visible{border-color:#7c6fe0;outline:none}
+  .job.on{background:#fff4df;border-color:var(--amber)}
+  .job .jn{font:600 1.85cqw Fredoka}
+  .job .jcs{display:flex;flex-wrap:wrap;gap:.5cqw;margin-top:.5cqw}
+  .jc{font:600 1.2cqw Lexend;color:#251b52;background:color-mix(in srgb,var(--c) 30%,#fff);border-radius:99px;padding:.15cqw .7cqw}
+  .tipc{font:600 1.1cqw Lexend;color:#0b2030;background:#5fd0c8;border-radius:99px;padding:.1cqw .6cqw;vertical-align:middle}
+  .taskc{font:600 1.1cqw Lexend;color:#2a1a06;background:#ffcf6e;border-radius:99px;padding:.1cqw .6cqw;vertical-align:middle}
+  .job .ck{position:absolute;right:1cqw;top:50%;transform:translateY(-50%);width:2.8cqw;height:2.8cqw;border-radius:50%;display:grid;place-items:center;font:700 1.8cqw Fredoka;background:#ece8ff;color:#3a1f6e}
+  .job.on .ck{background:var(--amber);color:#2a1a06}
+  .jobs .jf{font:500 1.3cqw Fredoka;color:#6a6390}
+  .warn3{z-index:4;position:absolute;left:50%;top:9cqw;transform:translateX(-50%);background:#ff8a7a;color:#2a0d08;font:600 1.8cqw Fredoka;border-radius:99px;padding:.6cqw 1.8cqw}
+  .endc{z-index:4;position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:52cqw;background:#fbf9ff;color:#251b52;border-radius:2cqw;padding:2.4cqw;text-align:center;box-shadow:0 1cqw 3cqw rgba(0,0,0,.45)}
+  .endc b{font:700 3.4cqw Fredoka;color:#3a1f6e}.endc p{font:500 1.9cqw/1.35 Fredoka;margin:1cqw 0}.endc .s{font-size:1.5cqw;color:#6a6390}
+  @media (prefers-reduced-motion: reduce){.pin3.ring .o,.hl{animation:none!important}#story{transition:none}#fade{transition:none}}
+</style>
+<script type="importmap">
+{ "imports": {
+  "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+  "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
+} }
+</script>
+</head>
+<body>
+{{SHARED_DEFS}}
+<main>
+<div class="flowbar" id="nav"></div>
+<div class="player" id="frame">
+  <div id="stage" hidden></div>
+  <div id="story">
+{{STORY_SCREENS}}
+  </div>
+  <div class="hud screen" id="hud"></div>
+  <div id="fade"></div>
+</div>
+<div class="foot"><div id="note"></div><div><button id="prev" aria-label="Previous screen">◀</button> <button id="next" aria-label="Next screen">▶</button></div></div>
+</main>
+
+<script>
+{{SCENES_JS}}
+</script>
+
+<script type="module">
+{{ENGINE}}
+
+/* =================== FLOW: story → 3D =================== */
+let REDUCE=matchMedia('(prefers-reduced-motion: reduce)').matches;
+const hud=document.getElementById('hud'),storyEl=document.getElementById('story'),fadeEl=document.getElementById('fade');
+CAMS.lapse={pos:W(-34,7,-56),tgt:W(-1,5,2),fov:40};
+CAMS.base={pos:W(-2,hT(-2,-58)+5,-58),tgt:W(5,3.4,1),fov:34};   // ~58 m from the base (was 262 m)
+/* soft, smooth base shadows: the Sun is only 2.3° up, so a normal shadow map stretches into jaggies */
+renderer.shadowMap.type=THREE.VSMShadowMap;sun.shadow.radius=10;sun.shadow.blurSamples=24;{const c=sun.shadow.camera;c.left=-75;c.right=75;c.top=75;c.bottom=-75;c.updateProjectionMatrix()}
+/* the caption is big, so tilt each camera down a little: the action sits above the caption */
+const LIFT={site:.1,lapse:.1,base:.07,solar:.12,hab:.12,shelter:.12,trip:.12},LC={};
+const camFor=k=>LC[k]||(LC[k]={pos:CAMS[k].pos,fov:CAMS[k].fov,tgt:CAMS[k].tgt.clone().add(new THREE.Vector3(0,-(LIFT[k]||0)*CAMS[k].pos.distanceTo(CAMS[k].tgt),0))});
+/* a visible Sun that follows the light (terrain hides it by depth) */
+const sunGlow=new THREE.Group();scene.add(sunGlow);
+{const a=new THREE.Sprite(new THREE.SpriteMaterial({map:HALO,color:'#ffd59a',blending:THREE.AdditiveBlending,depthWrite:false,transparent:true,toneMapped:false}));a.scale.set(5200,5200,1);
+ const b=new THREE.Sprite(new THREE.SpriteMaterial({map:HALO,color:'#fff6e0',depthWrite:false,transparent:true,toneMapped:false}));b.scale.set(1500,1500,1);sunGlow.add(a,b)}
+/* solar pin sits low on the mast so the top UI never covers it */
+PINS.solar.p=W(-12.5,hM(-12.5,14)+5,14);
+const placeSun=L=>{const d=32000;sunGlow.position.copy(W(L[0]*d,L[1]*d,L[2]*d))};
+
+const ASSET={curio:'{{CURIO_FACE}}',bram:'{{BRAM}}',remy:'{{REMY}}',mica:'{{MICA}}'};
+const RADIO='<svg viewBox="0 0 24 24" style="color:#ffcf6e"><use href="#i-radio"/></svg>';
+const faceOf=w=>w==='mc'?`<span class="face mc">${RADIO}</span>`:w==='curio'?`<span class="face"><img src="${ASSET.curio}" alt="Curio"></span>`:`<span class="face crew ${w}"><img src="${ASSET[w]}" alt="${w}"></span>`;
+const NAMES={curio:'CURIO',bram:'BISCUIT',remy:'MOCHI',mica:'PEBBLE',mc:'<span class="word" data-w="Mission Control" style="border-color:#2a1a06">MISSION CONTROL</span>'};
+const cap=(who,text,facts,btn,go)=>`<div class="cap">${faceOf(who)}<div class="body"><span class="who ${who==='mc'?'mc':who}">${NAMES[who]}</span><p class="t">${text}</p>${facts?`<div class="badges"><span class="badge" data-f="${facts}">✓ NASA fact</span></div>`:''}</div><span class="next" ${go.startsWith('!')?`data-act="${go.slice(1)}"`:`data-go="${go}"`}>${btn}</span></div>`;
+const skipTour=`<span class="skip" data-go="week1">Skip tour ▸▸</span>`;
+
+/* game numbers from src/config/moon.json (blocks = crew time) */
+const JOBS={air:{n:'Tune the air system',b:1,power:-20,o2:30,tip:1},rest:{n:'Rest (2 crew)',b:2,energy:20},call:{n:'Call Mission Control',b:1,power:-5},
+  clean:{n:'Clean dust off panels',b:2,o2:-2,dose:1,out:1},logsun:{n:'Log sunlight & shadows',b:1,power:-2,task:'Light'},
+  regolith:{n:'Pile soil on the shelter',b:4,power:-10,o2:-4,dose:2,out:1,task:'Shelter'},measure:{n:'Measure radiation',b:1,power:-4,task:'Radiation'},
+  rover:{n:'Rover to the dark crater',b:4,power:-50,o2:-8,dose:4,out:1,task:'Ice'},scout:{n:'Scout with the hop-drone',b:1,power:-15,task:'Ice'}};
+const PLACE_JOBS={hab:['air','rest','call'],solar:['clean','logsun'],shelter:['regolith','measure'],rover:['scout','rover']};
+const START={power:72,o2:61,dose:18,energy:74};
+const W1={open:null,plan:[],started:false,warn:''};
+const used=()=>W1.plan.reduce((t,k)=>t+JOBS[k].b,0);
+const proj=()=>{const v={...START};for(const k of W1.plan)for(const m of ['power','o2','dose','energy'])v[m]=Math.max(0,Math.min(100,v[m]+(JOBS[k][m]||0)));return v};
+
+const IC={bolt:'<path d="M13.5 2 4 14h6.5L9.5 22 20 9.5h-6.5z" fill="currentColor"/>',dose:'<circle cx="12" cy="12" r="2.4" fill="currentColor"/><path d="M12 9.6 9.4 5.2A8 8 0 0 0 4 12h5.2M14.6 12H20a8 8 0 0 0-5.4-6.8L12 9.6M10.8 14.1 8.2 18.6a8 8 0 0 0 7.6 0l-2.6-4.5" fill="currentColor"/>',heart:'<path d="M12 21s-7.5-4.6-9.6-9.2A5.2 5.2 0 0 1 12 6.3a5.2 5.2 0 0 1 9.6 5.5C19.5 16.4 12 21 12 21z" fill="currentColor"/>',o2:'<text x="12" y="16.5" text-anchor="middle" font-family="Fredoka" font-weight="700" font-size="11" fill="currentColor">O₂</text>'};
+const meters=(hl,v=START)=>`<div class="meters3 ${hl?'hl':''}">${[['bolt','Power','power','#ffd34d'],['o2','Oxygen','o2','#7fe3ff'],['dose','Radiation dose','dose','#b4e05c'],['heart','Energy','energy','#ff7b8f']].map(([i,n,k,c])=>`<div class="m"><svg viewBox="0 0 24 24" style="color:${c}">${IC[i]}</svg><div class="bar"><i style="width:${v[k]}%;background:${c}"></i></div><span>${v[k]}${v[k]!==START[k]?`<small class="dl">${v[k]>START[k]?'▲':'▼'}</small>`:''}</span><span class="lb">${n==='Radiation dose'?'Radiation <span class="word" data-w="dose">dose</span>':n}</span></div>`).join('')}</div>`;
+const topbar=()=>`<div class="top3"><div class="wk">WEEK 1 <small>of 7</small><span class="dots">${Array.from({length:7},(_,i)=>`<i class="${i?'':'now'}"></i>`).join('')}</span></div><span class="chip3"><span class="d"></span>Earth link</span></div>`;
+const crewTime=(hl,n=0)=>`<div class="crew3 ${hl?'hl':''}">Crew time this week<div class="blocks">${Array.from({length:8},(_,i)=>`<i class="${i<n?'on':''}"></i>`).join('')}</div></div>`;
+const chip=(t,c)=>`<span class="jc" style="--c:${c}">${t}</span>`;
+const jobCard=k=>`<div class="jobs"><div class="jh"><b>${PIN_NM[k]}</b><span class="x" data-act="close" aria-label="Close">✕</span></div>${PLACE_JOBS[k].map(j=>{const J=JOBS[j],on=W1.plan.includes(j);
+  return `<div class="job ${on?'on':''}" data-act="job" data-job="${j}"><div class="jn">${J.n}${J.tip?' <span class="tipc">Curio\'s tip</span>':''}${J.task?` <span class="taskc">★ ${J.task} task</span>`:''}</div><div class="jcs">${chip(`${'▮'.repeat(J.b)} ${J.b} time`,'#5fd0c8')}${J.power?chip(`⚡ ${J.power>0?'+':''}${J.power}`,'#ffd34d'):''}${J.o2?chip(`O₂ ${J.o2>0?'+':''}${J.o2}`,'#7fe3ff'):''}${J.dose?chip(`☢ +${J.dose}`,'#b4e05c'):''}${J.energy?chip(`♥ +${J.energy}`,'#ff7b8f'):''}${J.out?chip('outside','#c9b8ff'):''}</div><span class="ck">${on?'✓':'+'}</span></div>`}).join('')}<div class="jf">Tap a job to add it. Tap again to remove.</div></div>`;
+
+const PIN_NM={hab:'Habitat',shelter:'Shelter',solar:'Solar panels',rover:'Rover'};
+const LAB={base:{t:'Your base',s:'about 50 m wide · to scale'},shack:{t:'Shackleton Crater',s:'21 km wide'},ridge:{t:'The ridge',s:'sunny most of the time',warm:1},target:{t:'Dark crater',s:'might hide ice'}};
+
+const S3=[
+  {id:'arrive',name:'Arrive',cam:'site',lines:true,labs:['base','shack','ridge'],note:'<b>Arrive (3D).</b> The storybook dissolves into the real-scale ridge, seen from ~5 km up. Labels show how tiny the base is.',
+   html:()=>skipTour+cap('curio','Welcome to the real <span class="word" data-w="ridge">ridge</span>! Our base is tiny next to Shackleton Crater.','F06 F76','Fly down ▶','sun')},
+  {id:'sun',name:'Sun time-lapse',cam:'lapse',lapse:true,note:'<b>Sun time-lapse (3D).</b> The Sun circles the horizon and the base\'s long shadows swing all the way round.',
+   html:()=>skipTour+`<span class="lapse">Time-lapse ▶▶</span>`+cap('curio','See? The Sun goes all the way around, and it never sets. That\'s why the base is here.','F07','Show me the base ▶','t1')},
+  {id:'t1',name:'Tour · meters',cam:'base',pins:true,note:'<b>Tour 1/5: meters.</b> The four meters glow while Curio names them. Game UI, so no NASA badge.',
+   html:()=>skipTour+meters(true)+cap('curio','These 4 meters keep your crew safe: power, oxygen, radiation <span class="word" data-w="dose">dose</span> and energy.','','Next: solar panels ▶','t2')},
+  {id:'t2',name:'Tour · solar',cam:'solar',pins:true,ring:'solar',note:'<b>Tour 2/5: solar panels.</b> Biscuit explains why the panels are tall.',
+   html:()=>skipTour+cap('bram','Our <span class="word" data-w="solar panels">panels</span> stand tall because the Sun is so low. Up high, they catch more light.','F65','Next: crew time ▶','t3')},
+  {id:'t3',name:'Tour · crew time',cam:'hab',pins:true,ring:'hab',note:'<b>Tour 3/5: crew time.</b> The 8 time blocks glow. Game rule, so no NASA badge.',
+   html:()=>skipTour+crewTime(true,8)+cap('curio','Each week, your crew has 8 blocks of time. Outside jobs tire them more.','','Next: the shelter ▶','t4')},
+  {id:'t4',name:'Tour · shelter',cam:'shelter',pins:true,ring:'shelter',note:'<b>Tour 4/5: shelter.</b> Mochi explains the soil-covered shelter.',
+   html:()=>skipTour+cap('remy','Moon soil piled on top blocks space <span class="word" data-w="radiation">radiation</span>. In a storm, we come in here.','F24 F67','Next: the dark crater ▶','t5')},
+  {id:'t5',name:'Tour · crater',cam:'trip',lines:true,route:true,labs:['target','base'],note:'<b>Tour 5/5: the dark crater.</b> Why it matters: it might hold ice, and finding ice is one of the mission tasks. Trips there cost a lot.',
+   html:()=>skipTour+cap('mica','That <span class="word" data-w="crater">crater</span> might hide ice, and finding it is one of our jobs! Trips there are dark, freezing and use lots of power.','F09 F29','Start week 1 ▶','week1')},
+  {id:'week1',name:'Week 1',cam:'base',pins:true,week:true,note:'<b>Week 1: the first decision.</b> Tap a place to open its jobs. Picks fill the crew-time blocks and change the meters. Start week ends the opening.',
+   html:()=>{const n=used(),v=proj();
+     if(W1.started)return topbar()+meters(false,v)+`<div class="endc"><b>Week 1 begins!</b><p>${W1.plan.map(k=>JOBS[k].n).join(' · ')}</p><p class="s">This is where the opening ends. Next in the game: the week plays out.</p><span class="next" data-act="again">Plan again</span></div>`;
+     return topbar()+meters(false,v)+crewTime(false,n)+(W1.open?jobCard(W1.open):
+       `<div class="say up" data-anchor="rover" data-dx="-6" data-dy="16"><span class="n" style="background:#22a06b">PEBBLE</span><br>Can we see the dark crater soon?</div>`+
+       `<div class="say up" data-anchor="solar" data-dx="-16" data-dy="12"><span class="n" style="background:#3b82f6">BISCUIT</span><br>Base first, then rocks.</div>`)+
+       (W1.warn?`<div class="warn3">${W1.warn}</div>`:'')+
+       cap('mc',n?`Good plan! You've used ${n} of 8 crew time. Add more, or start the week.`:'Welcome to the base, first crew! This week: get everything humming. Tap the habitat to start.','',n?'Start week ▶':'Start week ▶','!start')}}
+];
+const STORY_IDS=[...storyEl.querySelectorAll('.screen')].map(el=>({id:el.dataset.id,name:el.dataset.name,story:true,el,note:el.dataset.note}));
+const SCREENS=[...STORY_IDS,...S3];
+
+/* nav */
+const nav=document.getElementById('nav');
+nav.innerHTML=`<span class="g">Story</span>${STORY_IDS.map(s=>`<button data-id="${s.id}">${s.name}</button>`).join('')}<span class="g">3D</span>${S3.map(s=>`<button data-id="${s.id}">${s.name}</button>`).join('')}`;
+nav.addEventListener('click',e=>{const b=e.target.closest('button');if(b)go(b.dataset.id)});
+const step=d=>{const i=SCREENS.findIndex(s=>s.id===cur.id);go(SCREENS[(i+d+SCREENS.length)%SCREENS.length].id)};
+document.getElementById('prev').onclick=()=>step(-1);document.getElementById('next').onclick=()=>step(1);
+
+/* story controls */
+storyEl.querySelectorAll('.next,.menu .go,.skip').forEach(el=>{el.setAttribute('role','button');el.tabIndex=0});
+storyEl.addEventListener('click',e=>{const t=e.target.closest('.next,.menu .go,.skip');if(!t)return;
+  if(t.classList.contains('skip')){go(cur.id.startsWith('p')?'m1':'arrive');return}
+  if(t.classList.contains('next')&&storyAdvance(cur.el))return;step(1)});
+/* 3D controls: data-go = change screen, data-act = week-1 actions, pins open job cards */
+hud.addEventListener('click',e=>{
+  const pin=e.target.closest('[data-pin]');if(pin&&cur.week&&!W1.started){W1.open=pin.dataset.pin;W1.warn='';paint();return}
+  const a=e.target.closest('[data-act]');
+  if(a){const act=a.dataset.act;
+    if(act==='close'){W1.open=null}
+    else if(act==='job'){const j=a.dataset.job,i=W1.plan.indexOf(j);if(i>=0)W1.plan.splice(i,1);else if(used()+JOBS[j].b>8)W1.warn='Not enough crew time left for that job.';else{W1.plan.push(j);W1.warn=''}}
+    else if(act==='start'){if(!W1.plan.length){W1.warn='Pick at least one job first. Try the habitat!';}else{W1.started=true;W1.open=null}}
+    else if(act==='again'){W1.started=false;W1.plan=[];W1.warn=''}
+    paint();return}
+  const t=e.target.closest('[data-go]');if(t&&t.dataset.go!==cur.id)go(t.dataset.go)});
+[storyEl,hud].forEach(el=>el.addEventListener('keydown',e=>{if((e.key==='Enter'||e.key===' ')&&e.target.matches('.next,.menu .go,.skip,[data-go],[data-act],[data-pin]')){e.preventDefault();e.target.click()}}));
+
+/* light + camera (v8.1 clip-art light: weak sun, strong ambient) */
+let cur=null,anim=null,lapseT0=0;
+function setSun(az,el){const L=dirAE(az,el);placeSun(L);terrainMat.uniforms.sunD.value.set(...L);sun.position.copy(W(L[0]*1500,L[1]*1500,L[2]*1500));if(EU.sunW)EU.sunW.value.set(L[0],L[1],-L[2])}
+function setLight(){const L=LIGHT.sun;placeSun(L);terrainMat.uniforms.sunD.value.set(...L);sun.position.copy(W(L[0]*1500,L[1]*1500,L[2]*1500));sun.target.position.set(0,0,0);if(EU.sunW)EU.sunW.value.set(L[0],L[1],-L[2]);sun.intensity=.55;hemi.intensity=2.6;lamps.forEach(l=>l.intensity=0)}
+function flyTo(C,instant){
+  if(REDUCE&&!instant){fadeEl.style.opacity=1;anim=null;setTimeout(()=>{camera.position.copy(C.pos);controls.target.copy(C.tgt);camera.fov=C.fov;camera.updateProjectionMatrix();fadeEl.style.opacity=0},300)}
+  else if(instant){anim=null;camera.position.copy(C.pos);controls.target.copy(C.tgt);camera.fov=C.fov;camera.updateProjectionMatrix()}
+  else{const far=Math.max(camera.position.distanceTo(C.pos),controls.target.distanceTo(C.tgt));anim={t0:performance.now(),dur:far<50?Math.max(450,far*12):Math.min(2600,1000+far*.05),p0:camera.position.clone(),q0:controls.target.clone(),f0:camera.fov,C,arc:Math.min(1500,far*.08)}}}
+
+/* tooltips for words and badges in the 3D overlay (the system lives in the story script) */
+function wireTips(root){
+  root.querySelectorAll('.word[data-w]').forEach(w=>{const g=GLOSS[w.dataset.w];if(g)attach(w,`<div class="row"><span class="pic"><svg viewBox="0 0 48 48" aria-hidden="true">${g.pic}</svg></span><span><b>${w.dataset.w}</b>${g.t}</span></div>`)});
+  root.querySelectorAll('.badge[data-f]').forEach(b=>attach(b,`<div class="hd">✓ CHECKED WITH NASA</div><div class="src" style="margin-top:0">${srcHTML(b.dataset.f)}</div>`));
+  root.querySelectorAll('[data-go],[data-act]').forEach(el=>{el.setAttribute('role','button');el.tabIndex=0});
+}
+function paint(){const S=cur;
+  hud.querySelectorAll('.tip').forEach(t=>t.remove());
+  let h='';
+  if(S.pins)for(const k of ['hab','shelter','solar','rover'])h+=`<button class="pin3 ${S.ring===k||(S.week&&!W1.plan.length&&!W1.open&&k==='hab')||W1.open===k&&S.week?'ring':''} ${S.ring&&S.ring!==k?'dim':''}" data-pin="${k}" aria-label="${PIN_NM[k]}"><span class="o">${PINS[k].ic}</span><span class="stem"></span>${S.ring===k||S.week?`<span class="nm">${PIN_NM[k]}</span>`:''}</button>`;
+  for(const k of (S.labs||[]))h+=`<div class="lab3 ${LAB[k].warm?'warm':''}" data-lab="${k}"><div class="box"><b>${LAB[k].t}</b><small>${LAB[k].s}</small></div><i></i></div>`;
+  hud.innerHTML=h+S.html();wireTips(hud);placeOverlays();
+}
+function go(id,instant){
+  const S=SCREENS.find(s=>s.id===id),prev=cur;cur=S;
+  nav.querySelectorAll('button').forEach(b=>b.classList.toggle('on',b.dataset.id===id));
+  document.getElementById('note').innerHTML=S.note||'';
+  if(S.story){
+    storyEl.classList.remove('out');storyEl.querySelectorAll('.screen').forEach(el=>el.classList.toggle('on',el===S.el));storyReset(S.el);
+    hud.innerHTML='';controls.enabled=false;return}
+  controls.enabled=true;
+  const fromStory=!prev||prev.story;
+  setLight();lines.visible=!!S.lines;route.visible=!!S.route;
+  scene.traverse(o=>{if(o.material&&o.material.isShadowMaterial)o.visible=['base','solar','hab','shelter','lapse'].includes(S.cam)});
+  const C=camFor(S.cam);controls.autoRotate=false;
+  if(fromStory){flyTo(C,true);storyEl.classList.add('out')}else flyTo(C,instant);
+  if(S.lapse)lapseT0=performance.now();
+  if(S.week){W1.open=null;W1.warn=''}
+  paint();
+}
+
+/* render loop */
+const composer=new EffectComposer(renderer);composer.addPass(new RenderPass(scene,camera));
+composer.addPass(new UnrealBloomPass(new THREE.Vector2(1280,720),.35,.4,.95));composer.addPass(new OutputPass());
+function resize(){const w=frame.clientWidth||728,h=Math.round(w*9/16),pr=renderer.getPixelRatio();
+  if(typeof OUT!=='undefined'){OUT.uniforms.res.value.set(w*pr,h*pr);OUT.uniforms.w.value=Math.max(1.5,3.6*w/1280*pr)}
+  renderer.setSize(w,h,false);composer.setSize(w,h);camera.aspect=w/h;camera.updateProjectionMatrix()}
+new ResizeObserver(resize).observe(frame);resize();
+const ease=t=>t<.5?4*t*t*t:1-Math.pow(-2*t+2,3)/2,v3=new THREE.Vector3();
+const toPct=p=>{v3.copy(p).project(camera);return v3.z>1?null:[(v3.x+1)*50,(1-v3.y)*50]};
+function placeOverlays(){
+  hud.querySelectorAll('[data-pin]').forEach(el=>{const s=toPct(PINS[el.dataset.pin].p);if(!s){el.style.display='none';return}el.style.display='flex';el.style.left=s[0]+'%';el.style.top=s[1]+'%'});
+  hud.querySelectorAll('[data-lab]').forEach(el=>{const s=toPct(L3[el.dataset.lab].p());if(!s||s[0]<0||s[0]>100||s[1]<0||s[1]>100){el.style.display='none';return}el.style.display='block';el.style.left=s[0]+'%';el.style.top=s[1]+'%'});
+  hud.querySelectorAll('[data-anchor]').forEach(el=>{const s=toPct(PINS[el.dataset.anchor].p);if(!s)return;el.style.left=Math.max(1,Math.min(47,s[0]+ +el.dataset.dx))+'%';el.style.top=Math.max(1,s[1]+ +el.dataset.dy)+'%'})}
+function tick(now){
+  if(anim){const t=Math.min(1,(now-anim.t0)/anim.dur),k=ease(t);camera.position.lerpVectors(anim.p0,anim.C.pos,k);camera.position.y+=Math.sin(k*Math.PI)*anim.arc;controls.target.lerpVectors(anim.q0,anim.C.tgt,k);camera.fov=anim.f0+(anim.C.fov-anim.f0)*k;camera.updateProjectionMatrix();if(t>=1)anim=null}
+  const dt=Math.min(.1,(now-(tick.t||now))/1000);tick.t=now;if(!REDUCE){earthSurf.rotation.y+=dt*.035;EU.drift.value+=dt*.0025}
+  if(cur&&cur.lapse&&!REDUCE)setSun(SUN_AZ+((now-lapseT0)/9000)*360,2.3);
+  controls.update();
+  if(cur&&!cur.story){composer.render();placeOverlays()}
+  requestAnimationFrame(tick)}
+const START_ID=new URLSearchParams(location.search).get('s')||'title';
+go(START_ID,true);requestAnimationFrame(tick);
+</script>
+</body>
+</html>

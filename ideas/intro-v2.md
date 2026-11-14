@@ -18,7 +18,7 @@ Flow: a question (P1) → why it's hard (P2) → the answer is you (P3).
 - M1 Curio: "Hi, Commander! I'm Curio, the base helper. Our base sits on a ridge near the Moon's south pole." (F06, F76)
 - M2 Curio: "Here, the Sun circles low around the sky. It almost never sets, so our panels get lots of light." (F07, F65)
 - M3 Curio: "This crater is always in shadow. It's colder than Pluto! Is there ice inside?" (F09, F75, F29)
-- M4 Curio: "Meet your crew!" → Bram's bubble; the Next button names who's next ("Meet Remy ▶").
+- M4 Curio: "Meet your crew!" → Biscuit, Mochi, then Pebble (one tap each); the Next button names who's next.
 - M5 Mission Control: "Commander, welcome to the base! Your crew will stay 7 weeks. Keep everyone safe and show the base works. Ready?" Fact callout on the 7-week screen: "Why 7 weeks? NASA's base plans have crews staying about 1 to 2 months." (F27, a concept, not a current plan)
 
 Mockup: `ideas/ui-mockups/scenes-start-v1.html`.
