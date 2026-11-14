@@ -5,7 +5,7 @@
 import { mkdirSync, readFileSync, writeFileSync, existsSync, appendFileSync } from 'node:fs';
 import {
   newGame, step, menu, env, stormActive, blocksToday, blocksFor, totalDays, reportCard, checklist, verdict, totalStars, scenarioOf, daysUntilLink,
-  iceChance, powerCost, type State, type ActionId, type ScenarioId, type TripChoice, type Goal, type ActionDef,
+  iceChance, powerCost, actionDef, validate, type State, type ActionId, type ScenarioId, type TripChoice, type Goal, type ActionDef,
 } from '../engine/engine.ts';
 import moon from '../config/moon.json' with { type: 'json' };
 import { missionControl, emergencyHelp } from '../content/lines.ts';
@@ -52,7 +52,92 @@ function costs(s: State, d: ActionDef): string {
   if (d.dose) c.push(`dose+${d.dose}`);
   if (d.outside) c.push('OUT');
   if (d.id === 'powersave') c.push('stamina-10');
+  if (d.blocks >= 4 && !d.repeatable) c.push('ONCE/DAY');
   return c.join(' ') || '-';
+}
+
+function environmentBrief(s: State): string[] {
+  const e = env(s);
+  const sun = e.eclipse === 'long' ? 'LONG SHADOW' : e.eclipse === 'short' ? 'SHORT ECLIPSE' : 'BRIGHT RIDGE';
+  const weather = e.storm === 'strong' ? 'STORM PEAK' : e.storm === 'rising' ? 'STORM BUILDING' : e.storm === 'warning' ? 'FLARE ALERT' : 'QUIET SUN';
+  const place = e.sun === 'dark' ? 'RIDGE DARK / CRATER ALWAYS DARK AND COLD' : 'RIDGE LIT / CRATER ALWAYS DARK AND COLD';
+  const link = e.link ? 'VISIBLE' : `BELOW HORIZON${daysUntilLink(s) ? `, back in ${daysUntilLink(s)} day(s)` : ''}`;
+  return [
+    'OPERATING PICTURE (read this before choosing a job):',
+    `  LIGHT: ${sun} — ${e.sun === 'dark' ? 'panels make no solar power today' : 'light can charge the batteries'}`,
+    `  SPACE WEATHER: ${weather} — ${stormActive(e) ? 'particles can raise radiation dose' : 'the Sun is calm for now'}`,
+    `  PLACE: ${place}`,
+    `  EARTH LINK: ${link} — ${e.link ? 'Mission Control can send a forecast' : 'the onboard alarm is the backup'}`,
+    `  DUST: ${s.dust}/3   CREW: ${blocksToday(s)} time blocks, ${s.stamina}% stamina`,
+  ];
+}
+
+function dailyScenario(s: State): string {
+  const e = env(s);
+  if (e.storm === 'strong') return 'STORM PEAK: keep the crew inside or shelter during the worst particles.';
+  if (e.storm === 'rising') return 'STORM BUILDING: gather evidence carefully; outside work is risky.';
+  if (e.storm === 'warning') return 'FLARE ALERT: particles may arrive tomorrow; prepare the base.';
+  if (e.eclipse === 'long') return 'LONG SHADOW: save battery power because the panels cannot charge.';
+  if (e.eclipse === 'short') return 'SHORT ECLIPSE: half-day sunlight means less power than usual.';
+  if (!e.link) return 'EARTH LINK DOWN: use the onboard alarm and manage without a new forecast.';
+  if (s.dust >= 2) return 'DUSTY PANELS: clean the solar panels or lose charging power.';
+  return 'BRIGHT RIDGE: use the sunlight to build evidence and prepare for harder days.';
+}
+
+function taskResult(s: State, id: ActionId): string[] {
+  switch (id) {
+    case 'logsun': return ['TASK RESULT: sunlight and shadow data recorded for the site report card.'];
+    case 'measure': return ['TASK RESULT: radiation measurement recorded.', stormActive(env(s)) ? 'This measurement counts as storm evidence.' : 'A quiet-day measurement gives a baseline.'];
+    case 'scout': return [`TASK RESULT: hop-drone map complete. The next rover trip has a ${Math.round(iceChance(s) * 100)}% ice chance.`];
+    case 'rover': return ['TASK RESULT: rover dispatched to the dark crater. Its sample result will be revealed when the day ends.'];
+    case 'regolith': return [`TASK RESULT: shelter construction assigned. It will become level ${Math.min(3, s.shelterLevel + 1)} when the day resolves.`];
+    case 'clean': return ['TASK RESULT: crew is cleaning the panels. Solar charging will improve when the day resolves.'];
+    case 'air': return ['TASK RESULT: air system work assigned. Oxygen will increase when the day resolves.'];
+    case 'repair': return ['TASK RESULT: repair crew assigned to the base fault.'];
+    case 'powersave': return ['TASK RESULT: the base will use less power today, but the crew will get colder.'];
+    case 'shelter': return ['TASK RESULT: the crew will spend the day in the strongest shelter during the storm peak.'];
+    case 'rest': return ['TASK RESULT: rest time assigned. The crew will recover stamina when the day resolves.'];
+    case 'call': return ['TASK RESULT: Mission Control call assigned. The latest forecast will arrive when the day resolves.'];
+    default: return ['TASK RESULT: task added to today’s plan.'];
+  }
+}
+
+function plannedStatus(s: State, ids: ActionId[]): string[] {
+  const used = ids.reduce((n, id) => n + actionDef(id).blocks, 0);
+  const power = ids.reduce((n, id) => n + powerCost(s, id), s.power);
+  const o2 = ids.reduce((n, id) => n + actionDef(id).o2, s.o2);
+  const dose = ids.reduce((n, id) => n + actionDef(id).dose, s.dose);
+  const stamina = ids.reduce((n, id) => n + (actionDef(id).outside ? -actionDef(id).blocks * 6 : -actionDef(id).blocks * 2) + (actionDef(id).stamina ?? 0), s.stamina);
+  const v = verdict(s);
+  const w = scenarioOf(s).win;
+  return [
+    'STATUS AFTER THIS TASK:',
+    `  MISSION: ${v.stars}/12 stars · ${v.mainDone}/4 main goals · ${v.tier === 'not-proven' ? 'SITE NOT PROVEN YET' : v.tier.toUpperCase()}`,
+    `  RESOURCES PROJECTED: POWER ${Math.max(0, power)} · OXYGEN ${Math.max(0, o2)} · DOSE ${Math.min(100, dose)} · STAMINA ${Math.max(0, stamina)}`,
+    `  CREW TIME LEFT: ${Math.max(0, blocksToday(s) - used)} / ${blocksToday(s)} blocks`,
+    `  APPROVAL TARGET: ${w.minStars} stars, at least 1 main goal in every report-card question, and a healthy crew`,
+  ];
+}
+
+function previewPlan(s: State, ids: ActionId[]): void {
+  const used = ids.reduce((n, id) => n + actionDef(id).blocks, 0);
+  console.log('\nBEFORE YOU COMMIT:');
+  console.log(`  Plan uses ${used} of ${blocksToday(s)} crew-time blocks.`);
+  for (const id of ids) {
+    const d = actionDef(id);
+    const p = powerCost(s, id);
+    const stamina = d.outside ? -d.blocks * 6 : -d.blocks * 2;
+    const gain = effect(s, d);
+    const giveUp = d.blocks >= 4 ? 'uses most of the day; another big job may not fit' : 'uses time and leaves fewer resources for another job';
+    console.log(`\n  ${d.label}`);
+    console.log(`    WHERE: ${d.outside ? 'outside / dark crater or ridge' : 'inside the habitat'}`);
+    console.log(`    EXPECTED: Power ${s.power} -> ${Math.max(0, s.power + p)}, Oxygen ${s.o2} -> ${Math.max(0, s.o2 + d.o2)}, Dose ${s.dose} -> ${Math.min(100, s.dose + d.dose)}, Stamina ${s.stamina} -> ${Math.max(0, s.stamina + stamina)}`);
+    console.log(`    YOU GAIN: ${gain}`);
+    console.log(`    YOU GIVE UP: ${giveUp}.`);
+    if (id === 'rover') console.log(`    UNCERTAIN: ${Math.round(iceChance(s) * 100)}% chance of ice; the result is not guaranteed.`);
+    if (d.outside) console.log('    RISK: OUTSIDE work can add exposure during a storm and tires the crew more.');
+  }
+  console.log('');
 }
 
 function screen(s: State): string {
@@ -70,6 +155,7 @@ function screen(s: State): string {
   L.push(line);
   const v = verdict(s); const w = scenarioOf(s).win; const cl = checklist(s);
   L.push(row(`MISSION: prove this ridge can host a Moon base.            Stars: ${v.stars}/12`));
+  for (const scenarioLine of wrap(`TODAY'S SCENARIO: ${dailyScenario(s)}`, W - 4)) L.push(row(scenarioLine));
   L.push(row(`  Main goals: ${v.mainDone}/4 -> SITE PROMISING.  Bonus -> APPROVED at ${w.minStars}, GOLD at ${w.gold}.`));
   const box = (c: { done: boolean; main: boolean; label: string }) => `${c.main ? '' : '+'}[${c.done ? 'x' : ' '}] ${c.label}`;
   for (const g of ['LIGHT', 'RADIATION', 'SHELTER', 'ICE'] as Goal[]) L.push(row(`  ${g.padEnd(10)} ${cl[g].map(box).join(' ')}`));
@@ -106,8 +192,12 @@ function screen(s: State): string {
 function card(s: State): string {
   const rc = reportCard(s);
   const v = verdict(s); const w = scenarioOf(s).win;
-  const head = s.ended?.reason === 'oxygen' ? 'MISSION PAUSED: crew called home safely (oxygen ran low). Site not proven yet.'
-    : s.ended?.reason === 'dose' ? 'MISSION PAUSED: crew called home safely (dose plan used up). Site not proven yet.'
+  const head = s.ended?.reason === 'oxygen' ? 'MISSION FAILED - LEVEL 1: LIFE SUPPORT. The crew came home safely because oxygen ran out.'
+    : s.ended?.reason === 'dose' ? 'MISSION FAILED - LEVEL 2: RADIATION PLAN. The crew came home safely because the dose plan ran out.'
+    : s.ended?.reason === 'complete' && v.tier === 'gold' ? '*** MISSION COMPLETE - SITE APPROVED - GOLD! *** Every question answered with full evidence.'
+    : s.ended?.reason === 'complete' && v.tier === 'approved' ? '*** MISSION COMPLETE - SITE APPROVED! *** NASA has strong evidence to build here.'
+    : s.ended?.reason === 'complete' && v.tier === 'promising' ? 'MISSION COMPLETE - SITE PROMISING. The crew is healthy, but more evidence is needed.'
+    : s.ended?.reason === 'complete' ? 'MISSION INCOMPLETE - TIME RAN OUT. The crew is healthy, but the site was not proven.'
     : v.tier === 'gold' ? '*** SITE APPROVED - GOLD! *** Every question answered with full evidence.'
     : v.tier === 'approved' ? '*** SITE APPROVED! *** NASA has strong evidence to build here.'
     : v.tier === 'promising' ? `SITE PROMISING! All 4 main goals done. ${w.minStars - v.stars} more bonus star(s) for APPROVED.`
@@ -166,6 +256,13 @@ function handle(cmd: string | undefined, args: string[]) {
     const bad = r.log[0]?.startsWith('!');
     if (!bad) save(r.state);
     show(bad ? s : r.state, r.log);
+  } else if (cmd === 'preview') {
+    const s = load();
+    const m = menu(s);
+    const ids = args.map((a) => m[Number(a) - 1]?.def.id).filter(Boolean) as ActionId[];
+    if (!ids.length || ids.length !== args.length) { console.log('! Unknown job number.'); return; }
+    console.log(environmentBrief(s).join('\n'));
+    previewPlan(s, ids);
   } else if (cmd === 'choose') {
     const s = load();
     if (!s.pending) { console.log('Nothing to choose right now.'); return; }
@@ -177,12 +274,23 @@ function handle(cmd: string | undefined, args: string[]) {
   }
 }
 
-const HELP = `Type the job numbers for today in one line (e.g. "1 3 7"). Their crew time must fit today's total.
-Type "back"/"finish" when asked, "note <text>" to jot playtest feedback, "show", "new week" (7 days) / "new full" (14 days), "help", or "quit".`;
+const HELP = `Type a job number to preview it, then type yes to add it to today's plan. You can select more jobs before the day ends.
+Type "end" to resolve the day, "back"/"finish" when a rover choice is asked, "note <text>" to jot playtest feedback, "show", "new week" (7 days) / "new full" (14 days), "help", or "quit".`;
 
 async function interactive() {
   const { createInterface } = await import('node:readline');
   const rl = createInterface({ input: process.stdin, output: process.stdout, prompt: '\ncommander> ' });
+  let proposed: ActionId[] | null = null;
+  let planned: ActionId[] = [];
+  const resolvePlannedDay = () => {
+    if (!planned.length) { print('No jobs selected. Choose a task first.'); return; }
+    const s = load();
+    const r = step(s, planned);
+    const bad = r.log[0]?.startsWith('!');
+    if (!bad) save(r.state);
+    show(bad ? s : r.state, r.log);
+    if (!bad) planned = [];
+  };
   print(HELP);
   if (existsSync(FILE)) handle('show', []); else handle('new', ['week']);
   rl.prompt();
@@ -193,8 +301,34 @@ async function interactive() {
       const [w, ...rest] = input.split(/[\s,]+/);
       if (w === 'quit' || w === 'exit' || w === 'q') break;
       if (w === 'help') print(HELP);
+      else if ((w === 'yes' || w === 'y') && proposed) {
+        const s = load();
+        const combined = [...planned, ...proposed];
+        const error = validate(s, combined);
+        if (error) print(`! ${error}`);
+        else {
+          planned = combined;
+          const used = planned.reduce((n, id) => n + actionDef(id).blocks, 0);
+          print(`Task confirmed. Today's plan uses ${used}/${blocksToday(s)} crew time.`);
+          for (const id of proposed) for (const message of taskResult(s, id)) print(`  ${message}`);
+          print(plannedStatus(s, planned).join('\n'));
+          if (used >= blocksToday(s)) print('All crew time is assigned. Type end to finish the day.');
+          else print('Choose another task, or type end when you are ready to finish the day.');
+        }
+        proposed = null;
+      }
+      else if (w === 'no' || w === 'n') { proposed = null; print('Plan cancelled.'); }
+      else if (w === 'end' || w === 'finishday') resolvePlannedDay();
       else if (w === 'back' || w === 'finish') handle('choose', [w]);
-      else if (/^\d+$/.test(w)) handle('act', [w, ...rest]);
+      else if (/^\d+$/.test(w)) {
+        const s = load();
+        const m = menu(s);
+        const ids = [w, ...rest].map((a) => m[Number(a) - 1]?.def.id).filter(Boolean) as ActionId[];
+        const combined = [...planned, ...ids];
+        const error = ids.length !== [w, ...rest].length ? 'Unknown job number.' : validate(s, combined);
+        if (error) print(`! ${error}`);
+        else { proposed = ids; print(environmentBrief(s).join('\n')); print(`TODAY'S SCENARIO: ${dailyScenario(s)}`); previewPlan(s, combined); print('Commit these task(s) to today? type yes or no.'); }
+      }
       else handle(w, rest);
     }
     rl.prompt();

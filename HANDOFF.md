@@ -5,7 +5,7 @@
 ## Current Phase
 Git is configured with `origin` at https://github.com/Kreipri/NASA2026-Flux on `main` (D-017). Commit `781a543` holds the day-based loop. **Uncommitted on disk:** the 7-day mission, main/bonus tiers, stamina tuning, Earth-blackout explanation and their docs (D-020, D-021), plus other agents' `ideas/ice-*.md` and `ideas/ui-base-overview-v1.md`. Commit only when Bea asks; no agent co-author trailers (D-018 attribution rule).
 
-Prototyping. A playable **terminal prototype** exists (`npm run play`, 7-day mission by default). Rules engine + bot sim tune the numbers. No web UI yet; a visual main-screen draft is proposed in `ideas/ui-base-overview-v1.md` (not decided).
+Prototyping. A playable **terminal prototype** exists (`npm run play`, 7-day mission by default). Rules engine + bot sim tune the numbers. The project is terminal-only for now; the D-023 browser UI remains a design specification, not an implementation target yet.
 
 ## What's Decided (details in `DECISIONS.md`)
 - **Game:** kid-friendly (ages 7-12) survival resource-management game, browser-based, outpost management only (no launch/landing gameplay).
@@ -22,6 +22,7 @@ Prototyping. A playable **terminal prototype** exists (`npm run play`, 7-day mis
 - **Stack (D-016):** Vite + TS + React; engine in plain TS, seeded, with a bot sim. Plan: `ideas/tech-stack-and-prototype-plan.md`.
 - **Facts verified (D-014):** Shackleton 21 km wide / 4 km deep, pole on its rim; ridge ~17 km from pole (derived); worst-case dark 73-117 h storage, longer ground-level shadows possible.
 - **SunWatch:** our fictional outpost-console panel showing alerts relayed from Mission Control. Not a real device. DONKI is a research log of events, **never call it a warning or forecast service** (D-012).
+- **Planning UX (D-023/D-024/D-025/D-026):** before planning, the terminal shows an Environment Brief and a named daily scenario. Selecting job numbers opens an Action Preview with expected resource changes, risk, opportunity cost, and a clear `YOU GAIN` / `YOU GIVE UP` pair. `yes` adds the task to today's plan and prints its immediate task result; players can add repeatable light tasks, heavy 4-block tasks are `ONCE/DAY`, and `end` resolves the day. Browser implementation is deferred. Spec: `ideas/action-preview-and-mission-clarity-v1.md`.
 
 ## Key Files
 | File | What it holds |
@@ -64,10 +65,11 @@ Prototyping. A playable **terminal prototype** exists (`npm run play`, 7-day mis
 
 ## Next Steps (suggested order)
 1. **Bea playtests the 7-day mission** in the terminal (`npm run play`, starts `week`). Read `.run/playlog.txt` + her `note` lines, tune `src/config/moon.json`, rerun `npm run sim`.
-2. **Name the crew and mascot** (original, fictional).
-3. **Web UI** (D-016): Vite + React skin over the same engine. Ask Bea first.
-4. **Data plan:** bundle more archived storms so the second storm can be real (ARCHIVE) instead of SIMULATED.
-5. Write the short **datasets explanation** for judges.
+2. **Playtest the terminal planning flow** (`npm run play`): test whether a child can predict the environment, name a cost, explain what they give up, and repeat the mission in one sentence.
+3. **Playtest the terminal planning flow** (`npm run play`): add the D-023 environment summary and task preview to the CLI before building a browser UI. Check whether a child notices the environment, names a cost, understands what they give up, and can repeat the mission in one sentence.
+4. **Name the crew and mascot** (original, fictional).
+5. **Data plan:** bundle more archived storms so the second storm can be real (ARCHIVE) instead of SIMULATED.
+6. Write the short **datasets explanation** for judges.
 
 ## Handoff Protocol
 When you finish a chunk of work or stop:
@@ -111,3 +113,10 @@ Add `docs/` for the judges' write-up.
 - 2026-11-14 (session 2, cont.): 7-day mission with SITE APPROVED objective (D-020), tuned to 11/12 stars by sim; ice made survey evidence (air discount removed); Earth blackout grounded in NASA/JPL study and forecast in game.
 - 2026-11-14 (session 2, cont.): Main/bonus goal tiers (PROMISING/APPROVED/GOLD) and stamina cost tuning (D-021). Checked low-dose star is reachable.
 - 2026-11-14 (session 2, end, Opus 5.5): Saved and handed off. Summary of session 2: verified facts (D-014), balance + stack (D-015/16), engine/sim/terminal play (D-018 engine), day loop (D-019), 7-day SITE APPROVED mission + ice as survey evidence + Earth blackout (D-020), main/bonus tiers + stamina (D-021). Work since commit 781a543 is uncommitted.
+- 2026-11-14 (action preview design, Codex): Read all project-authored Markdown files. Proposed D-022: show the environment before planning, show resource/risk/goal/opportunity-cost previews when selecting a job, and keep overall goal plus today's main goal visible. Saved `ideas/action-preview-and-mission-clarity-v1.md`; no code or balance changes.
+- 2026-11-14 (planning UX clarification, Codex): Confirmed D-023 from the user's follow-up. Added child-facing teaching rules (`YOU GAIN` / `YOU GIVE UP`, words beside numbers, known vs uncertain results, no forced quiz), made the mission card's three questions explicit, and added the end-of-day cause-and-effect playback to the handoff. No code or balance changes.
+- 2026-11-14 (terminal-only scope, Codex): Removed the temporary browser UI implementation and Vite setup at the user's request. Implemented D-024 in `src/cli/play.ts`: environment summary, task previews, gain/give-up language, uncertainty, and yes/no confirmation before interactive plans commit.
+- 2026-11-14 (confirmation bug fix, Codex): Fixed interactive `yes` so it commits the already-validated action IDs directly instead of treating action names as numeric job numbers. Verified with a scripted terminal run; `npm run sim` still passes.
+- 2026-11-14 (staged day planning, Codex): Confirmed tasks now remain in the current day. Players can select more work until crew time is used, then type `end` to resolve the whole plan and advance. Verified with two confirmed tasks followed by `end`.
+- 2026-11-15 (mission management rules, Codex): Added named daily scenarios, immediate task-result messages, repeatable light tasks, once-per-day heavy tasks, and explicit failed/incomplete/complete mission result text. `npm run sim` and an interactive multi-task terminal run pass.
+- 2026-11-15 (task status readout, Codex): After every confirmed task, the terminal now prints mission progress, projected Power/Oxygen/Dose/Stamina, crew time remaining, and the approval target. Projected values are clearly separated from the end-of-day resolution.

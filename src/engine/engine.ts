@@ -14,7 +14,7 @@ export type Goal = 'LIGHT' | 'RADIATION' | 'SHELTER' | 'ICE';
 
 export interface ActionDef {
   id: ActionId; group: 'goal' | 'alive' | 'safe'; goal?: Goal; label: string; blocks: number;
-  power: number; o2: number; dose: number; outside: boolean; stamina?: number;
+  power: number; o2: number; dose: number; outside: boolean; repeatable?: boolean; stamina?: number;
   needsLink?: boolean; needsPower?: boolean; emergencyOk?: boolean;
 }
 
@@ -172,7 +172,11 @@ export function menu(s: State): { def: ActionDef; blocked: string | null }[] {
 export function validate(s: State, ids: ActionId[]): string | null {
   if (s.ended) return 'Mission is over.';
   if (!ids.length) return 'Pick at least one job.';
-  if (new Set(ids).size !== ids.length) return 'Each job can only be picked once a day.';
+  const counts = new Map<ActionId, number>();
+  for (const id of ids) counts.set(id, (counts.get(id) ?? 0) + 1);
+  for (const [id, count] of counts) {
+    if (count > 1 && actionDef(id).blocks >= 4 && !actionDef(id).repeatable) return `${actionDef(id).label}: heavy work can only be done once a day.`;
+  }
   const m = menu(s);
   for (const id of ids) {
     const item = m.find((x) => x.def.id === id);

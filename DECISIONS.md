@@ -6,6 +6,45 @@ Status: `decided` | `proposed` | `open` | `superseded`
 
 ---
 
+## D-026: Daily scenarios, repeatable light work, and explicit mission outcomes
+**Status:** decided (2026-11-15; user-requested gameplay direction).
+- The overall mission stays visible in the terminal: manage the lunar outpost and prove whether the ridge can host a Moon base.
+- The crew has up to 8 crew-time blocks per day. Each task spends blocks according to work weight; tasks using 4 blocks are heavy and marked `ONCE/DAY`.
+- Tasks using fewer than 4 blocks can be selected more than once in a day when crew time and resource rules allow it.
+- Every day exposes a named scenario based on the existing timeline: bright ridge, flare alert, storm building, storm peak, short eclipse, long shadow, Earth-link blackout, or dusty panels.
+- Confirming a task prints an immediate task result without advancing the day. The day still resolves when the player types `end`.
+- End states are explicit: mission failed (oxygen or dose), mission incomplete (time ended without enough evidence), mission complete/promising, approved, or gold.
+
+## D-025: Confirmed tasks stay in the current day
+**Status:** decided (2026-11-14; user-requested terminal flow). Refines D-024.
+- Confirming a task adds it to today's plan; it does not resolve the day or advance the mission.
+- Players can continue selecting tasks while crew time remains, reviewing the growing plan each time.
+- Typing `end` resolves all confirmed tasks together and advances to the next day. If all crew time is used, the CLI tells the player to type `end`.
+- The existing direct `act` command remains available for scripted tests; interactive play uses the staged plan flow.
+
+## D-024: Implement the planning lesson in the terminal first
+**Status:** decided (2026-11-14; user-requested scope change). Supersedes only the implementation timing in D-023; the UX behavior remains.
+- Keep the project terminal-only for now. Do not add or maintain a browser UI yet.
+- Before a typed job plan is committed, the CLI shows the operating picture and an action preview with expected resource changes, `YOU GAIN`, `YOU GIVE UP`, and uncertainty.
+- Interactive play asks for `yes` or `no` after the preview. The existing `act` command remains available for scripted or direct actions.
+- Browser implementation is deferred until the terminal version has been playtested with children.
+
+## D-023: Make the planning lesson explicit in every task
+**Status:** decided (2026-11-14; user-confirmed design direction). Supersedes the proposed status of D-022 without changing its scope.
+- Before choosing a task, the player reads the current environment: sunlight/shadow, space weather, temperature/location, Earth link, dust, crew time, and stamina.
+- Selecting a task opens an Action Preview with plain-language purpose, expected Power/Oxygen/Dose/Stamina changes, crew time, exposure flags, mission effect, opportunity cost, and uncertainty.
+- Every preview uses a consistent teaching pattern: `YOU GAIN` + `YOU GIVE UP`; words sit beside numbers; uncertain results are labeled as ranges or chances.
+- The mission card always keeps three answers visible: `WHY ARE WE HERE?` = prove the ridge can host a Moon base; `WHAT MATTERS TODAY?` = one main goal; `WHAT COUNTS AS SUCCESS?` = main goal first, bonuses second.
+- After the day ends, a short playback explains the largest meter changes and their causes. No forced quiz blocks the child from acting.
+- First UI slice: implement previews for rover trip, shelter during peak, and measure radiation, then reuse the pattern for all jobs. Full interaction spec: `ideas/action-preview-and-mission-clarity-v1.md`.
+
+## D-022: Show conditions and consequences before a task
+**Status:** proposed (2026-11-14; user-requested design direction)
+- Before any job is committed, show an **Environment Brief** with sunlight/shadow, space-weather state, temperature/location, Earth link, dust, crew time, and stamina. Keep real data badges and distinguish ARCHIVE/LIVE/SIMULATED.
+- Selecting a job opens an **Action Preview** showing purpose, location, crew time, expected Power/Oxygen/Dose/Stamina changes, exposure flags, report-card effect, opportunity cost, and uncertainty for random outcomes.
+- Keep the mission hierarchy visible: overall goal, today's job, one main report-card goal, then optional bonus goals. End each day with a short cause-and-effect recap.
+- Recommended first implementation scope: preview cards for rover trip, shelter during peak, and measure radiation; then reuse the pattern for all jobs. Full proposal: `ideas/action-preview-and-mission-clarity-v1.md`.
+
 ## Open Questions
 - [x] ~~Ice mechanic accuracy~~ -> resolved in D-020: ice is site-survey evidence (option 1 of `ideas/ice-science-check.md`); the air-power discount is removed.
 - [x] ~~Site~~ -> decided, see D-005 (Moon first, Mars later).
