@@ -1,0 +1,7 @@
+{
+  "baseline": "ideas/ui-mockups/flow-start-v1.html",
+  "sha256": "939afdb949cefa1b73c3fd869a08efbfef987fa804ca9592fdc8a0cc498a9bc3",
+  "captured": "2026-11-15",
+  "camera": "Latest flow base camera: W(-2,hT(-2,-58)+5,-58), target W(5,3.4,1), fov 34. Side-dock framing adjusted locally.",
+  "note": "Frozen snapshot. Includes current v8.1 scene and crew-v5 assets. Copies the flow VSM shadow settings in layouts.js. No shared source is rebuilt."
+}

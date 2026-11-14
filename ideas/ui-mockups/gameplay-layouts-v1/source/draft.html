@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Gameplay layout drafts</title>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Lexend:wght@400;600&display=swap" rel="stylesheet">
+<style>{{BASELINE_CSS}}
+{{LAYOUT_CSS}}</style>
+<script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"}}</script>
+</head>
+<body>
+<main>
+  <nav class="study-nav" aria-label="Layout drafts">
+    <button data-layout="a" aria-pressed="true">A · Side dock <small>Recommended</small></button>
+    <button data-layout="b" aria-pressed="false">B · Bottom tray</button>
+    <button data-layout="c" aria-pressed="false">C · Focus window</button>
+  </nav>
+  <p class="study-caption" id="layout-note"></p>
+  <div class="player layout-a has-panel" id="frame" aria-label="Interactive gameplay layout draft">
+    <div id="stage" hidden></div>
+    <div class="hud screen" id="hud"></div>
+    <div class="scene-loading" id="scene-loading">Loading the 3D base…</div>
+  </div>
+  <div class="study-foot"><span>Layout draft · Example game numbers <b>SIMULATED</b></span><button id="sources">Sources &amp; draft notes</button></div>
+  <details id="source-notes"><summary>Sources &amp; draft notes</summary>
+    <p>The 3D base, crew and task values are fictional game content. Values preview direct job changes only; this draft does not advance a mission or calculate a week's survival.</p>
+    <p>Earth artwork: NASA Blue Marble, reused from this project's three.js example textures. <a href="https://science.nasa.gov/earth/earth-observatory/collections/blue-marble/" target="_blank" rel="noopener">NASA Blue Marble</a>. Setting reference: <a href="https://www.nasa.gov/reference/moonbase-environment/" target="_blank" rel="noopener">NASA: the lunar south pole</a>. The terrain is an illustrative model, not measured NASA elevation data.</p>
+    <p>This is a separate snapshot of the current Week 1 flow. The active flow, 3D source and engine are untouched. Requires internet for three.js and Google Fonts.</p>
+  </details>
+</main>
+<script type="module">
+{{SCENE}}
+{{ASSETS}}
+const CONFIG={{JOBS}};
+{{DRAFT_JS}}
+</script>
+</body>
+</html>

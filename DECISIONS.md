@@ -6,6 +6,31 @@ Status: `decided` | `proposed` | `open` | `superseded`
 
 ---
 
+## Decided: Integrate selected gameplay files on gameplay-updates
+**Status:** decided (Bea, 2026-11-15; requested latest main plus selected Added-Gameplay work).
+- Keep the six gameplay files already imported by `6948ea1`; they match `Added-Gameplay` at `91e68e3`. Merge latest `origin/main` (`238d80a`) into the existing branch, preserving its published history. No duplicate cherry-pick is needed.
+- This is branch integration only; no gameplay tuning or new design decisions. Verification and scope: `ideas/gameplay-updates-integration.md`.
+
+## Decided: Gameplay uses the side dock
+**Status:** decided (Bea, 2026-11-15: "i like the side panel").
+- Select A from the layout study. Preserve the current UI design; keep jobs, mission tasks and help in a stable side panel beside the 3D base. The older bottom-tray and focus-window drafts remain references.
+- Follow-up draft: `ideas/ui-mockups/gameplay-side-dock-v2/index.html`, using the latest opening-flow scene and ~58 m close camera. Frozen separately to protect the other active agent's scene work.
+- **Proposed refinements in v2:** shorter 2×2 labelled meters (Power, Air, Radiation, Crew energy), tap-to-explain in Curio's dock, an integrated Ask Curio row with return-to-plan, and “Earth radio: on” with hover/focus/tap explanation. Exact copy/treatment still for review. Resource alternatives and trade-offs are in the v2 `README.md`.
+- Goal: children understand what each meter means, which direction is better, what a job costs and how to get help. No engine/balance changes or additional core resources.
+
+## Proposed: Editable vector version of the story-screen space base
+**Status:** proposed (2026-11-15; Bea requested trying to vectorize the space base).
+- Latest draft: `ideas/base-designs/vector-v2/space-base.svg`; first pass preserved in `vector-v1/`. Clean SVG redraw of the existing `assets/base-clipart.png`, with named component groups and transparent background; no embedded raster or filters. Includes a version without crew, a transparent PNG export and `review.html`.
+- **Style follow-up (Bea, 2026-11-15):** match the screens/sprites, including outline and line width. v2 uses the screen's #27304C contour, the crew-v5 metal gradients and clipped pale inner rim, quieter seams/grid and shared glass/cyan/amber colours. Three weights: fine 2.2 / match 3.2 (recommended) / bold 4.2 SVG units. Compare directly with unchanged Curio/astronaut sprites and an isolated title-screen placement; no choice of final weight locked.
+- Recommend the clean redraw over automatic raster tracing (messy paths) or projecting every 3D face (dense geometry). Trade-off: simplified reconstruction rather than pixel-identical shading/perspective. Notes and drawing source in the draft folder.
+- Visual trial only; await Bea's review before swapping story assets. D-023's 3D gameplay direction, the current PNG, active mockups and their builders are preserved.
+
+## Proposed: Roomier gameplay layouts, preserving the current UI design
+**Status:** superseded (2026-11-15; Bea chose the side dock; see the decision above).
+- Compare **A: side dock (recommended)**, **B: bottom tray**, and **C: focus window** for both place jobs and mission tasks. Preserve the latest Week 1 flow's fonts, colours, control sizes and actual v8.1 3D base; change arrangement and when competing panels are shown.
+- Draft: `ideas/ui-mockups/gameplay-layouts-v1/index.html`; rationale and trade-offs: `ideas/gameplay-layouts-v1.md`. A was selected; current refinement is `ideas/ui-mockups/gameplay-side-dock-v2/index.html`.
+- Another agent is using the active mockups. This study freezes its own scene/CSS/assets/config snapshot and rebuilds only its own files. The active flow, 3D source and engine were not edited.
+
 ## Open Questions
 - [ ] **UI style (2026-11-14):** Bea's references point to a Walkr-like cyan console (speech bubble + portrait, resource stack) and a low-camera illustrated scene. Does this replace D-002's green-terminal look? (Vector chosen, see D-022.) Drafts: `ideas/ui-screens-v1.md`, `ideas/ui-mockups/main-screen.html`.
 - [x] ~~Ice mechanic accuracy~~ -> resolved in D-020: ice is site-survey evidence (option 1 of `ideas/ice-science-check.md`); the air-power discount is removed.
@@ -22,6 +47,22 @@ Status: `decided` | `proposed` | `open` | `superseded`
 - [~] **Verify snippet-only facts:** most done (D-014). Still open: Chang'e-4 (non-NASA), Orion 150 mSv, ISS 6-month dose, 1.3 s delay, "Centennial" 10 cm.
 
 ---
+
+## D-034: Crew renamed to fit the crew-v5 look: Biscuit, Mochi, Pebble
+**Status:** proposed (Bea asked for new names to match the new appearances, 2026-11-15)
+- **Biscuit**: golden-brown dog, engineer (was Bram). **Mochi**: round white bunny, doctor (was Remy). **Pebble**: grey-blue cat, geologist/explorer (was Mica). Curio unchanged.
+- Picked for kids: short, easy to read, different first letters, named after how they look (Pebble also fits the rock job).
+- Alternatives if Bea wants others: dog Toffee or Rivet · bunny Clover or Pip · cat Misty or Slate.
+- Applied in `ideas/ui-mockups/scenes-start-v1.html` and `flow-start-v1.html`. Story docs (`storyline-v2.md`, `story-script-v2.md`, `character-concepts-v3.md`) still say Bram/Remy/Mica until this is confirmed.
+
+## D-033: Title screen is B1, Moon Horizon
+**Status:** decided (Bea, 2026-11-15)
+- Flat vector storybook style: rounded gradient logo, purple nebula sky, soft glow and twinkle (uses the title/story purple exception under D-023).
+- Scene: the Moon's curve seen from above the south pole. The Sun sits on the horizon (F07). Shackleton Crater's inside is in shadow (F75), with the ice shown only as a "?" sparkle. The base is a glowing marker on the sunny ridge, labeled "Your base" and not to scale.
+- UI: logo + "Junior Astronaut Training", a "The Moon · South Pole" chip, one "Start mission" button, Settings, "Real NASA data · Sources". **No Mars on the title yet.**
+- The logo text is a placeholder until the game name is picked (`ideas/title-drafts-v1.md`).
+- **Layout (Bea's sketch, 2026-11-15):** name top-left, 3 stacked menu buttons under it (Start mission / Real NASA data / Settings), base large on the right on the horizon, rover trail winding to the bottom-right. Mockup uses "Space Base Commander" from the sketch. Built in `ideas/ui-mockups/scenes-start-v1.html`.
+- Mockup: `ideas/ui-mockups/title-drafts-b.html` (B1). Notes: `ideas/title-screen-drafts-v1.md`.
 
 ## D-028: 7-week mission (1 turn = 1 week, alert days zoom in)
 **Status:** decided (Bea, 2026-11-15). Supersedes D-020's 7-day `week` default once the engine is updated. Timeline and beats: `ideas/timeline-7-weeks-v1.md`. 49 days fits NASA's base concept (~1-2 months, F27). Needs an engine rescale, a new timeline and a sim rerun. Details in `ideas/objective-v1.md` v1.1.
@@ -109,6 +150,7 @@ Status: `decided` | `proposed` | `open` | `superseded`
 - **Palette (Bea OK'd the taste fixes, 2026-11-14):** neutral cool-grey regolith + navy, no violet/lavender anywhere (truer to the Moon). One SVG icon set, no emoji.
   - **Exception (Bea, 2026-11-14):** title and story screens may use some purple shades (sky, nebula) if they pair with the space theme. Ground stays cool Moon grey.
 - **Look (Bea, 2026-11-14):** the 3D uses the storybook palette and flat two-tone shading (no outlines, crisp per-pixel light bands, navy sky) so story → gameplay has no harsh style jump.
+- **Look update (Bea, 2026-11-15):** the 3D base, rover and crew copy the crew clip-art style (D-029, `crew-v5` rules) as closely as 3D allows. That means squircle shapes; each part light on top fading to slate; soft, mostly flat light instead of hard two-tone bands; a lighter rim on metal; navy screens with a shine streak; cyan glow; small amber plates; soft contact shadows; chibi astronauts. The terrain keeps its banded shader for now. Draft: `ideas/ui-mockups/all-screens.html` (v8). **v8.1 (Bea, 2026-11-15):** add outlines for a more 2D look. Thin dark-slate (#27304C, not black) lines, constant width on screen, plus a crisper light inner rim. This is a deliberate exception to the Curio sheet's 'no dark outlines' rule, applied to the 3D only. The mockup has an Outlines on/off button for comparison.
 - **Scope (Bea, 2026-11-14):** 3D is for gameplay screens only. Title, story cards and the ending story use a different graphic style (open, see `ideas/ui-screens-v1.md` v6 follow-up).
 - Draft: `ideas/ui-mockups/ridge-3d.html`. Adds three.js to the D-016 stack (UI stays HTML on top). Risk: GPU load on old school Chromebooks; keep a low-quality setting.
 

@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Gameplay side dock v2</title>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Lexend:wght@400;600&display=swap" rel="stylesheet">
+<style>{{BASELINE_CSS}}
+{{LAYOUT_CSS}}</style>
+<script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"}}</script>
+</head>
+<body><main>
+<p class="study-caption">Try the resource meters, Ask Curio, and the Earth radio label.</p>
+<div class="player layout-a has-panel" id="frame" aria-label="Gameplay side dock draft">
+  <div id="stage" hidden></div><div class="hud screen" id="hud"></div>
+  <div class="scene-loading" id="scene-loading">Loading the 3D base…</div>
+</div>
+<div class="study-foot"><span>UI draft · Game numbers <b>SIMULATED</b></span><button id="sources">Sources &amp; draft notes</button></div>
+<details id="source-notes"><summary>Sources &amp; draft notes</summary>
+<p>All meter values are game points from 0 to 100. They preview direct job changes, not a whole week. Crew energy measures tiredness; it is separate from the three main survival meters. The draft does not run the mission engine.</p>
+<p>Earth textures: <a href="https://science.nasa.gov/earth/earth-observatory/collections/blue-marble/" target="_blank" rel="noopener">NASA Blue Marble</a>, reused from the existing project assets. Setting: <a href="https://www.nasa.gov/reference/moonbase-environment/" target="_blank" rel="noopener">NASA: the lunar south pole</a>. Terrain, base, crew and game events are illustrative fiction. No live feed is shown.</p>
+<p>This separate draft uses the newest opening-flow scene, close base camera and crew-v5 Curio. Active mockups and game engine are untouched. Requires internet for three.js and fonts. Curio's answers are written examples, not a live chat service.</p>
+</details>
+</main>
+<script type="module">
+{{SCENE}}
+{{ASSETS}}
+const CONFIG={{JOBS}};
+{{DRAFT_JS}}
+</script>
+</body></html>
