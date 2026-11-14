@@ -7,7 +7,7 @@ import storm from '../data/storm-2024-05.json' with { type: 'json' };
 export type ActionId =
   | 'logsun' | 'measure' | 'scout' | 'rover' | 'regolith' | 'clean' | 'air'
   | 'repair' | 'powersave' | 'shelter' | 'rest' | 'call';
-export type ScenarioId = 'slice' | 'full';
+export type ScenarioId = 'week' | 'slice' | 'full';
 export type StormLevel = 'none' | 'warning' | 'rising' | 'strong';
 export type TripChoice = 'back' | 'finish';
 export type Goal = 'LIGHT' | 'RADIATION' | 'SHELTER' | 'ICE';
@@ -30,7 +30,7 @@ export interface Env {
 
 export interface Evidence {
   sunLogs: number; eclipseLogged: boolean; measures: number; stormMeasures: number;
-  trips: number; iceFound: number; mappedEmpty: number;
+  trips: number; scouts: number; iceFound: number; mappedEmpty: number;
   shelteredStormDays: number; outsideStormBlocks: number; powerHitZero: boolean;
 }
 
@@ -101,10 +101,10 @@ function buildTimeline(sc: any, seed: number): Env[] {
   }
   if (sc.linkDown) for (let t = sc.linkDown.startTurn; t < Math.min(n, sc.linkDown.startTurn + sc.linkDown.length); t++) tl[t].link = false;
   const ss = sc.simStorm;
-  if (ss) {
+  if (ss && r.int(0, 999) < (ss.chance ?? 1) * 1000) {
     const start = r.int(ss.startTurn[0], ss.startTurn[1]);
     const len = r.int(ss.length[0], ss.length[1]);
-    if (start - 1 >= 0 && tl[start - 1].storm === 'none') Object.assign(tl[start - 1], { storm: 'warning', stormSource: 'sim' });
+    if (!ss.noWarning && start - 1 >= 0 && tl[start - 1].storm === 'none') Object.assign(tl[start - 1], { storm: 'warning', stormSource: 'sim' });
     for (let t = start; t < Math.min(n, start + len); t++) Object.assign(tl[t], { storm: ss.level, stormSource: 'sim', stormOnset: t === start });
   }
   return tl;
@@ -113,10 +113,10 @@ function buildTimeline(sc: any, seed: number): Env[] {
 export function newGame(scenario: ScenarioId, seed: number): State {
   return {
     scenario, seed, rng: seed | 0, turn: 0,
-    ...moon.start,
+    ...moon.start, ...(SC[scenario].start ?? {}),
     dust: 0, shelterLevel: 0, iceSamples: 0, scoutBonus: 0,
     faults: { panel: false, scrubber: false }, emergency: false,
-    evidence: { sunLogs: 0, eclipseLogged: false, measures: 0, stormMeasures: 0, trips: 0, iceFound: 0, mappedEmpty: 0, shelteredStormDays: 0, outsideStormBlocks: 0, powerHitZero: false },
+    evidence: { sunLogs: 0, eclipseLogged: false, measures: 0, stormMeasures: 0, trips: 0, scouts: 0, iceFound: 0, mappedEmpty: 0, shelteredStormDays: 0, outsideStormBlocks: 0, powerHitZero: false },
     timeline: buildTimeline(SC[scenario], seed),
     pending: null, ended: null, history: [],
   };
@@ -137,6 +137,17 @@ export function airPowerCost(s: State): number {
 }
 export const iceChance = (s: State) => Math.min(moon.ice.maxChance, moon.ice.baseChance + s.scoutBonus);
 export const powerCost = (s: State, id: ActionId) => (id === 'air' ? airPowerCost(s) : actionDef(id).power);
+
+/** Days until Earth is back above the horizon (0 = link up today). */
+export function daysUntilLink(s: State): number | null {
+  for (let t = s.turn; t < s.timeline.length; t++) if (s.timeline[t].link) return t - s.turn;
+  return null;
+}
+/** Days until Earth goes below the horizon (null if not within the mission). */
+export function daysUntilLinkLoss(s: State): number | null {
+  for (let t = s.turn + 1; t < s.timeline.length; t++) if (!s.timeline[t].link) return t - s.turn;
+  return null;
+}
 
 /** Days until the sun comes back on the panels (0 = sunny today). */
 export function daysUntilSun(s: State): number | null {
@@ -222,6 +233,7 @@ export function step(s0: State, ids: ActionId[], choice?: TripChoice): { state: 
         break;
       }
       case 'scout':
+        s.evidence.scouts++;
         s.scoutBonus = Math.min(moon.ice.maxChance - moon.ice.baseChance, s.scoutBonus + moon.ice.scoutBonus);
         log.push(`Hop-drone mapped the dark crater. Ice chance on the next rover trip: ${Math.round(iceChance(s) * 100)}%. [ICE]`);
         break;
@@ -231,15 +243,22 @@ export function step(s0: State, ids: ActionId[], choice?: TripChoice): { state: 
         s.dust = Math.min(pd.maxDust, s.dust + 1);
         if (rand(s) < chance) {
           s.iceSamples++; s.evidence.iceFound++;
-          log.push(`Rover trip to the dark crater (${Math.round(chance * 100)}% chance): ICE SAMPLE FOUND! Ice can be split into oxygen, so tuning the air now costs less power. [ICE]`);
+          log.push(`Rover trip to the dark crater (${Math.round(chance * 100)}% chance): ICE FOUND! Proof that water is hiding near the ridge. Future crews could turn it into drinking water and oxygen (with big machines and lots of power). [ICE]`);
         } else {
           s.evidence.mappedEmpty++;
-          log.push(`Rover trip to the dark crater (${Math.round(chance * 100)}% chance): no ice in this spot. You mapped where NOT to look. [ICE]`);
+          log.push(`Rover trip to the dark crater (${Math.round(chance * 100)}% chance): this spot is dry. That is still evidence: you mapped where NOT to look. [ICE]`);
         }
         s.scoutBonus = 0;
         break;
       }
-      case 'regolith': s.shelterLevel++; log.push(`Piled moon soil on the shelter: level ${s.shelterLevel}/3 (about ${s.shelterLevel} m of soil). Storms hurt less in there now. [SHELTER]`); break;
+      case 'regolith':
+        s.shelterLevel++;
+        log.push(`Two astronauts ran the digging machine all day: more moon soil on the shelter, level ${s.shelterLevel}/3. Storms hurt less in there now. [SHELTER]`);
+        if (s.shelterLevel === 1) {
+          log.push('  Real fact: moon soil blocks solar storm particles well. One NASA design uses about 3 m (10 ft) of soil to also stop most cosmic rays. [NASA Tech Briefs 2012]');
+          log.push('  [~ SIMULATED] Game shortcut: real shielding means tonnes of soil moved by machines over many days. 3 levels stand for that 3 m.');
+        }
+        break;
       case 'clean': s.dust = 0; log.push('Two astronauts cleaned dust off the panels and seals. Full sunlight power again.'); break;
       case 'air': log.push(`Air system tuned: it splits water into oxygen using power. Oxygen +${a.o2}.`); break;
       case 'repair':
@@ -341,26 +360,46 @@ export function forecastLines(s: State): string[] {
   return out;
 }
 
-/** Report card: 4 entries x 3 stars. This is the main objective (D-013). */
-export function reportCard(s: State): Record<Goal, number> {
+/** Final dose (% of plan) at or under this earns the 3rd SHELTER star. */
+export const DOSE_STAR = 25;
+
+export interface Check { label: string; done: boolean; main: boolean }
+
+/** Report card checklist: per question, 1 MAIN goal + 2 BONUS goals (D-020). */
+export function checklist(s: State): Record<Goal, Check[]> {
   const ev = s.evidence;
-  const b = (x: boolean) => (x ? 1 : 0);
+  const started = s.turn > 0;
+  const c = (label: string, done: boolean, main = false): Check => ({ label, done, main });
   return {
-    LIGHT: b(ev.sunLogs >= 2) + b(ev.eclipseLogged) + b(!ev.powerHitZero && s.turn > 0),
-    RADIATION: b(ev.measures >= 1) + b(ev.stormMeasures >= 1) + b(ev.measures >= 3),
-    SHELTER: b(ev.shelteredStormDays >= 1) + b(s.shelterLevel >= 1) + b(s.dose <= 50 && s.turn > 0),
-    ICE: ev.iceFound >= 2 ? 3 : ev.iceFound === 1 ? 2 : ev.trips >= 1 ? 1 : 0,
+    LIGHT: [c(`log sun 2x (${Math.min(ev.sunLogs, 2)}/2)`, ev.sunLogs >= 2, true), c('log in the dark', ev.eclipseLogged), c(ev.powerHitZero ? 'power ran out' : 'keep power on', !ev.powerHitZero && started)],
+    RADIATION: [c('measure once', ev.measures >= 1, true), c('measure in a storm', ev.stormMeasures >= 1), c(`measure 4x (${Math.min(ev.measures, 4)}/4)`, ev.measures >= 4)],
+    SHELTER: [c('shelter in a storm', ev.shelteredStormDays >= 1, true), c('pile soil', s.shelterLevel >= 1), c(`dose under ${DOSE_STAR}%`, s.dose <= DOSE_STAR && started)],
+    ICE: [c('rover sample', ev.trips >= 1, true), c('drone map + sample', ev.trips >= 1 && ev.scouts >= 1), c('ice or 2nd sample', ev.iceFound >= 1 || ev.trips >= 2)],
   };
 }
 
-/** One-line hints: how to earn each missing star. */
-export function starHints(s: State): Record<Goal, string> {
-  const ev = s.evidence;
-  const j = (xs: (string | false)[]) => xs.filter(Boolean).join(', ') || 'done!';
-  return {
-    LIGHT: j([ev.sunLogs < 2 && 'log sun 2x', !ev.eclipseLogged && 'log while dark', ev.powerHitZero ? 'power ran out (star lost)' : 'never run out of power']),
-    RADIATION: j([ev.measures < 1 && 'measure once', !ev.stormMeasures && 'measure in a storm', ev.measures < 3 && 'measure 3x']),
-    SHELTER: j([!ev.shelteredStormDays && 'shelter in a storm', s.shelterLevel < 1 && 'pile soil once', 'end with dose under 50%']),
-    ICE: ev.iceFound >= 2 ? 'done!' : ev.trips ? 'find ice (scout first!)' : 'make a rover trip',
-  };
+/** Report card: 4 questions x 3 stars. */
+export function reportCard(s: State): Record<Goal, number> {
+  const cl = checklist(s);
+  const out = {} as Record<Goal, number>;
+  for (const g of Object.keys(cl) as Goal[]) out[g] = cl[g].filter((x) => x.done).length;
+  return out;
+}
+
+export const totalStars = (s: State) => Object.values(reportCard(s)).reduce((a, b) => a + b, 0);
+
+export type Tier = 'not-proven' | 'promising' | 'approved' | 'gold';
+/**
+ * The overarching objective. MAIN goals (first star of each question) + crew healthy = PROMISING.
+ * Bonus goals push it to APPROVED (win.minStars) and GOLD (win.gold).
+ */
+export function verdict(s: State): { tier: Tier; mainDone: number; missingMain: Goal[]; bonus: number; stars: number } {
+  const w = scenarioOf(s).win;
+  const cl = checklist(s);
+  const missingMain = (Object.keys(cl) as Goal[]).filter((g) => !cl[g][0].done);
+  const stars = totalStars(s);
+  const healthy = !s.ended || s.ended.reason === 'complete';
+  const promising = healthy && missingMain.length === 0;
+  const tier: Tier = !promising ? 'not-proven' : stars >= w.gold ? 'gold' : stars >= w.minStars ? 'approved' : 'promising';
+  return { tier, mainDone: 4 - missingMain.length, missingMain, bonus: stars - (4 - missingMain.length), stars };
 }

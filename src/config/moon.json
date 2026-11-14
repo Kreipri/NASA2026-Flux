@@ -23,8 +23,8 @@
   },
   "stamina": {
     "dailyRecovery": 10,
-    "insideBlock": -1,
-    "outsideBlock": -4,
+    "insideBlock": -2,
+    "outsideBlock": -6,
     "unusedBlock": 3,
     "powerSaveCold": -10,
     "emergencyCold": -10,
@@ -38,7 +38,7 @@
     "risingMinDoseRate": 15,
     "strongMinDoseRate": 100
   },
-  "ice": { "baseChance": 0.30, "scoutBonus": 0.25, "maxChance": 0.80, "airDiscountPerSample": 6, "maxDiscountSamples": 2 },
+  "ice": { "baseChance": 0.30, "scoutBonus": 0.25, "maxChance": 0.80, "airDiscountPerSample": 0, "maxDiscountSamples": 2 },
   "faults": { "baseChance": 0.10, "dustyChance": 0.30 },
   "emergencyExitPower": 20,
   "warn": { "o2": 25, "dose": 75, "power": 25, "stamina": 50 },

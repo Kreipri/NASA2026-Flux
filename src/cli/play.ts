@@ -4,7 +4,7 @@
 //   node --no-warnings src/cli/play.ts act 1 4 7 | choose back|finish | show
 import { mkdirSync, readFileSync, writeFileSync, existsSync, appendFileSync } from 'node:fs';
 import {
-  newGame, step, menu, env, stormActive, blocksToday, blocksFor, totalDays, reportCard, starHints,
+  newGame, step, menu, env, stormActive, blocksToday, blocksFor, totalDays, reportCard, checklist, verdict, totalStars, scenarioOf, daysUntilLink,
   iceChance, powerCost, type State, type ActionId, type ScenarioId, type TripChoice, type Goal, type ActionDef,
 } from '../engine/engine.ts';
 import moon from '../config/moon.json' with { type: 'json' };
@@ -68,13 +68,16 @@ function screen(s: State): string {
   const faults = [s.faults.panel && 'solar panel jammed', s.faults.scrubber && 'air scrubber clogged'].filter(Boolean).join(', ') || 'none';
   L.push(row(`Dust ${s.dust}/3   Shelter level ${s.shelterLevel}/3   Ice samples ${s.iceSamples}   Faults: ${faults}`));
   L.push(line);
-  const rc = reportCard(s); const hints = starHints(s);
-  L.push(row(`MISSION GOAL: SITE REPORT CARD  (${Object.values(rc).reduce((a, b) => a + b, 0)}/12 stars)`));
-  for (const g of ['LIGHT', 'RADIATION', 'SHELTER', 'ICE'] as Goal[]) L.push(row(`  ${g.padEnd(10)} ${stars(rc[g])}   ${rc[g] < 3 ? 'to do: ' + hints[g] : 'done!'}`));
+  const v = verdict(s); const w = scenarioOf(s).win; const cl = checklist(s);
+  L.push(row(`MISSION: prove this ridge can host a Moon base.            Stars: ${v.stars}/12`));
+  L.push(row(`  Main goals: ${v.mainDone}/4 -> SITE PROMISING.  Bonus -> APPROVED at ${w.minStars}, GOLD at ${w.gold}.`));
+  const box = (c: { done: boolean; main: boolean; label: string }) => `${c.main ? '' : '+'}[${c.done ? 'x' : ' '}] ${c.label}`;
+  for (const g of ['LIGHT', 'RADIATION', 'SHELTER', 'ICE'] as Goal[]) L.push(row(`  ${g.padEnd(10)} ${cl[g].map(box).join(' ')}`));
   L.push(line);
   const sun = e.eclipse === 'long' ? 'DARK (long shadow)' : e.eclipse === 'short' ? 'HALF (short eclipse)' : 'UP';
   const alert = stormActive(e) ? (e.storm === 'strong' ? 'PARTICLE STORM: STRONG' : 'PARTICLE STORM: building') : e.storm === 'warning' && e.link ? 'FLARE ALERT' : 'none';
-  L.push(row(`SUNWATCH (our console, fiction)   Sun: ${sun}   Earth link: ${e.link ? 'OK' : 'DOWN'}   Alert: ${alert}`));
+  L.push(row(`SUNWATCH (our console, fiction)   Alert: ${alert}`));
+  L.push(row(`  Sun: ${sun}   Earth link: ${e.link ? 'OK' : `DOWN (Earth below the hills${daysUntilLink(s) ? `, back in ${daysUntilLink(s)} day(s)` : ''})`}`));
   L.push(line);
   if (s.emergency) { for (const m of emergencyHelp(s)) wrap(m.trim(), W - 12).forEach((w, i) => L.push(row((m.startsWith('  ') ? (i ? '     ' : '  ') : '') + w))); L.push(line); }
   L.push(row('MISSION CONTROL:'));
@@ -102,13 +105,19 @@ function screen(s: State): string {
 
 function card(s: State): string {
   const rc = reportCard(s);
-  const head = s.ended?.reason === 'complete' ? 'MISSION COMPLETE: the whole crew is healthy and heading home'
-    : s.ended?.reason === 'oxygen' ? 'MISSION PAUSED: crew called home safely (oxygen ran low)' : 'MISSION PAUSED: crew called home safely (dose plan used up)';
+  const v = verdict(s); const w = scenarioOf(s).win;
+  const head = s.ended?.reason === 'oxygen' ? 'MISSION PAUSED: crew called home safely (oxygen ran low). Site not proven yet.'
+    : s.ended?.reason === 'dose' ? 'MISSION PAUSED: crew called home safely (dose plan used up). Site not proven yet.'
+    : v.tier === 'gold' ? '*** SITE APPROVED - GOLD! *** Every question answered with full evidence.'
+    : v.tier === 'approved' ? '*** SITE APPROVED! *** NASA has strong evidence to build here.'
+    : v.tier === 'promising' ? `SITE PROMISING! All 4 main goals done. ${w.minStars - v.stars} more bonus star(s) for APPROVED.`
+    : `SITE NOT PROVEN YET: no main evidence on ${v.missingMain.join(', ')}.`;
   const ev = s.evidence;
   const tips: string[] = [];
   if (ev.powerHitZero) tips.push('Fill the batteries and clean dust BEFORE the long shadow. Power-saving mode stretches them.');
   if (ev.outsideStormBlocks) tips.push('Keep astronauts inside when particles arrive.');
   if (!ev.stormMeasures) tips.push('Measuring radiation during a storm is the best radiation evidence.');
+  if (!ev.scouts) tips.push('Map the crater with the hop-drone: it is ICE evidence and raises your odds.');
   if (!ev.iceFound && ev.trips) tips.push('Scout with the drone before a rover trip to raise your ice odds.');
   if (!ev.trips) tips.push('The dark crater is where the ice might be. Plan a trip on a calm, sunny day.');
   if (!ev.eclipseLogged) tips.push('Logging the ridge while it is dark is rare evidence.');
@@ -118,8 +127,8 @@ function card(s: State): string {
     row(`  LIGHT      ${stars(rc.LIGHT)}  sun logs ${ev.sunLogs}, shadow logged ${ev.eclipseLogged ? 'yes' : 'no'}, power ${ev.powerHitZero ? 'ran out' : 'never ran out'}`),
     row(`  RADIATION  ${stars(rc.RADIATION)}  measurements ${ev.measures} (${ev.stormMeasures} during a storm)`),
     row(`  SHELTER    ${stars(rc.SHELTER)}  shelter level ${s.shelterLevel}/3, final dose ${s.dose}% of plan`),
-    row(`  ICE        ${stars(rc.ICE)}  trips ${ev.trips}, ice found ${ev.iceFound}, spots ruled out ${ev.mappedEmpty}`),
-    row(`  TOTAL ${Object.values(rc).reduce((a, b) => a + b, 0)}/12 stars in ${s.turn} days`),
+    row(`  ICE        ${stars(rc.ICE)}  drone maps ${ev.scouts}, rover samples ${ev.trips}, ice found ${ev.iceFound}, dry spots ${ev.mappedEmpty}`),
+    row(`  MAIN ${v.mainDone}/4   BONUS ${v.bonus}/8   TOTAL ${v.stars}/12   (promising: 4 main, approved: ${w.minStars}, gold: ${w.gold})`),
     line, row('NEXT TIME, TRY:'), ...tips.slice(0, 3).flatMap((t) => wrap('- ' + t).map((w) => row('  ' + w))), line,
   ].join('\n');
 }
@@ -140,13 +149,13 @@ console.log = (...a: unknown[]) => { print(...a); mkdirSync(new URL('../../.run/
 
 function handle(cmd: string | undefined, args: string[]) {
   if (cmd === 'new') {
-    const s = newGame((args[0] as ScenarioId) ?? 'full', Number(args[1] ?? Math.floor(Math.random() * 1e6)));
+    const s = newGame((args[0] as ScenarioId) ?? 'week', Number(args[1] ?? Math.floor(Math.random() * 1e6)));
     console.log(`\n===== NEW GAME: ${s.scenario}, seed ${s.seed} =====`);
     save(s); show(s);
   } else if (cmd === 'note') {
     console.log(`>>> PLAYTEST NOTE: ${args.join(' ')}`);
   } else if (!existsSync(FILE)) {
-    console.log('No game yet. Type: new full   (or: new slice)');
+    console.log('No game yet. Type: new week   (or: new full for 14 days)');
   } else if (cmd === 'act') {
     const s = load();
     if (s.pending) { console.log('Choose first: back or finish.'); show(s); return; }
@@ -169,13 +178,13 @@ function handle(cmd: string | undefined, args: string[]) {
 }
 
 const HELP = `Type the job numbers for today in one line (e.g. "1 3 7"). Their crew time must fit today's total.
-Type "back"/"finish" when asked, "note <text>" to jot playtest feedback, "show", "new full" / "new slice", "help", or "quit".`;
+Type "back"/"finish" when asked, "note <text>" to jot playtest feedback, "show", "new week" (7 days) / "new full" (14 days), "help", or "quit".`;
 
 async function interactive() {
   const { createInterface } = await import('node:readline');
   const rl = createInterface({ input: process.stdin, output: process.stdout, prompt: '\ncommander> ' });
   print(HELP);
-  if (existsSync(FILE)) handle('show', []); else handle('new', ['full']);
+  if (existsSync(FILE)) handle('show', []); else handle('new', ['week']);
   rl.prompt();
   for await (const raw of rl) {
     const input = raw.trim();

@@ -1,7 +1,7 @@
 // Balance check (v2, day-based): seeded bot players run many games and we compare outcomes.
 // Usage: node --no-warnings src/sim/bots.ts [full|slice] [games]
 import {
-  newGame, step, menu, env, stormActive, blocksToday, reportCard, actionDef, daysUntilSun,
+  newGame, step, menu, env, stormActive, blocksToday, reportCard, actionDef, daysUntilSun, verdict,
   type State, type ActionId, type ScenarioId, type TripChoice,
 } from '../engine/engine.ts';
 
@@ -39,11 +39,38 @@ const careful: Bot = {
     if (e(s).sun === 'dark' && s.power < 60) w.push('powersave');
     const calm = !storm && e(s).storm !== 'warning';
     if (calm && !darkSoon(s) && s.power >= 70 && s.scoutBonus >= 0.25 && s.evidence.iceFound < 2) w.push('rover');
+    if (calm && !s.evidence.trips && s.power >= 55 && s.scoutBonus >= 0.25) w.push('rover');
     if (calm && s.shelterLevel < 1 && s.power >= 50) w.push('regolith');
     if (s.power >= 50 && s.scoutBonus < 0.5 && s.evidence.iceFound < 2) w.push('scout');
-    if (s.evidence.measures < 3) w.push('measure');
+    if (s.evidence.measures < 4) w.push('measure');
     if (s.evidence.sunLogs < 2) w.push('logsun');
-    if (e(s).storm === 'warning') w.push('call');
+    if (e(s).storm === 'warning' || (e(s).link && !e(s, 1).link)) w.push('call');
+    if (!s.evidence.scouts) w.push('scout');
+    return fill(s, w);
+  },
+};
+
+// Plans around the forecast: trips early, saves power for the dark, shelters in storms.
+const planner: Bot = {
+  name: 'planner (plans for the dark)', trip: 'back',
+  pick: (s) => {
+    const w: ActionId[] = [];
+    const storm = stormActive(e(s));
+    const darkIn = [0, 1, 2, 3].findIndex((k) => e(s, k).eclipse === 'long');
+    const reserve = darkIn >= 0 ? 50 : 10; // keep enough battery for 2 dark days
+    if (s.faults.panel || s.faults.scrubber) w.push('repair');
+    if (storm) w.push('shelter', 'measure');
+    if (s.o2 < 40) w.push('air');
+    if (s.dust >= 1 && e(s).sun !== 'dark' && !storm) w.push('clean');
+    if (e(s).eclipse !== 'none' && !s.evidence.eclipseLogged) w.push('logsun');
+    if (e(s).sun === 'dark') w.push('powersave');
+    const calm = !storm && e(s).storm !== 'warning';
+    if (!s.evidence.scouts) w.push('scout');
+    if (calm && s.power - 50 >= reserve && s.scoutBonus > 0 && (s.evidence.trips < 1 || (!s.evidence.iceFound && s.evidence.trips < 2))) w.push('rover');
+    if (calm && s.shelterLevel < 1 && s.power - 10 >= reserve) w.push('regolith');
+    if (s.evidence.measures < 4 && e(s).sun !== 'dark') w.push('measure');
+    if (s.evidence.sunLogs < 2) w.push('logsun');
+    if (s.stamina < 55) w.push('rest');
     return fill(s, w);
   },
 };
@@ -103,25 +130,26 @@ function play(bot: Bot, scenario: ScenarioId, seed: number) {
     minStamina = Math.min(minStamina, s.stamina);
   }
   const rc = reportCard(s);
-  return { s, emergencies, emergencyDays, minStamina, stars: rc.LIGHT + rc.RADIATION + rc.SHELTER + rc.ICE, rc };
+  const v = verdict(s);
+  return { s, emergencies, emergencyDays, minStamina, stars: rc.LIGHT + rc.RADIATION + rc.SHELTER + rc.ICE, rc, v };
 }
 
-const scenario = (process.argv[2] as ScenarioId) ?? 'full';
+const scenario = (process.argv[2] as ScenarioId) ?? 'week';
 const N = Number(process.argv[3] ?? 500);
 const pct = (x: number) => `${Math.round((x / N) * 100)}%`;
 const avg = (xs: number[]) => (xs.reduce((a, b) => a + b, 0) / xs.length).toFixed(1);
 void daysUntilSun;
 
 console.log(`Scenario: ${scenario}, ${N} seeded games per bot. Stars out of 12.\n`);
-console.log('bot'.padEnd(31) + 'done  O2fail doseFail emerg  dose  minStam  ice  stars  L/R/S/I');
-for (const bot of [careful, greedy, reckless, idle, random]) {
+console.log('bot'.padEnd(31) + 'PROM+ APPR+ gold  O2fail doseFail emerg  dose  dose<=25 minStam  stars  L/R/S/I');
+for (const bot of [planner, careful, greedy, reckless, idle, random]) {
   const runs = Array.from({ length: N }, (_, i) => play(bot, scenario, i + 1));
   const end = (r: string) => runs.filter((x) => x.s.ended!.reason === r).length;
   const k = (g: 'LIGHT' | 'RADIATION' | 'SHELTER' | 'ICE') => avg(runs.map((x) => x.rc[g]));
   console.log(
-    bot.name.padEnd(31) + pct(end('complete')).padEnd(6) + pct(end('oxygen')).padEnd(7) + pct(end('dose')).padEnd(9)
+    bot.name.padEnd(31) + pct(runs.filter((x) => x.v.tier !== 'not-proven').length).padEnd(6) + pct(runs.filter((x) => x.v.tier === 'approved' || x.v.tier === 'gold').length).padEnd(6) + pct(runs.filter((x) => x.v.tier === 'gold').length).padEnd(6) + pct(end('oxygen')).padEnd(7) + pct(end('dose')).padEnd(9)
     + pct(runs.filter((x) => x.emergencies > 0).length).padEnd(7) + avg(runs.map((x) => x.s.dose)).padEnd(6)
-    + avg(runs.map((x) => x.minStamina)).padEnd(9) + avg(runs.map((x) => x.s.evidence.iceFound)).padEnd(5)
+    + pct(runs.filter((x) => x.s.dose <= 25).length).padEnd(9) + avg(runs.map((x) => x.minStamina)).padEnd(9)
     + avg(runs.map((x) => x.stars)).padEnd(7) + `${k('LIGHT')}/${k('RADIATION')}/${k('SHELTER')}/${k('ICE')}`,
   );
 }

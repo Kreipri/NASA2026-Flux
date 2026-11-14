@@ -1,5 +1,5 @@
 // Pre-written Mission Control lines (offline fallback, D-004). Crew and story are FICTION.
-import { env, stormActive, totalDays, daysUntilSun, type State } from '../engine/engine.ts';
+import { env, stormActive, totalDays, daysUntilSun, daysUntilLink, daysUntilLinkLoss, scenarioOf, type State } from '../engine/engine.ts';
 import storm from '../data/storm-2024-05.json' with { type: 'json' };
 
 const nextLongShadow = (s: State, within: number) => {
@@ -11,12 +11,13 @@ export function missionControl(s: State): string[] {
   const e = env(s);
   const L: string[] = [];
   if (s.turn === 0) {
-    L.push('Welcome to the ridge, Commander. You lead a crew of 4. Each astronaut works a morning and an afternoon, so you have 8 crew time to plan each day.');
-    L.push('Big jobs take more crew time. Outside jobs need astronauts in pairs and tire them out.');
-    L.push('Your goal: fill the SITE REPORT CARD with evidence, and bring everyone home healthy.');
+    const w = scenarioOf(s).win;
+    L.push(`Welcome to the ridge, Commander. NASA is studying places near the south pole for a Moon base, and this ridge is one of them. You have ${totalDays(s)} days to find out if it really works.`);
+    L.push(`Answer 4 questions for the SITE REPORT CARD: Is there enough LIGHT? Can we track RADIATION? Can we SHELTER from storms? Is there ICE nearby? Get ${w.minStars}+ stars, at least ${w.minEach} on every question, and bring the whole crew home healthy: SITE APPROVED.`);
+    L.push('You lead a crew of 4. Each astronaut works a morning and an afternoon: 8 crew time a day. Big jobs take more. Outside jobs use astronauts in pairs and tire them out.');
   }
   if (e.storm === 'warning') {
-    if (!e.link) L.push('(Earth link is down. No word from Mission Control.)');
+    if (!e.link) L.push('(Earth is below the horizon. No word from Mission Control.)');
     else if (e.stormSource === 'archive') {
       const f = storm.flaresX.filter((x) => x.peakTime.startsWith(e.realDay!)).at(-1)!;
       L.push(`ALERT: The Sun just had a big flare (class ${f.classType}). Particles may arrive tomorrow.`);
@@ -36,7 +37,12 @@ export function missionControl(s: State): string[] {
     L.push(`You are in the long shadow. No sunlight for the panels. ${d ? `The Sun returns in ${d} day${d > 1 ? 's' : ''}.` : ''} Power-saving mode stretches your batteries.`);
   }
   if (e.eclipse === 'short') L.push('Short eclipse today: the Sun is behind a hill for half the day.');
-  if (!e.link && e.storm === 'none') L.push('Earth link is down: the ridge cannot see Earth right now. No calls today.');
+  const lossIn = daysUntilLinkLoss(s);
+  if (e.link && lossIn && lossIn <= 3) L.push(`Heads-up: in ${lossIn} day${lossIn > 1 ? 's' : ''} Earth sinks below the hills and our radio link goes quiet. From the south pole, Earth slowly bobs up and down in your sky over each month, so a base here can only talk straight to Earth about half the time. Plan ahead: no storm alerts from us while it is down. Your onboard radiation alarm still works.`);
+  if (!e.link) {
+    const back = daysUntilLink(s);
+    L.push(`EARTH LINK DOWN: Earth is below the hills right now, so radio can't reach it. ${back ? `Earth rises again in ${back} day${back > 1 ? 's' : ''}.` : 'It will not rise again before the mission ends.'} Relay satellites could fill these gaps one day; for now, you are on your own.`);
+  }
   if (s.o2 <= 25) L.push('Oxygen is LOW. Tune the air system!');
   if (s.dose >= 75) L.push('Your dose plan is nearly used up. Keep the crew inside.');
   if (s.stamina < 50) L.push('The crew is getting tired. A rest day, or leaving some crew time free, helps them recover.');

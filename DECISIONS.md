@@ -7,6 +7,7 @@ Status: `decided` | `proposed` | `open` | `superseded`
 ---
 
 ## Open Questions
+- [x] ~~Ice mechanic accuracy~~ -> resolved in D-020: ice is site-survey evidence (option 1 of `ideas/ice-science-check.md`); the air-power discount is removed.
 - [x] ~~Site~~ -> decided, see D-005 (Moon first, Mars later).
 - [x] ~~Core resources~~ -> decided, see D-007 (revisitable).
 - [x] ~~Teaching goal / one real constraint~~ -> decided, see D-010: "Light is a resource. Where you work decides your power, cold, and radiation risk."
@@ -20,6 +21,23 @@ Status: `decided` | `proposed` | `open` | `superseded`
 - [~] **Verify snippet-only facts:** most done (D-014). Still open: Chang'e-4 (non-NASA), Orion 150 mSv, ISS 6-month dose, 1.3 s delay, "Centennial" 10 cm.
 
 ---
+
+## D-021: Main goals + bonus goals; stamina costs raised
+**Status:** decided (Bea). Refines D-020's objective.
+- Each question has 1 **main goal** (first star) and 2 **bonus goals**. All 4 main goals + crew healthy = **SITE PROMISING**. 11 stars = **APPROVED**, 12 = **GOLD**. Shown on screen as a checklist (`[x]` main, `+[x]` bonus).
+- Main goals: log sun 2x, measure once, shelter in a storm, rover sample. Skipping shelter or the crater trip means "not proven".
+- Stamina was never binding (bots stayed at 74%+). Work costs raised: outside -6 and inside -2 per crew time (were -4 and -1). Now overworking outside drops crews to ~40% (lost crew time); paced play stays above 60%.
+- Power left as is: it's already the tightest meter (good players still hit an emergency 45% of the time). If playtests find power too loose, raise **job** costs (keeps choices sharp), not daily upkeep (which punishes everyone the same and mostly bites in the dark).
+- Low dose (under 25%) is reachable: planner 100%, careful 76%. It competes with a second crater sample.
+
+## D-020: 7-day mission with one overarching objective: SITE APPROVED
+**Status:** decided (Bea asked for 7 days, an overarching objective, and a real challenge). The 14-day game stays available as `full`; `week` is the default.
+- **Objective:** "Prove this ridge can host a Moon base." SITE APPROVED = **11+ of 12 report-card stars, at least 1 on every question, whole crew healthy**. GOLD = 12. Below that: "not approved yet" with what was missing.
+- **Week timeline:** day 1 arrive (possible short eclipse), day 2 real flare alert (May 8 2024), days 3-4 real storm (May 9 building, May 10 strong), days 5-6 long shadow, days 5-7 Earth below the horizon (forecast 3 days ahead, explained in game), 50% chance of an unannounced simulated storm on day 6 or 7 (onboard alarm only). Start power 60, oxygen 70.
+- **Ice = survey evidence** (adopts option 1 of `ideas/ice-science-check.md`): no air-power discount. ICE stars: rover sample / drone map before it / ice found or 2 samples. A drone alone doesn't answer the ice question, so the core trade-off (leave the light for the dark crater) is required.
+- Harder 3rd stars: RADIATION needs 4 measurements; SHELTER needs final dose under 25%.
+- **Sim (1,000 games):** planner wins 81% (gold 30%), careful 61%, greedy / reckless / idle / random 0%. Details in `ideas/balance-pass-v2.md` (7-day addendum).
+- Earth link blackout grounded in NASA/JPL: polar base sites see Earth only about half of each month (`ideas/research-setting-facts.md`).
 
 ## D-019: Day-based loop with crew time, stamina, grouped jobs, visible report card
 **Status:** decided (from Bea's first terminal playtest feedback). Supersedes D-015's "2 shifts a day" pacing and the job list in D-018 (engine entry); replaces the Science points meter (D-007) with the on-screen report card (D-013).

@@ -34,7 +34,7 @@
 | GOAL | Measure radiation | 1 | pwr -4 | RADIATION (in a storm = star + real CRaTER reading) |
 | GOAL | Scout with hop-drone | 1 | pwr -15 | ICE odds +25% (max 80%) |
 | GOAL | Rover to dark crater | 4 | pwr -50, O2 -8, dose +4, outside | ICE: 30% base chance |
-| GOAL | Pile soil on shelter | 4 | pwr -10, O2 -4, dose +2, outside | SHELTER level +1 (~1 m soil) |
+| GOAL | Pile soil on shelter | 4 | pwr -10, O2 -4, dose +2, outside | SHELTER level +1. Text says crew run a digging machine; levels are a game scale for NASA's ~3 m design (real work = machines, many days, tonnes of soil) |
 | ALIVE | Clean dust off panels | 2 | O2 -2, dose +1, outside | full solar again (allowed in emergency) |
 | ALIVE | Tune the air system | 1 | pwr -20 (-6 per ice sample, min -8) | oxygen +30 |
 | ALIVE | Repair a fault | 2 | pwr -10 | fixes jammed panel or clogged scrubber |
@@ -66,3 +66,36 @@ Flare alert day 6 (real May 8 X-class flares), real storm days 7-8 (May 9 buildi
 **Sim-driven tweaks:** emergency no longer speeds up oxygen loss (backup oxygen; the cost is cold = stamina -10/day), upkeep 24 -> 20 so the battery covers the long shadow.
 
 **Watch in playtests:** random clicking still fails 86%. Real kids read warnings, but if first-time players keep failing on oxygen, make low-oxygen warnings louder before changing numbers. Reckless still collects lots of ice, so the dose limit is what stops them; check the debrief explains that.
+
+## Open accuracy item: shelter levels (proposed, not built)
+Thick soil matters most against cosmic rays (every day), while thin shielding already cuts solar storm particles. Today levels only help on storm days. Option: level 1 gives most of the storm protection; levels 2-3 also shave everyday background dose. Needs Bea's OK; would change balance.
+
+---
+
+# 7-day mission addendum (D-020, 2026-11-14)
+Default game is now `week` (7 days). `full` (14 days) and `slice` remain for comparison.
+
+**Objective:** SITE APPROVED = 11+/12 stars, 1+ per question, crew healthy. GOLD = 12.
+
+**Changed star rules:** ICE = rover sample / drone map + sample / ice found or 2 samples. RADIATION 3rd star = 4 measurements. SHELTER 3rd star = final dose under 25%. Ice no longer discounts the air system.
+
+**Week timeline:** short eclipse maybe day 1-2; flare alert day 2; storm days 3-4 (real data); long shadow days 5-6; Earth below horizon days 5-7; 50% chance of an unannounced simulated storm on day 6 or 7. Start power 60, oxygen 70.
+
+**How we tuned the challenge (sim, 1,000 games per bot):**
+| Win rule | Planner | Careful | Others |
+|---|---|---|---|
+| 8 stars | 100% | 100% | reckless 83% |
+| 10 stars | 100% | 94% | 0% |
+| **11 stars (chosen)** | **81% (gold 30%)** | **61%** | **0%** |
+
+Why 11: a player who plans for the dark usually wins, a careful one about 3 in 5, careless styles never. Main trade-off found by the sim: the crater trip vs keeping power through the dark. Even the careful bot runs out of power when it goes too late.
+
+**Watch:** 11/12 may feel strict for a 7-year-old's first run. If playtests show frustration, keep 11 for "approved" but add a "PROMISING" result at 9-10 so a near-miss still feels like progress.
+
+## Tiers + stamina (D-021)
+| Bot (1,000 games) | Promising+ | Approved+ | Gold | Dose under 25% | Lowest stamina |
+|---|---|---|---|---|---|
+| Planner | 100% | 81% | 30% | 100% | 63 |
+| Careful | 100% | 61% | 0% | 76% | 63 |
+| Greedy / reckless / idle / random | 0% | 0% | 0% | 0-50% | 37-100 |
+Not-proven usually means "never sheltered" or "never went to the crater". Stamina now limits heavy outside work rather than everyday play.
