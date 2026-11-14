@@ -1,6 +1,6 @@
 # Gameplay layout study v1
 
-2026-11-15 · **Proposed; no layout chosen.**
+2026-11-15 · **Historical comparison. Bea chose A (side dock).** Current refinement: `ui-mockups/gameplay-side-dock-v2/index.html`; exact meter/help treatments are still proposed.
 
 Bea's brief: keep the current UI design and control sizes, but make task views less cramped. Include the actual 3D base. Another agent is working on the active mockups.
 
