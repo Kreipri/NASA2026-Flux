@@ -1,4 +1,4 @@
-import { readFileSync, writeFileSync, mkdirSync, cpSync } from 'node:fs';
+import { readFileSync, writeFileSync, mkdirSync, cpSync, rmSync } from 'node:fs';
 import { stripTypeScriptTypes } from 'node:module';
 import { fileURLToPath } from 'node:url';
 import { resolve } from 'node:path';
@@ -106,7 +106,18 @@ function goNow(id,instant){`);
   cpSync(resolve(root, 'ideas/ui-mockups/assets'), resolve(out, 'assets'), { recursive: true });
   cpSync(resolve(root, 'ideas/base-designs/vector-v3/space-base.svg'), resolve(out, 'assets/space-base.svg'));
   cpSync(resolve(root, 'node_modules/three/build/three.module.min.js'), resolve(out, 'vendor/three.module.js'), { recursive: true });
-  cpSync(resolve(root, 'node_modules/three/examples/jsm'), resolve(out, 'vendor/addons'), { recursive: true });
+  // Ship only the three.js addons the game imports (plus what they import), not the whole examples folder.
+  const jsm = resolve(root, 'node_modules/three/examples/jsm'), seen = new Set<string>();
+  rmSync(resolve(out, 'vendor/addons'), { recursive: true, force: true });
+  const queue = [...new Set([...html.matchAll(/three\/addons\/([\w/.-]+\.js)/g)].map((m) => m[1]))];
+  while (queue.length) {
+    const rel = queue.pop()!;
+    if (seen.has(rel)) continue;
+    seen.add(rel);
+    const text = readFileSync(resolve(jsm, rel), 'utf8');
+    for (const m of text.matchAll(/from\s+'(\.{1,2}\/[^']+\.js)'/g)) queue.push(resolve('/', rel, '..', m[1]).slice(1));
+  }
+  for (const rel of seen) { mkdirSync(resolve(out, 'vendor/addons', rel, '..'), { recursive: true }); cpSync(resolve(jsm, rel), resolve(out, 'vendor/addons', rel)); }
   cpSync(resolve(root, 'node_modules/three/LICENSE'), resolve(out, 'vendor/LICENSE-three.txt'));
   writeSubmissionResources(root, out);
   console.log('Built dist/index.html — seven-week browser game');
