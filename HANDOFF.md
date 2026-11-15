@@ -1,5 +1,11 @@
 # Handoff
 
+## Merge to main checkpoint (2026-11-15)
+- Bea requested merging the current branch to main. [PR #6](https://github.com/Kreipri/NASA2026-Flux/pull/6) contains the remaining changes after PR #5: guidance, paid cleaning, recap, reset and milestone updates. Use the PR's merged status as the final merge record.
+- Verified the branch with all 12 web tests, `npm run build`, `npm run sim`, `git diff --check`, and a conflict-free `git merge-tree` against fetched `origin/main`.
+- The separate `/Users/bg/Coding/NASA2026-Flux` checkout has uncommitted documentation and UI work. It is intentionally left untouched; its local main may remain behind the merged remote until that work is ready to reconcile. This checkout stays on `feat/browser-gameplay`.
+- Existing gameplay/data gaps and the pending seven-block preference below remain unchanged.
+
 ## Curio, paid cleaning, quick results and visual recap (2026-11-15)
 - `src/web/game.js` / `game.css`: grouped light/dark source guide, visible job advice, native Why do it disclosure, readable Curio status/lists. Alerts keep choices pinned while the explanation scrolls. Fixed inherited `.endc b` / `.review3 b` typography in dialog bodies.
 - Results have flavor, actual time/meter costs, a practical tutorial reason and one **Got it** action. No result button closes a week; when time runs out the note directs the player to End week in the dock.

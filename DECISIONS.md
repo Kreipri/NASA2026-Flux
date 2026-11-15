@@ -6,6 +6,12 @@ Status: `decided` | `proposed` | `open` | `superseded`
 
 ---
 
+## Decided: Merge the latest browser gameplay fixes into main
+**Status:** decided (Bea, 2026-11-15: “i want to merge to main”).
+- Merge `feat/browser-gameplay` through [PR #6](https://github.com/Kreipri/NASA2026-Flux/pull/6), preserving history and the user's configured Git identity. Earlier browser gameplay is already on main through PR #5; this adds the latest guidance, paid cleaning, recap and reset fixes.
+- Preserve the uncommitted edits in the separate `/Users/bg/Coding/NASA2026-Flux` main checkout. Do not reset, stash or include them in this merge.
+- Validation: all 12 web tests pass, browser build succeeds, seeded bot simulation completes, and whitespace/conflict checks pass. No new gameplay or balance decision.
+
 ## Decided: Readable gameplay help, paid tutorial cleaning, and visual week recaps
 **Status:** decided (Bea, 2026-11-15: requested clearer Curio/data containers, charged cleaning time, practical tutorial reasons, a single result confirmation, consistent dialog fonts, and an easier “what changed and why”).
 - Data and game rules separates simulated rules, NASA archive attribution, historical events and artwork credits. The same guide appears in alerts and the More drawer; no live-data claim.
