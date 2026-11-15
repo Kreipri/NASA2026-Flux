@@ -51,6 +51,11 @@
 ## Local versus remote feature comparison (2026-11-15)
 - No implemented game features unique to the dirty local main checkout were found against fetched `origin/main` at `ba72f91`. Its tutorial/panel/reset work is already on the remote; remote also includes the newer help, paid cleaning and recap improvements.
 - Local-only TODO, submission/demo and audit documents remain preserved. Details: `ideas/local-main-feature-comparison.md`. No main checkout or remote changes, and no new design decision.
+## Child-friendly shelter and radiation update (2026-11-15)
+- Player copy now says **Moon soil** instead of regolith and explains it as a thick blanket over the shelter.
+- Storm shelter is explicit: if the crew chooses Shelter and nobody works outside, storm-particle dose is 0. Outside work during the storm still adds exposure.
+- The browser mission brief now shows the overall mission, the current task, and a simple “how to win” guide. Job cards and terminal results explain the shelter tradeoff.
+- Verified: `npm run test:web` (12 passing), `npm run build`, `npm run sim -- weeks7 20`, and `git diff --check`.
 
 ## Merge to main checkpoint (2026-11-15)
 - Bea requested merging the current branch to main. [PR #6](https://github.com/Kreipri/NASA2026-Flux/pull/6) contains the remaining changes after PR #5: guidance, paid cleaning, recap, reset and milestone updates. Use the PR's merged status as the final merge record.

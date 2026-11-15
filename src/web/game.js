@@ -4,7 +4,7 @@ import { createMission, doJob, choose, endWeek, nextWeek, skipToWeek2, previewJo
 const SAVE_KEY = 'lunar-ridge.browser.v2';
 const esc = value => String(value).replace(/[&<>"']/g, c => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' }[c]));
 const sign = n => `${n > 0 ? '+' : n < 0 ? '−' : ''}${Math.abs(n)}`;
-const LABELS = { air:'Run the air system', rest:'Rest and exercise', logsun:'Check the sunlight', measure:'Check radiation', scout:'Fly the hop-drone', rover:'Drive to the dark crater', regolith:'Cover the shelter with soil', clean:'Clean the solar panels', repair:'Fix what’s broken', shelter:'Take shelter' };
+const LABELS = { air:'Run the air system', rest:'Rest and exercise', logsun:'Check the sunlight', measure:'Check radiation', scout:'Fly the hop-drone', rover:'Drive to the dark crater', regolith:'Cover the shelter with Moon soil', clean:'Clean the solar panels', repair:'Fix what’s broken', shelter:'Take shelter' };
 const jobName = id => LABELS[id] || actionDef(id).label;
 const reason = t => t ? t[0].toUpperCase() + t.slice(1) + (/[.!]$/.test(t) ? '' : '.') : '';
 // Three kinds of job: evidence for the report card, keeping the base running, looking after the crew.
@@ -17,24 +17,24 @@ const PLACES = { hab:{ name:'Crew home', tab:'Home', cat:'crew' }, solar:{ name:
 const HELP = { power:['Power','Runs the base and its machines. Sunlight charges the batteries. Keep power high.'], o2:['Air','Air keeps the crew breathing. The air system uses power to add air. Keep air high.'], dose:['Radiation','This adds up the radiation the crew receives. Keep it low. Rest cannot remove it. These are game points, not a NASA safety limit.'], stamina:['Crew energy','How rested your crew feels. Outside jobs tire them more. Rest and unused crew time help. A tired crew has fewer time blocks next week.'] };
 const QUICKHELP = { power:'Runs the base. Sunlight charges it. Keep it high.', o2:'Keeps the crew breathing. Keep it high.', dose:'Adds up the radiation the crew gets. Keep it low. Game points, not a NASA limit.', stamina:'How rested the crew is. A tired crew gets less time next week.' };
 const GOALS = { LIGHT:'Light', RADIATION:'Radiation', SHELTER:'Shelter', ICE:'Ice' };
-const EFFECTS = { logsun:'Evidence about light and shadow.', measure:'A radiation reading for the report card.', scout:'A map that improves the next rover’s ice chance.', rover:'A crater survey. A dry sample still counts as evidence.', regolith:'An extra layer of soil on the shelter.', clean:'Dust removed, so the panels can charge better.', air:'More air for the crew.', repair:'One broken base system fixed.', shelter:'Less exposure during the storm peak.', rest:'A chance for the crew to recover.' };
+const EFFECTS = { logsun:'Evidence about light and shadow.', measure:'A radiation reading for the report card.', scout:'A map that improves the next rover’s ice chance.', rover:'A crater survey. A dry sample still counts as evidence.', regolith:'A thick blanket of Moon soil over the shelter, so storm particles are blocked better.', clean:'Dust removed, so the panels can charge better.', air:'More air for the crew.', repair:'One broken base system fixed.', shelter:'The crew stays inside and gets no storm-particle dose.', rest:'A chance for the crew to recover.' };
 // What each job does, why it matters, and a tip: concrete, in kid words, tied to the report card and the meters.
 const INFO = {
   logsun:{ does:'Write down how bright the ridge is and how the shadows move.', why:'Fills in <b>Light</b> on your report card. Logging during the long shadow earns a bonus star.', tip:'Log it in two different weeks. Do one in the long shadow too, when the Sun can’t charge the panels.' },
   measure:{ does:'Read the radiation sensor and save the number.', why:'Fills in <b>Radiation</b> on your report card. A reading during a storm is the best evidence.', tip:'Wait for a storm warning, then measure. Storm readings count the most.' },
   scout:{ does:'Fly the drone over the dark crater to map it.', why:'A map makes your next rover trip more likely to find ice.', tip:'Fly the drone first. Then drive the rover when there is no storm.' },
   rover:{ does:'Drive the rover into the dark crater and take a sample.', why:'Fills in <b>Ice</b> on your report card. Even a dry spot is useful evidence.', tip:'It is far and cold, so it costs a lot. Fly the drone first, and go when it is calm.' },
-  regolith:{ does:'Pile Moon soil on top of the shelter.', why:'Fills in <b>Shelter</b> on your report card. Each layer (up to 3) blocks more storm radiation.', tip:'Do it before a storm comes. It is outside work, so it tires the crew.' },
+  regolith:{ does:'Cover the shelter with Moon soil, like a thick blanket.', why:'Fills in <b>Shelter</b> on your report card. More soil means more protection.', tip:'Do it before a storm comes. It is outside work, so it tires the crew.' },
   clean:{ does:'Wipe the dust off the solar panels.', why:'Dusty panels make less power. Clean ones charge the batteries best.', tip:'Check the dust level in the conditions card, top left. Clean when it is above 0.' },
   air:{ does:'Run the machine that makes air from water.', why:'Air keeps the crew breathing. If the air runs out, the mission ends.', tip:'Top up before the air gets low. The machine uses power.' },
   repair:{ does:'Fix a stuck solar panel or a clogged air filter.', why:'Broken parts make your power or your air worse.', tip:'Only needed when something is broken. The conditions card tells you what.' },
   rest:{ does:'The crew rests and exercises.', why:'Brings crew energy back. A tired crew gets less time next week.', tip:'Rest when energy is low. Time you do not use also helps them recover.' },
-  shelter:{ does:'The whole crew waits in the most shielded room.', why:'Protects them from storm radiation, and fills in <b>Shelter</b> on your report card.', tip:'Take shelter when a storm is on. Outside jobs during a storm add radiation.' },
+  shelter:{ does:'The whole crew waits in the safest room.', why:'If everyone stays inside, storm particles cannot reach them. It also fills in <b>Shelter</b> on your report card.', tip:'When the radiation alarm sounds, choose shelter and do not send anyone outside.' },
 };
 // One short line per job, shown on the card so the player does not have to open a job to learn what it is.
-const SHORTDESC = { logsun:'Record the sunlight and shadows.', measure:'Read the radiation sensor.', scout:'Map the dark crater with the drone.', rover:'Collect a sample from the dark crater.', regolith:'Pile soil on the shelter roof.', clean:'Wipe the dust off the panels.', air:'Make fresh air for the crew.', repair:'Fix a broken panel or air filter.', rest:'Let the crew rest and recover.', shelter:'Wait out a storm in the safest room.' };
-const RESULT_FLAVOR = { logsun:'A new entry in the mission notebook! Your crew saved a record of the ridge’s light and shadows.', measure:'Sensor checked, reading saved. Your crew has more evidence about radiation at this site.', scout:'The drone is back. Its new map will help the crew plan the next rover trip.', rover:'The rover crew is back at base. Here is what happened on the trip.', regolith:'Another layer of Moon soil covers the shelter. The crew has more shielding for the next storm.', clean:'The crew brushed the panels clear. More sunlight can now reach the solar cells.', air:'The air machine has finished its run. Fresh oxygen is ready for the crew to breathe.', repair:'Tools packed away. The crew has finished work on a broken base system.', rest:'Exercise done, boots off. The crew has had time to recover for the jobs ahead.', shelter:'The crew is in the shielded room. It will protect them during the storm peak.' };
-const ASKS = { LIGHT:'Check the sunlight on the ridge.', RADIATION:'Check the radiation. The report card needs a reading.', ICE:'Find out if there is ice in the dark crater. Fly the hop-drone first!', SHELTER:'Cover the shelter with soil. It protects the crew in storms.' };
+const SHORTDESC = { logsun:'Record the sunlight and shadows.', measure:'Read the radiation sensor.', scout:'Map the dark crater with the drone.', rover:'Collect a sample from the dark crater.', regolith:'Cover the shelter with Moon soil.', clean:'Wipe the dust off the panels.', air:'Make fresh air for the crew.', repair:'Fix a broken panel or air filter.', rest:'Let the crew rest and recover.', shelter:'Wait out a storm inside the safest room.' };
+const RESULT_FLAVOR = { logsun:'A new entry in the mission notebook! Your crew saved a record of the ridge’s light and shadows.', measure:'Sensor checked, reading saved. Your crew has more evidence about radiation at this site.', scout:'The drone is back. Its new map will help the crew plan the next rover trip.', rover:'The rover crew is back at base. Here is what happened on the trip.', regolith:'Moon soil now covers the shelter like a thick blanket. It will block more storm particles.', clean:'The crew brushed the panels clear. More sunlight can now reach the solar cells.', air:'The air machine has finished its run. Fresh oxygen is ready for the crew to breathe.', repair:'Tools packed away. The crew has finished work on a broken base system.', rest:'Exercise done, boots off. The crew has had time to recover for the jobs ahead.', shelter:'The crew is inside the safest room. If they stay inside, the storm gives them no storm-particle dose.' };
+const ASKS = { LIGHT:'Check the sunlight on the ridge.', RADIATION:'Read the radiation sensor during a storm, then choose shelter and keep everyone inside.', ICE:'Find out if there is ice in the dark crater. Fly the hop-drone first!', SHELTER:'Cover the shelter with Moon soil before a storm. When the alarm sounds, choose shelter and stay inside.' };
 const PATHS = {
   trash:'<path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13"/>',
   bulb:'<path d="M9 18h6M10 21h4M12 3a6 6 0 0 0-3.5 10.9c.6.5 1 1.2 1 2.1h5c0-.9.4-1.6 1-2.1A6 6 0 0 0 12 3z"/>',
@@ -113,7 +113,7 @@ export function tourKinds() {
   return `<div class="tour-panel"><h4>3 kinds of jobs</h4>${Object.entries(CATS).map(([id, c]) => tourRow(c.icon, bg[id], c.name, sub[id])).join('')}</div>`;
 }
 export function tourCard() {
-  const sub = { LIGHT:'Check the sunlight', RADIATION:'Check the radiation', SHELTER:'Cover the shelter with soil', ICE:'Look for ice in the dark crater' };
+  const sub = { LIGHT:'Check the sunlight', RADIATION:'Check the radiation', SHELTER:'Cover the shelter with Moon soil', ICE:'Look for ice in the dark crater' };
   return `<div class="tour-panel"><h4>Your report card</h4>${Object.keys(GOALS).map(g => tourRow(GOALICON[g][0], GOALICON[g][1], GOALS[g], sub[g], '<span class="st">☆</span>')).join('')}</div>`;
 }
 export function mountGameplay({ hud, frame, pins, assets, updateScene, updateLayout, onHome, onEnding, debugScreens = [], onDebugScreen }) {
@@ -228,7 +228,7 @@ export function mountGameplay({ hud, frame, pins, assets, updateScene, updateLay
     const main = askText(s, e);
     const sunIcon = e.sun==='dark' ? 'moon' : e.sun==='half' ? 'half' : 'sun';
     const broken = [s.faults.panel&&'panel joint',s.faults.scrubber&&'air system'].filter(Boolean);
-    return `<section class="mission-brief ${ui.brief?'open':''}" aria-label="This week’s conditions"><button class="brief-toggle" data-game-action="brief" aria-expanded="${ui.brief}"><span class="brief-ic">${svg(sunIcon)}</span><span class="brief-title">${environmentTitle(s)}</span>${broken.length?`<span class="brief-warn" role="img" aria-label="Repair needed">${svg('wrench')}</span>`:''}<span class="brief-chev">${svg('down')}</span></button><div class="brief-panel" aria-hidden="${!ui.brief}"><span class="brief-speaker">${e.link?'Mission Control':'Curio · onboard update'} · this week’s ask</span><p>${main}</p><div class="condition-row">${chip(e.sun==='dark'?'No solar charging':e.sun==='half'?'Reduced solar charging':'Sunlight charges panels')}${chip(`Dust ${s.dust}/3`)}${chip(`Shelter ${s.shelterLevel}/3`)}</div>${sourceBadge()}${broken.length?`<p class="fault-note">Repair needed: ${broken.join(' and ')}.</p>`:''}${btn('rebrief','Hear the briefing again','text-button brief-again')}</div></section>`;
+    return `<section class="mission-brief ${ui.brief?'open':''}" aria-label="This week’s conditions"><button class="brief-toggle" data-game-action="brief" aria-expanded="${ui.brief}"><span class="brief-ic">${svg(sunIcon)}</span><span class="brief-title">${environmentTitle(s)}</span>${broken.length?`<span class="brief-warn" role="img" aria-label="Repair needed">${svg('wrench')}</span>`:''}<span class="brief-chev">${svg('down')}</span></button><div class="brief-panel" aria-hidden="${!ui.brief}"><span class="brief-speaker">${e.link?'Mission Control':'Curio · onboard update'} · this week’s ask</span><p><b>MISSION:</b> Prove this ridge can host a Moon base.</p><p><b>THIS WEEK:</b> ${main}</p><p><b>HOW TO WIN:</b> Earn at least 1 star in Light, Radiation, Shelter and Ice. Keep air and power above zero. For radiation: measure during a storm, then shelter and keep everyone inside.</p><div class="condition-row">${chip(e.sun==='dark'?'No solar charging':e.sun==='half'?'Reduced solar charging':'Sunlight charges panels')}${chip(`Dust ${s.dust}/3`)}${chip(`Shelter ${s.shelterLevel}/3`)}</div>${sourceBadge()}${broken.length?`<p class="fault-note">Repair needed: ${broken.join(' and ')}.</p>`:''}${btn('rebrief','Hear the briefing again','text-button brief-again')}</div></section>`;
   }
   function time() {
     const available = mission.week?.blocks ?? 0, used = mission.week?.used ?? 0;
@@ -259,7 +259,7 @@ export function mountGameplay({ hud, frame, pins, assets, updateScene, updateLay
     if (!out.length && ev.sunLogs < 2) add('logsun', 'Your report card needs sunlight readings.');
     if (!out.length && ev.scouts < 1) add('scout', 'Map the crater before you drive there.');
     if (!out.length && ev.scouts >= 1 && ev.trips < 1) add('rover', 'Your report card needs an ice sample.');
-    if (!out.length && s.shelterLevel < 1) add('regolith', 'Soil on the shelter protects the crew.');
+    if (!out.length && s.shelterLevel < 1) add('regolith', 'Moon soil on the shelter protects the crew.');
     return out;
   }
   function jobs() {
@@ -282,7 +282,7 @@ export function mountGameplay({ hud, frame, pins, assets, updateScene, updateLay
       measure:`${ev.stormMeasures} storm ${ev.stormMeasures===1?'reading':'readings'}, ${Math.max(0,ev.measures-ev.stormMeasures)} quiet.`,
       scout:`Drone flights so far: ${ev.scouts}.`,
       rover:`Crater trips so far: ${ev.trips}. Ice chance now: ${jobPreview(mission,'rover').chance}%.`,
-      regolith:`Soil layers on the shelter: ${s.shelterLevel} of 3.`,
+      regolith:`Moon-soil shield: ${s.shelterLevel} of 3 layers.`,
       clean:`Dust on the panels: ${s.dust} of 3.`,
       air:`Air now: ${n(s.o2)} of 100.`,
       repair:broken.length?`Broken: ${broken.join(' and ')}.`:'Nothing is broken right now.',

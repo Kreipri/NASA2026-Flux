@@ -330,7 +330,7 @@ function applyJob(s: State, w: Week, id: ActionId, log: string[]) {
     }
     case 'regolith':
       s.shelterLevel++;
-      log.push(`Two astronauts ran the digging machine all day: more moon soil on the shelter, level ${s.shelterLevel}/3. Storms hurt less in there now. [SHELTER]`);
+      log.push(`Two astronauts covered the shelter with Moon soil, like putting a thick blanket over a house. Shield level ${s.shelterLevel}/3. Storm particles hurt less inside. [SHELTER]`);
       if (s.shelterLevel === 1) {
         log.push('  Real fact: moon soil blocks solar storm particles well. One NASA design uses about 3 m (10 ft) of soil to also stop most cosmic rays. [NASA Tech Briefs 2012]');
         log.push('  [~ SIMULATED] Game shortcut: real shielding means tonnes of soil moved by machines over many days. 3 levels stand for that 3 m.');
@@ -389,15 +389,16 @@ export function closeWeek(s0: State, w0: Week): { state: State; log: string[] } 
   let dose: number;
   if (stormActive(e)) {
     const f = e.storm === 'rising' ? moon.storm.risingFactor : 1;
-    const inside = w.sheltered ? moon.storm.shelterByLevel[s.shelterLevel] : moon.storm.habitat;
-    const out = w.outside * moon.storm.outsidePerBlock;
+    const stayedInside = w.sheltered && w.outside === 0;
+    const inside = stayedInside ? 0 : (w.sheltered ? moon.storm.shelterByLevel[s.shelterLevel] : moon.storm.habitat);
+    const out = stayedInside ? 0 : w.outside * moon.storm.outsidePerBlock;
     dose = Math.ceil((inside + out) * f);
     if (w.sheltered) {
       s.evidence.shelteredStormDays++;
       s.keyMoments.push(`Sheltered during ${e.stormName ?? e.realDay ?? 'a particle storm'}${e.link ? '' : ' without Earth link'}.`);
     }
     s.evidence.outsideStormBlocks += w.outside;
-    log.push(`Particle storm (${e.storm === 'strong' ? 'strong' : 'building'}): ${w.sheltered ? 'crew sheltered for the peak' : 'crew stayed in the habitat, not the shelter'}${w.outside ? `, and astronauts were OUTSIDE` : ''}. Dose +${dose}.`);
+    log.push(`Particle storm (${e.storm === 'strong' ? 'strong' : 'building'}): ${stayedInside ? 'the crew stayed inside the shelter and was protected' : w.sheltered ? 'the crew sheltered, but outside work still added exposure' : 'the crew stayed in the habitat, not the shelter'}${w.outside ? `, and astronauts worked OUTSIDE` : ''}. Storm dose +${dose}.`);
   } else {
     dose = pd.baseDose;
   }
@@ -499,7 +500,7 @@ export function checklist(s: State): Record<Goal, Check[]> {
     return {
       LIGHT: [c(`log sunlight in 2 weeks (${Math.min(ev.sunLogs, 2)}/2)`, ev.sunLogs >= 2, true), c('log through the long shadow', ev.longShadowLogged), c(`log 4+ weeks (${Math.min(ev.sunLogs, 4)}/4)`, ev.sunLogs >= 4)],
       RADIATION: [c('measure during 1 storm', ev.stormMeasures >= 1, true), c('measure during 2 storms', ev.stormMeasures >= 2), c('measure a quiet week', ev.measures > ev.stormMeasures)],
-      SHELTER: [c('shelter during a storm', ev.shelteredStormDays >= 1, true), c(`dose under ${DOSE_STAR}%`, s.dose <= DOSE_STAR && started), c('add a regolith layer', s.shelterLevel >= 1)],
+      SHELTER: [c('shelter during a storm', ev.shelteredStormDays >= 1, true), c(`dose under ${DOSE_STAR}%`, s.dose <= DOSE_STAR && started), c('cover the shelter with Moon soil', s.shelterLevel >= 1)],
       ICE: [c('rover sample', ev.trips >= 1, true), c('drone map before rover', ev.trips >= 1 && ev.scouts >= 1), c('sample 2 craters', ev.trips >= 2)],
     };
   }

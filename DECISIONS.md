@@ -74,6 +74,14 @@ Status: `decided` | `proposed` | `open` | `superseded`
 **Status:** proposed (2026-11-15; Bea asked whether the implementation is better than React + Vite).
 - Recommend retaining the working UI for now, with Vite-only tooling modernization or React + Vite as later options. This is advice, not approval to migrate; no stack change performed. Comparison: `ideas/tech-stack-comparison.md`.
 
+## Decided: Child-friendly shelter and radiation guidance
+**Status:** decided (2026-11-15; user-requested gameplay clarification).
+- Call regolith **Moon soil** in player-facing text: it is like a thick blanket placed over the shelter.
+- During a storm, choosing **Shelter** and keeping every astronaut inside gives **0 storm-particle dose**. Sending anyone outside during that storm removes the perfect protection and adds exposure.
+- The mission brief must show the overall objective, this week's task, and a simple success recipe: earn at least one star in Light, Radiation, Shelter and Ice; keep Air and Power above zero; measure radiation during a storm, then shelter.
+- Radiation balancing now makes the full-star radiation goal achievable for careful players while preserving the outside-work tradeoff.
+
+
 ## Decided: Merge the latest browser gameplay fixes into main
 **Status:** decided (Bea, 2026-11-15: “i want to merge to main”).
 - Merge `feat/browser-gameplay` through [PR #6](https://github.com/Kreipri/NASA2026-Flux/pull/6), preserving history and the user's configured Git identity. Earlier browser gameplay is already on main through PR #5; this adds the latest guidance, paid cleaning, recap and reset fixes.
