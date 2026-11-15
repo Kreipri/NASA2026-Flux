@@ -1,0 +1,38 @@
+{
+  "turn": 1,
+  "environment": {
+    "sun": "half",
+    "eclipse": "short",
+    "storm": "rising",
+    "stormSource": "archive",
+    "stormOnset": true,
+    "realDay": null,
+    "stormName": "October 2021",
+    "stormScale": 0.75,
+    "alert": "storm",
+    "link": true
+  },
+  "opening": {
+    "title": "Radiation alarm",
+    "body": "The alarm needs a decision. Outside jobs still add exposure.",
+    "options": [
+      [
+        "shelter",
+        "Shelter for the peak",
+        "Use the shielded room for the worst hours."
+      ],
+      [
+        "continue",
+        "Keep working",
+        "Only a Take shelter job protects the crew."
+      ]
+    ]
+  },
+  "meterBefore": {
+    "power": 78,
+    "o2": 89,
+    "dose": 3,
+    "stamina": 96
+  },
+  "timeBefore": 8
+}

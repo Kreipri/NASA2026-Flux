@@ -308,10 +308,8 @@ html.debug main{--chrome:92px}
 .mission-gameplay .coach p{margin:0;font:500 max(14px,1.6cqw)/1.35 Fredoka}
 .mission-gameplay .coach small{display:block;font:600 max(11px,1.05cqw) Lexend;letter-spacing:.12em;text-transform:uppercase;color:#7a4fc2;margin-bottom:.3cqw}
 .mission-gameplay .coach-skip{display:block;margin-top:.7cqw;background:transparent;border:1px dashed #9a8ac8;border-radius:99px;color:#523884;font:500 max(11px,1.1cqw) Lexend;padding:.3cqw 1cqw;cursor:pointer}
-.mission-gameplay .tut-hl{outline:.35cqw solid #ffb547;outline-offset:.3cqw;box-shadow:0 0 2.4cqw rgba(255,181,71,.7)!important;animation:tutPulse 1.4s ease-in-out infinite}
-@keyframes tutPulse{50%{outline-offset:.7cqw}}
+
 .mission-gameplay .tut-note{background:#fff3d6;border-left:.4cqw solid #ffb547;border-radius:.8cqw;padding:.8cqw 1cqw;margin:0 0 1cqw;font:500 max(14px,1.5cqw)/1.4 Fredoka;color:#4a3410}
-@media(prefers-reduced-motion:reduce){.mission-gameplay .tut-hl{animation:none}}
 
 /* 3D pins show the job categories (star = Mission, wrench = Base, moon = Crew) */
 .mission-gameplay .pin3 .o .i{width:55%;height:55%}
@@ -751,3 +749,20 @@ html.debug #nav .g{flex-basis:100%;font-size:10px;margin:3px 0 0 2px}
   .mission-gameplay .job-result-dialog{width:72cqw}
   .mission-gameplay .week-story{grid-template-columns:1fr}
 }
+
+/* Weekly Mission Control briefing: replay link inside the drop-down */
+.brief-again{display:block;margin-top:.7cqw;padding:0;border:0;background:none;color:#9fe8ff;font:500 max(12px,1.3cqw)/1.2 Fredoka;text-decoration:underline;cursor:pointer}
+.mission-gameplay .coach-ack{display:block;margin:0 1.2cqw 1cqw auto;padding:.5cqw 1.6cqw;border:0;border-radius:99px;background:#ffb547;color:#3a2410;font:600 max(13px,1.4cqw)/1.2 Fredoka;cursor:pointer;box-shadow:0 .3cqw 0 #d98a1f}
+
+/* Tutorial and Curio guide: ring over the target, card placed beside it with an arrow */
+.mission-gameplay .tut-ring{position:absolute;z-index:7;pointer-events:none;box-sizing:border-box;border:max(3px,.3cqw) solid #ffb547;box-shadow:0 0 0 max(3px,.3cqw) rgba(255,181,71,.28),0 0 2cqw rgba(255,181,71,.6);transition:left .35s var(--ease),top .35s var(--ease),width .35s var(--ease),height .35s var(--ease),opacity .2s;animation:tutRing 1.6s ease-in-out infinite}
+@keyframes tutRing{50%{transform:scale(1.045);opacity:.78}}
+.mission-gameplay .coach{z-index:7;overflow:visible;transition:left .35s var(--ease),top .35s var(--ease)}
+.mission-gameplay .coach-head{border-radius:calc(1.6cqw - 2px) calc(1.6cqw - 2px) 0 0}
+.mission-gameplay .coach[data-side]::after{content:"";position:absolute;width:15px;height:15px;background:#fbf9ff;border:2px solid #ffb547;transform:rotate(45deg)}
+.mission-gameplay .coach[data-side=below]::after{top:-9px;left:calc(var(--ax) - 8px);border-right-color:transparent;border-bottom-color:transparent;background:#fff3d6}
+.mission-gameplay .coach[data-side=above]::after{bottom:-9px;left:calc(var(--ax) - 8px);border-left-color:transparent;border-top-color:transparent}
+.mission-gameplay .coach[data-side=right]::after{left:-9px;top:calc(var(--ay) - 8px);border-top-color:transparent;border-right-color:transparent}
+.mission-gameplay .coach[data-side=left]::after{right:-9px;top:calc(var(--ay) - 8px);border-left-color:transparent;border-bottom-color:transparent}
+.mission-gameplay .coach-ack:active{transform:translateY(.2cqw);box-shadow:0 .1cqw 0 #d98a1f}
+.mission-gameplay .coach-ack:focus-visible{outline:3px solid #251b52;outline-offset:2px}

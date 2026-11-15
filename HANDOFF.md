@@ -1,5 +1,52 @@
 # Handoff
 
+## Remaining submission drafts (2026-11-15)
+- Bea accepted C as the slide narrative and asked what else needs drafts. Saved `ideas/submission-drafts-remaining.md`: prioritize updated form answers, finalize existing credits/disclosure and short reviewer quick-start; video/teacher guide remain optional for submission packaging.
+- Existing slide C copy, reference registry and disclaimer drafts need completion/use, not restarting. No deck or other artifact generated.
+
+## Local main workflow confirmed (2026-11-15)
+- Bea requests all work here stay on and be based on local `main`. This checkout is already on `main` at `ba72f91`; all commits from `gameplay-updates` are included, and no merge remains pending.
+- Existing uncommitted game/documentation edits and untracked drafts are preserved on `main`. No branch switch, commit or push performed for this confirmation. Continue here on local `main`.
+- Validation: no Git process or index lock found; `git diff --check` passes. Documentation-only confirmation; no gameplay changes or tests run in this pass.
+
+## Science-led slide direction C refined (2026-11-15)
+- Bea is leaning toward C, not yet locking it. `ideas/seven-slide-draft-C-v2.md` provides exact seven-slide copy and visual guidance: evidence → playable choice → result → model transparency → learning loop → invitation. Gameplay now appears by slide 3.
+- Recommendation: use one real paid-job/result sequence; no invented data-to-exposure mapping or outcome. Shared human/AI credits and disclaimers retained. Text only; no deck generated.
+
+## Weekly Mission Control briefing built (2026-11-15)
+- New popup opens each week (including Week 1) before any alert: week number, this week's ask, conditions, **Start week N**. Reopen from the Mission pill drop-down (**Hear the briefing again**). `briefedTurn` is saved with the mission so a reload does not repeat it; older saves mid-week are unaffected. `src/web/game.js`, one CSS rule at the end of `game.css`. 12 tests pass; verified in headless Chromium. Open: remove tour stop 3/3 ("Your goal") to avoid two briefings in Week 1; the guided dust step also shows a job result ("Clean the solar panels") after it, which I did not check for time cost.
+
+## Week 1 tutorial: dust alert simplified (2026-11-15)
+- On `main` (card-free): the tutorial's dust alert is now a one-button guided step from Curio; no "Good pick" star. See top `DECISIONS.md` entry. 12 web tests pass; not checked in a browser; not child-tested.
+- Also in the tutorial only: the "End the week now?" confirm is skipped (Curio already says to end the week); the coach line now says unused time gives extra rest. Normal weeks keep the confirm. `src/web/game.js` `end-week` handler and `tutorialStep()`.
+- Tutorial redraft for `main`: `ideas/tutorial-flow-weekly-v1.md` (3-stop tour, job-tip facts, sharper Week 1 copy). Proposed only; not built or child-tested. An earlier card-mode draft lives only on `feat/gameplay-v2` and does not apply here. Open: OK to drop the solar/shelter/crater stops?
+
+## Four seven-slide drafts (2026-11-15)
+- Bea requested multiple slide drafts. `ideas/seven-slide-drafts-v1.md` contains four complete seven-slide narratives, each with titles, main copy, visual direction and trade-offs, plus shared credits/disclaimer treatment. Recommend A (balanced pitch); alternatives are character-led B, science-led C and one-week gameplay case study D.
+- Text drafts only; no chosen direction, slides, images or video generated. Existing credits/source research remains in `ideas/submission-credits-and-disclaimers.md`.
+
+## References, credits and demo ideas follow-up (2026-11-15)
+- Bea confirms registration/terms done; human layout/some vectors, AI workflow/other vectors, no dedicated generation tool for final vector artwork. Preserve historical concept-sheet records separately; older sibling submission AI answer must be replaced with the scoped wording in `ideas/submission-credits-and-disclaimers.md` before use.
+- Compiled existing reference locations, NASA-data acknowledgement, human/AI/tool/font credits and short/full disclaimers in that file. Found exact Shackleton credit ETHZ/LPI/Valentin T. Bickel and David A. Kring; source is LROC imagery draped over LOLA terrain. Original Earth texture creator/license remains unresolved; generic Blue Marble credit is insufficient. Old unused base PNG is still broadly copied into dist.
+- Updated fact registry F28 (magnetotail nuance), sourced F40, and added F26/F62 date/manifest caveats. No game text/assets changed.
+- `ideas/submission-demo-ideas-v2.md`: three distinct directions, recommended seven-slide outline and timed ~60-word 30-second script. Text only; no artifact generation, deployment or tests.
+
+## Submission readiness recheck (2026-11-15)
+- Saved `ideas/submission-readiness-2026-11-15.md` with current official dates, required field list, demo limits, source requirements and concrete packaging gaps. Recommend packaging the current prototype now; no new features required by this audit.
+- Existing sibling submission text is outdated about browser integration. Demo remains a storyboard; public URLs, roster/event and complete references/AI inventory are unverified.
+- Several official guide/challenge pages failed to fetch; exact character limits and AI marking/metadata rules remain unconfirmed. Verify build-period eligibility with organizers if any project creation predates November 14 (advance research is allowed). No code, deployment, submission or tests performed.
+
+## Switched this checkout to main (2026-11-15)
+- At Bea's request, fast-forwarded the available local `main` branch to `origin/main` (`ba72f91`) and switched this folder to it. The sibling checkout is now on `feat/gameplay-v2` and was not changed.
+- Preserved this folder's uncommitted comparison/stack notes and documentation edits. No commit or push made for the branch switch. This supersedes earlier statements that this folder stays on `feat/browser-gameplay`.
+
+## Stack comparison advice (2026-11-15)
+- Compared keeping the current stack, adopting Vite alone, and adopting React + Vite in `ideas/tech-stack-comparison.md`. Recommend preserving the current implementation while finishing the prototype; no migration authorized or performed.
+
+## Local versus remote feature comparison (2026-11-15)
+- No implemented game features unique to the dirty local main checkout were found against fetched `origin/main` at `ba72f91`. Its tutorial/panel/reset work is already on the remote; remote also includes the newer help, paid cleaning and recap improvements.
+- Local-only TODO, submission/demo and audit documents remain preserved. Details: `ideas/local-main-feature-comparison.md`. No main checkout or remote changes, and no new design decision.
+
 ## Merge to main checkpoint (2026-11-15)
 - Bea requested merging the current branch to main. [PR #6](https://github.com/Kreipri/NASA2026-Flux/pull/6) contains the remaining changes after PR #5: guidance, paid cleaning, recap, reset and milestone updates. Use the PR's merged status as the final merge record.
 - Verified the branch with all 12 web tests, `npm run build`, `npm run sim`, `git diff --check`, and a conflict-free `git merge-tree` against fetched `origin/main`.

@@ -1,10 +1,71 @@
 # Decisions Log
 
+## Decided: Keep this worktree's work on local main
+**Status:** decided (Bea, 2026-11-15: all changes here should be on main and based on local main).
+- Continue work in `/Users/bg/Coding/NASA2026-Flux-new-ui` on local `main`; do not move this work to a feature branch without a new request.
+- Verified `HEAD` equals local `main` at `ba72f91`, and `main..gameplay-updates` contains no commits. Existing uncommitted edits and drafts remain on this checkout, preserved and uncommitted. No merge is pending.
+
+## Decided: Keep 8 time blocks a week; a block is a job's time and effort
+**Status:** decided (Bea, 2026-11-15: "keep it 8 and the weight of the task in time is the effort done and time needed").
+- No change to the engine or balance. The 8 blocks are not days. A job's cost (1, 2 or 4 blocks) is the time and effort it needs. Tutorial copy should say so. The 7-block and one-job-a-day options are not adopted.
+- Weekly Mission Control briefing popup: **built** at Bea's request (2026-11-15: "yes build it"). See the entry below.
+
+## Decided: Each week opens with a Mission Control briefing
+**Status:** decided and built (Bea, 2026-11-15: briefing popup after the recap, confirm to start the week, drop-down to repeat it).
+- Week N of 7 card from Mission Control (Curio's "plan Mission Control left" when Earth radio is down) with this week's one ask and conditions, and one **Start week N** button. Alerts come after Start. The Mission pill drop-down has **Hear the briefing again**, which reopens the card read-only with **Back to work**. Week 1 shows it too, with a short tutorial tip. Engine unchanged; `src/web/game.js` (`briefingDue`, `askText`, modal branch) and a `briefedTurn` field in the saved mission.
+- Checked in headless Chromium: Week 1 opens on it, Start leads to the dust step, a reload mid-week does not repeat it, replay and Back to work work, no console errors. Not child-tested; tour stop 3 "Your goal" is not yet removed, so Week 1 currently has both.
+
+## Proposed: Shorter tour and sharper Week 1 for the weekly tutorial
+**Status:** proposed (Bea, 2026-11-15: yes, redraft the tutorial improvement for `main`).
+- Recommend cutting the 7-stop tour to 3 (meters, jobs and time, your goal) and moving the solar, shelter and crater facts into each job's "Curio's tip". Keep Arrive and the Sun time-lapse. Tighten Week 1 copy so the first step names Mission Control's ask and the results say every job costs something.
+- Draft copy, trade-offs and open question: `ideas/tutorial-flow-weekly-v1.md`. Text only; no code changed beyond the dust-alert step below.
+
+## Decided: Week 1 dust alert is a guided step, not a choice
+**Status:** decided (Bea, 2026-11-15: the Curio-suggested dust choice in the Week 1 tutorial is obvious, so remove the decision prompt).
+- In the tutorial only, the Week 1 dust alert now shows Curio explaining the dust and one button, "Clear the dust" (same result as the old "Clean now"; engine unchanged). The "Good pick" star and tutorial tip are gone. Later dust alerts keep the real two-option choice. `src/web/game.js` alert dialog.
+- This work is on `main`, which stays free of the 20-card game mode (Bea, 2026-11-15). Card mode lives only on `feat/gameplay-v2`.
+
 Append new entries at the top. Agents: check here before proposing something that was already decided. Don't silently reverse a decision; add a new entry that supersedes it.
 
 Status: `decided` | `proposed` | `open` | `superseded`
 
 ---
+
+
+## Decided: Use science-led direction C for submission slides
+**Status:** decided (Bea, 2026-11-15: “okay” following refined C proposal).
+- Proceed with C as the narrative direction; the finished slide artifact and individual copy/layout are still to prepare. Source: `ideas/seven-slide-draft-C-v2.md`.
+- Remaining writing priorities proposed in `ideas/submission-drafts-remaining.md`: update project-form answers, finalize existing credits/disclosure, and prepare a short judge quick-start. A video remains optional if submitting the deck.
+
+
+## Proposed: Prefer science-led submission draft C
+**Status:** proposed (Bea, 2026-11-15: “im thinking of C?”).
+- Treat C as the preferred direction for refinement, not a final approved deck. Revised seven-slide narrative in `ideas/seven-slide-draft-C-v2.md` brings playable choices/results to slides 3–4, followed by transparent model boundaries and the learning loop.
+- Keep NASA observations separate from simulated weekly costs/exposure; preserve human/AI authorship and asset/tool credits. No presentation artifact generated.
+
+
+## Proposed: Four alternative seven-slide narratives
+**Status:** proposed (2026-11-15; Bea requested multiple slide drafts).
+- Saved complete text/visual-direction drafts A–D in `ideas/seven-slide-drafts-v1.md`: balanced pitch, commander story, NASA science-to-choice and one-week case study.
+- Recommend A for self-contained judging clarity; B is warmer, C foregrounds scientific transparency, D is the strongest focused gameplay demonstration. No option selected and no presentation artifact generated.
+
+
+## Decided: Submission authorship and registration clarification
+**Status:** decided (Bea, 2026-11-15).
+- Team registration and terms acceptance are complete.
+- Credit Bea for the layout wireframe and some vector graphics; credit AI assistance for workflow and other vector assets, plus documented code assistance. Bea clarifies no image-generation tool was used for the final vector work. Do not confuse code-authored SVG with fully human-drawn work or claim vector format exempts AI artwork disclosure.
+- Historical concept-sheet notes remain preserved and separate from final production asset claims. References/credits/disclaimer draft: `ideas/submission-credits-and-disclaimers.md`.
+- Seven-slide and 30-second video options requested; text proposals in `ideas/submission-demo-ideas-v2.md`. Recommendation: one costly cleaning decision → consequence → NASA grounding. No deck/video generated or creative option selected yet.
+
+
+## Proposed: Package the current prototype for submission
+**Status:** proposed (2026-11-15; requirements/readiness check requested).
+- Recommend updating the existing submission text, completing credits/AI disclosure, producing the seven-slide demo and publishing/checking the browser build before adding features. No submission, deployment or scope change authorized by this recommendation.
+- Audit: `ideas/submission-readiness-2026-11-15.md`. Official deadline is November 15 at 11:59 PM local time; registered event/local cutoff, exact form limits and eligibility remain to verify.
+
+## Proposed: Retain the current stack while finishing the prototype
+**Status:** proposed (2026-11-15; Bea asked whether the implementation is better than React + Vite).
+- Recommend retaining the working UI for now, with Vite-only tooling modernization or React + Vite as later options. This is advice, not approval to migrate; no stack change performed. Comparison: `ideas/tech-stack-comparison.md`.
 
 ## Decided: Merge the latest browser gameplay fixes into main
 **Status:** decided (Bea, 2026-11-15: “i want to merge to main”).

@@ -2,6 +2,7 @@ import { readFileSync, writeFileSync, mkdirSync, cpSync } from 'node:fs';
 import { stripTypeScriptTypes } from 'node:module';
 import { fileURLToPath } from 'node:url';
 import { resolve } from 'node:path';
+import { writeSubmissionResources } from './submission-resources.ts';
 
 export const root = fileURLToPath(new URL('../', import.meta.url));
 const read = (p: string) => readFileSync(resolve(root, p), 'utf8');
@@ -80,19 +81,20 @@ function goNow(id,instant){`);
   replace("const openMenu=m=>{go('week1');", "const openMenu=m=>{goNow('week1',true);");
   // Opening tour reflects the current game: real meter names and ring meters, job-by-job time, three kinds of job, the report card.
   replace("import { mountGameplay } from './game.js';", "import { mountGameplay, tourMeters, tourKinds, tourCard } from './game.js';");
-  html = html.replace(/Tour (\d)\/5/g, 'Tour $1/7');
-  replace("skipTour+meters(true)+cap('curio','These 4 meters keep your crew safe: power, oxygen, radiation <span class=\"word\" data-w=\"dose\">dose</span> and energy.'",
-    "skipTour+tourMeters()+cap('curio','Four meters show how the base and crew are doing: <b>Power</b>, <b>Air</b>, <b>Radiation</b> <span class=\"word\" data-w=\"dose\">dose</span> and crew <b>Energy</b>. Keep them healthy. Radiation should stay low.'");
+  // The tour is 4 stops: solar, shelter, crater and the job kinds (with crew time). Meters and the report card are now taught by doing in Week 1.
+  html = html.replace(/Tour 2\/5/g, 'Tour 1/4').replace(/Tour 4\/5/g, 'Tour 2/4').replace(/Tour 5\/5/g, 'Tour 3/4');
   replace("Up high, they catch more light.'", "Up high, they catch more light. Dust makes them weaker, so a Base job cleans them.'");
   replace("'Each week, your crew has 8 blocks of time. Outside jobs tire them more.'", "'Each week, your crew has 8 blocks of time. Every job uses some, and it happens right away. Outside jobs tire the crew more. When time runs out, the week ends.'");
   replace("Crew time this week<div class=\"blocks\">", "${hl?'Crew time each week: <b>8 blocks</b>':`Time left: <b>${8-n} / 8</b>`}<div class=\"blocks\">");
   replace("In a storm, we come in here.'", "In a storm, a Crew job takes everyone in here. A Mission job piles on more soil.'");
   replace("might hide ice, and finding it is one of our jobs! Trips there are dark, freezing and use lots of power.','F09 F29','Start week 1 ▶','week1')},",
-    "might hide ice, and finding it is a Mission job! Fly the hop-drone first to map it, then drive the rover. Trips there use lots of power.','F09 F29','Next: kinds of jobs ▶','t6')},\n" +
-    "  {id:'t6',name:'Tour · jobs',cam:'base',pins:true,note:'<b>Tour 6/7: three kinds of job.</b> Mission, Base and Crew. Game rule, so no NASA badge.',\n" +
-    "   html:()=>skipTour+tourKinds()+cap('curio','Jobs come in 3 kinds. <b>Mission</b> jobs collect evidence. <b>Base</b> jobs keep power and air healthy. <b>Crew</b> jobs look after the astronauts. Each job happens right away!','','Next: your report card ▶','t7')},\n" +
-    "  {id:'t7',name:'Tour · report card',cam:'base',pins:true,note:'<b>Tour 7/7: report card.</b> One ask each week from Mission Control, and a report card that fills in as you work.',\n" +
-    "   html:()=>skipTour+tourCard()+cap('mc','Each week I will send you one ask. Your jobs fill in the <b>report card</b>. Finish the main goals and keep everyone safe to prove this ridge is a good home!','','Start week 1 ▶','week1')},");
+    "might hide ice, and finding it is a Mission job! Fly the hop-drone first to map it, then drive the rover. Trips there use lots of power.','F09 F29','Next: how jobs work ▶','t6')},\n" +
+    "  {id:'t6',name:'Tour · jobs',cam:'base',pins:true,note:'<b>Tour 4/4: how jobs work.</b> Eight time blocks a week; Mission, Base and Crew jobs. Game rule, so no NASA badge.',\n" +
+    "   html:()=>skipTour+tourKinds()+cap('curio','Each week your crew has <b>8 time blocks</b>. A job uses blocks for the time and effort it needs, and it happens right away. Jobs come in 3 kinds: <b>Mission</b> jobs collect evidence, <b>Base</b> jobs keep power and air healthy, <b>Crew</b> jobs look after the astronauts.','','Start week 1 ▶','week1')},");
+  // Remove the meters and crew-time stops from the flow and skip them in the chain.
+  html = html.replace(/\n  \{id:'t1',[^\n]*\n[^\n]*/, '').replace(/\n  \{id:'t3',[^\n]*\n[^\n]*/, '');
+  replace("'Show me the base ▶','t1')", "'Show me the base ▶','t2')");
+  replace("'Next: crew time ▶','t3')", "'Next: the shelter ▶','t4')");
   // Google Fonts must not block first paint; system fallbacks cover the gap.
   replace('family=Lexend:wght@400;600&display=swap" rel="stylesheet">', 'family=Lexend:wght@400;600&display=swap" rel="stylesheet" media="print" onload="this.media=\'all\'">');
   // Screen navigator, design notes and prev/next arrows are dev tools: hidden unless debug mode is on.
@@ -104,6 +106,7 @@ function goNow(id,instant){`);
   cpSync(resolve(root, 'node_modules/three/build/three.module.min.js'), resolve(out, 'vendor/three.module.js'), { recursive: true });
   cpSync(resolve(root, 'node_modules/three/examples/jsm'), resolve(out, 'vendor/addons'), { recursive: true });
   cpSync(resolve(root, 'node_modules/three/LICENSE'), resolve(out, 'vendor/LICENSE-three.txt'));
+  writeSubmissionResources(root, out);
   console.log('Built dist/index.html — seven-week browser game');
   return out;
 }

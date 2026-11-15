@@ -1,0 +1,20 @@
+[
+  {
+    "file": "earth_clouds_1024.png",
+    "r160_git_blob": "5c6b17b74ce05f1c589d60a92a9d66635a5e4990",
+    "local_git_blob": "5c6b17b74ce05f1c589d60a92a9d66635a5e4990",
+    "identical": true
+  },
+  {
+    "file": "earth_atmos_2048.jpg",
+    "r160_git_blob": "4275ab0836b482e4fbe1d5081976f3f2ffb41ffa",
+    "local_git_blob": "4275ab0836b482e4fbe1d5081976f3f2ffb41ffa",
+    "identical": true
+  },
+  {
+    "file": "earth_specular_2048.jpg",
+    "r160_git_blob": "06e03a3bfc7fe64f711175fe2c66bfb76b61cd0d",
+    "local_git_blob": "06e03a3bfc7fe64f711175fe2c66bfb76b61cd0d",
+    "identical": true
+  }
+]

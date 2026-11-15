@@ -1,0 +1,39 @@
+{
+  "schema_version": 1,
+  "project": "Space Base Commander",
+  "team": "The Space Flux",
+  "members": [
+    "Bea Margaret B. Ganotisi",
+    "Neo F. Mariñas"
+  ],
+  "tools": [
+    "Codex (OpenAI)",
+    "Claude (Anthropic)"
+  ],
+  "ai_assisted_scopes": [
+    "workflow and design alternatives",
+    "software implementation and debugging",
+    "research navigation and text drafting",
+    "SVG/3D/code artwork",
+    "NASA-derived summary processing code"
+  ],
+  "human_contributions": {
+    "Bea Margaret B. Ganotisi": [
+      "layout wireframe",
+      "original Curio vector design",
+      "selected vector graphics"
+    ],
+    "Neo F. Mariñas": [
+      "team member; individual asset authorship not specified"
+    ]
+  },
+  "original_science_data_ai_generated": false,
+  "new_text_to_image_used_for_submission": false,
+  "runtime_llm_required": false,
+  "excluded_history": [
+    "unapproved raster crew concept sheet",
+    "unused base-clipart.png"
+  ],
+  "science_data": "NASA archive observations; derived summaries labelled separately",
+  "disclaimer": "Fictional educational simulation; archive data, not live; no NASA endorsement."
+}
