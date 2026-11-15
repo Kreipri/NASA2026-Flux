@@ -1,5 +1,15 @@
 # Team Plan: Goals, Milestones, Timeline
 
+## Learning additions queued on 2026-11-15
+
+Bea requested adding these to the to-do list. Planned, not implemented; this does not change the three core systems.
+
+- [ ] **First: two-question learning check**, before and after play; include it in the child playtest.
+- [ ] **Causal debrief**, explaining one logged choice, its cost and its consequence.
+- [ ] **One-page parent/teacher guide**, with the learning objective, measured session length, discussion prompts, sources and model limits.
+
+Task details are saved in `/Users/bg/Coding/NASA2026-Flux/TODO.md`. The time estimates and older status snapshot below are historical.
+
 NASA Space Apps 2026 · Junior Astronaut Mission Trainer · ~8 h plan, **~90% used, ~45 min left** (as of this update).
 Pick a lane, put your name on it, and post in the team chat when you hit a checkpoint.
 

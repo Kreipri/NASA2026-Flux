@@ -1,0 +1,203 @@
+const D2R=Math.PI/180;
+function rng(s){return function(){s|=0;s=s+0x6D2B79F5|0;let t=Math.imul(s^s>>>15,1|s);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
+const dirAE=(az,el)=>[Math.sin(az*D2R)*Math.cos(el*D2R),Math.sin(el*D2R),Math.cos(az*D2R)*Math.cos(el*D2R)];
+const smooth=(a,b,x)=>{const t=Math.max(0,Math.min(1,(x-a)/(b-a)));return t*t*(3-2*t)};
+const RM=1737400, SH={x:2000,z:13000,R:10500};
+const PSRS=[[650,800,170,55],[950,1700,240,70],[-750,1300,200,60],[-300,2300,130,40]];
+const CRS=[...PSRS];{const R=rng(77);for(let i=0;i<60;i++){const x=(R()-.5)*34000,z=-3000+R()*42000,r=120+Math.pow(R(),2)*700;if(Math.hypot(x,z)<900)continue;if(Math.hypot(x-SH.x,z-SH.z)<SH.R*1.1)continue;CRS.push([x,z,r,r*.13])}}
+const SUN_AZ=-140;
+// far hills. The first one sits across the low Sun's path 30 km away: narrow along the sunbeam,
+// long across it, so on day 5 it blocks the Sun without lifting the ground near the base.
+const SUX=Math.sin(SUN_AZ*D2R),SUZ=Math.cos(SUN_AZ*D2R),BLOCK={x:45000*SUX,z:45000*SUZ,h:3300,along:3500,across:25000};
+const MASSIF=[[-9000,47000,2300,9000],[14000,52000,1800,8000],[30000,30000,1500,7000],[-26000,22000,1300,7000]];
+function hRaw(x,z){
+  const d0=Math.hypot(x,z);
+  let h=-280*smooth(-400,2600,z)-0.025*Math.max(0,-z)-680*(1-Math.exp(-((x/3300)**2)))-0.01*x;
+  const crest=Math.exp(-((x/2600)**2))*(1-smooth(2000,3200,z))*(1-smooth(-9000,-6000,-z));
+  h+=smooth(600,2500,d0)*(1-.97*crest)*(34*Math.sin(x/1400+z/1900)+22*Math.sin(z/1100-x/2300)+8*Math.sin(x/520+z/610));
+  const r=Math.hypot(x-SH.x,z-SH.z),R=SH.R;
+  if(r<R){const p=r<.32*R?1:Math.pow((R-r)/(.68*R),.85);h+=160*(1-p)-4100*p}else h+=160*Math.exp(-(((r-R)/1400)**2));
+  for(const [cx,cz,cr,cd] of CRS){const dx=x-cx,dz=z-cz;if(Math.abs(dx)>cr*1.8||Math.abs(dz)>cr*1.8)continue;const q=Math.hypot(dx,dz)/cr;h+=q<1?-cd*(1-q*q)+.12*cd:.12*cd*Math.exp(-(((q-1)/.35)**2))}
+  for(const [mx,mz,mh,mw] of MASSIF){const q=((x-mx)**2+(z-mz)**2)/(mw*mw);if(q<9)h+=mh*Math.exp(-q)}
+  {const dx=x-BLOCK.x,dz=z-BLOCK.z,u=dx*SUX+dz*SUZ,v=-dx*SUZ+dz*SUX,q=(u/BLOCK.along)**2+(v/BLOCK.across)**2;if(q<9)h+=BLOCK.h*Math.exp(-q)}
+  return h-(x*x+z*z)/(2*RM);
+}
+const H0=hRaw(0,0); const hT=(x,z)=>hRaw(x,z)-H0; // ridge crest at the base = 0 m
+const LIGHT={sun:dirAE(SUN_AZ,2.3),dark:dirAE(SUN_AZ,0.5)};
+const EARTH_D=dirAE(9,2.4); // low over the far hills: from the pole Earth stays near the horizon and bobs with libration (F20)
+function rayLit(x,z,h0,L){const lh=Math.hypot(L[0],L[2]),ux=L[0]/lh,uz=L[2]/lh,t=L[1]/lh;let s=12,m=1e9;while(s<70000){const c=(h0+t*s+0.6-hT(x+ux*s,z+uz*s))/(0.0087*s+3);if(c<m)m=c;if(m<-1)return 0;s*=1.14}return Math.max(0,Math.min(1,.5+.5*m))}
+const W=(x,y,z)=>new THREE.Vector3(x,y,-z); // terrain coords -> three.js world (keeps Shackleton on the right)
+
+/* grid: dense near the base, sparse far away */
+const NZ=340,NX=300,GZ=[],GX=[];
+for(let j=0;j<=NZ;j++){const s=-0.625+1.625*j/NZ;GZ.push(45000*Math.sinh(4*s)/Math.sinh(4))} // from ~10 km behind the base to 45 km ahead
+for(let i=0;i<=NX;i++){const s=-1+2*i/NX;GX.push(28000*Math.sinh(3*s)/Math.sinh(3))}
+const NV=(NX+1)*(NZ+1),HV=new Float32Array(NV),NRM=new Float32Array(NV*3);
+for(let j=0;j<=NZ;j++)for(let i=0;i<=NX;i++){const k=j*(NX+1)+i,x=GX[i],z=GZ[j];HV[k]=hT(x,z);
+  const e=Math.max(4,Math.abs(GX[Math.min(i+1,NX)]-GX[Math.max(i-1,0)])/3),nx=-(hT(x+e,z)-hT(x-e,z))/(2*e),nz=-(hT(x,z+e)-hT(x,z-e))/(2*e),l=Math.hypot(nx,1,nz);NRM[k*3]=nx/l;NRM[k*3+1]=1/l;NRM[k*3+2]=nz/l}
+const BAKE={};
+const toLin=c=>Math.pow(c,2.2);
+function bake(mode){if(BAKE[mode])return BAKE[mode];const L=LIGHT[mode],col=new Float32Array(NV);
+  for(let j=0;j<=NZ;j++)for(let i=0;i<=NX;i++){const k=j*(NX+1)+i,x=GX[i],z=GZ[j],n=[NRM[k*3],NRM[k*3+1],NRM[k*3+2]];
+    const lit=rayLit(x,z,HV[k],L),ndl=Math.max(0,n[0]*L[0]+n[1]*L[1]+n[2]*L[2]),es=Math.max(0,n[0]*EARTH_D[0]+n[1]*EARTH_D[1]+n[2]*EARTH_D[2]);
+    col[k]=Math.min(1.2,lit*(.66+1.3*ndl))+.06*es}
+  // blur in grid space (3 passes): band edges become flowing shapes instead of cell zig-zags
+  const tmp=new Float32Array(NV);for(let pass=0;pass<3;pass++){for(let j=0;j<=NZ;j++)for(let i=0;i<=NX;i++){let sum=0,w=0;for(let dj=-1;dj<=1;dj++)for(let di=-1;di<=1;di++){const jj=j+dj,ii=i+di;if(jj<0||jj>NZ||ii<0||ii>NX)continue;const ww=(di||dj)?((di&&dj)?.5:1):2;sum+=col[jj*(NX+1)+ii]*ww;w+=ww}tmp[j*(NX+1)+i]=sum/w}col.set(tmp)}
+  BAKE[mode]=col;return col}
+// permanently shadowed ground (Shackleton's floor and walls, small polar craters): gets its own deep tone
+const COLD=new Float32Array(NV);for(let j=0;j<=NZ;j++)for(let i=0;i<=NX;i++){const x=GX[i],z=GZ[j];let c=1-smooth(.82,.97,Math.hypot(x-SH.x,z-SH.z)/SH.R);for(const [px,pz,pr] of PSRS)c=Math.max(c,1-smooth(.7,1,Math.hypot(x-px,z-pz)/pr));COLD[j*(NX+1)+i]=c}
+
+
+// v8: drawn in the crew clip-art style (ideas/character-designs/crew-v5 style rules): squircle shapes; every part
+// light on top fading to slate at the bottom; soft light; a lighter inner rim on metal; navy screens with a shine streak;
+// cyan glow accents; small amber plates; soft contact shadows; chibi crew. Layout from Bea's 3 reference renders (v7).
+// Inside groups: +x right, +z toward the base camera, +y up.
+const TEX=(w,h,draw,rep)=>{const c=document.createElement('canvas');c.width=w;c.height=h;draw(c.getContext('2d'),w,h);const t=new THREE.CanvasTexture(c);t.colorSpace=THREE.SRGBColorSpace;t.wrapS=t.wrapT=THREE.RepeatWrapping;t.anisotropy=8;if(rep)t.repeat.set(...rep);return t};
+const RAMP=(()=>{const d=new Uint8Array([180,205,228,246,255]);const t=new THREE.DataTexture(d,5,1,THREE.RedFormat);t.minFilter=t.magFilter=THREE.LinearFilter;t.needsUpdate=true;return t})(); // soft wrap light, no hard bands
+function M(c,o={}){const m=new THREE.MeshToonMaterial({color:c,gradientMap:RAMP,vertexColors:true});if(o.side)m.side=o.side;
+  const rim=o.rim??.38;if(rim>0)m.onBeforeCompile=sh=>{sh.uniforms.rimS={value:rim};sh.fragmentShader='uniform float rimS;\n'+sh.fragmentShader.replace('#include <opaque_fragment>',
+    'outgoingLight=mix(outgoingLight,vec3(1.),rimS*smoothstep(.6,.68,1.-abs(dot(normal,normalize(vViewPosition))))); // crisp band, like a drawn bevel // lighter inner rim (metal bevel)\n#include <opaque_fragment>')};
+  return m}
+const wht=M('#F2F4F8'),lgt=M('#D9DCE3'),mid=M('#A0A5B2'),slt=M('#7F869D'),nvy=M('#2A3558'),boot=M('#4F5772'),amber=M('#ffffff'),
+  mound=M('#B4B8C2',{rim:0}),reg=M('#A3A8B3',{rim:0}),
+  scr=new THREE.MeshBasicMaterial({vertexColors:true,toneMapped:false}),   // navy screen: gradient set per mesh
+  shine=new THREE.MeshBasicMaterial({color:'#ffffff',transparent:true,opacity:.6,depthWrite:false,toneMapped:false}),
+  cyan=new THREE.MeshBasicMaterial({color:'#21dbe3',toneMapped:false}),lampM=new THREE.MeshBasicMaterial({color:'#ffe3a8'});
+const gridM=new THREE.MeshBasicMaterial({transparent:true,depthWrite:false,toneMapped:false,map:TEX(96,256,(x,w,h)=>{x.strokeStyle='rgba(150,180,250,.55)';x.lineWidth=3;x.beginPath();for(let i=1;i<6;i++)x.moveTo(i*w/6,0),x.lineTo(i*w/6,h);for(let j=1;j<16;j++)x.moveTo(0,j*h/16),x.lineTo(w,j*h/16);x.stroke()})});
+const base=new THREE.Group();scene.add(base);
+// ground height of the drawn terrain mesh (same triangles), so nothing floats or sinks on the slope
+const cell=(A,v)=>{let lo=0,hi=A.length-2;while(lo<hi){const m=(lo+hi+1)>>1;if(A[m]<=v)lo=m;else hi=m-1}return lo};
+function hM(x,z){const i=cell(GX,x),j=cell(GZ,z),u=(x-GX[i])/(GX[i+1]-GX[i]),v=(z-GZ[j])/(GZ[j+1]-GZ[j]),k=j*(NX+1)+i,a=HV[k],b=HV[k+1],c=HV[k+NX+2],d=HV[k+NX+1];
+  return u+v<=1?a+u*(b-a)+v*(d-a):c+(1-u)*(d-c)+(1-v)*(b-c)}
+const mesh=(geo,mat,o={})=>{const m=new THREE.Mesh(geo,mat);m.castShadow=o.cast!==false;m.receiveShadow=true;if(o.g)m.userData.g=o.g;return m};
+const put=(g,geo,mat,x,y,z,o={})=>{const m=mesh(geo,mat,o);m.position.set(x,y,z);if(o.rx)m.rotation.x=o.rx;if(o.ry)m.rotation.y=o.ry;if(o.rz)m.rotation.z=o.rz;if(o.s)m.scale.set(...o.s);g.add(m);return m};
+const grp=(x,z,ry=0,dy=0,parent=base)=>{const g=new THREE.Group();g.position.copy(W(x,hM(x,z)+dy,z));g.rotation.y=ry;parent.add(g);return g};
+const UP=new THREE.Vector3(0,1,0);
+const rod=(g,a,b,r,mat,seg=10)=>{const A=new THREE.Vector3(...a),B=new THREE.Vector3(...b),d=B.clone().sub(A),L=d.length();const m=mesh(new THREE.CylinderGeometry(r,r,L,seg),mat);m.position.copy(A).add(B).multiplyScalar(.5);m.quaternion.setFromUnitVectors(UP,d.normalize());g.add(m);return m};
+// squircle pieces: rounded-edge cylinder (lathe) and big-radius box
+function rcyl(r,h,b=.3,seg=48){b=Math.min(b,r-.001,h/2-.001);const P=[new THREE.Vector2(0,-h/2)],q=6;
+  for(let i=0;i<=q;i++){const a=-Math.PI/2+i/q*Math.PI/2;P.push(new THREE.Vector2(r-b+Math.cos(a)*b,-h/2+b+Math.sin(a)*b))}
+  for(let i=0;i<=q;i++){const a=i/q*Math.PI/2;P.push(new THREE.Vector2(r-b+Math.cos(a)*b,h/2-b+Math.sin(a)*b))}
+  P.push(new THREE.Vector2(0,h/2));return new THREE.LatheGeometry(P,seg)}
+const rbox=(w,h,d,r)=>new RoundedBoxGeometry(w,h,d,4,Math.min(r,Math.min(w,h,d)/2-.001));
+const SHINE=new RoundedBoxGeometry(1,1,.02,2,.49);
+function screen(g,w,h,x,y,z,o={}){const s=new THREE.Group();s.position.set(x,y,z);s.rotation.y=o.ry||0;g.add(s);
+  put(s,rbox(w,h,.12,Math.min(w,h)*.3),scr,0,0,0,{cast:false,g:'screen'});const st=put(s,SHINE,shine,-w*.17,h*.27,.07,{cast:false,rz:.12});st.scale.set(w*.3,Math.max(.05,h*.09),1);return s}
+const HALO=TEX(64,64,x=>{const g=x.createRadialGradient(32,32,0,32,32,32);g.addColorStop(0,'rgba(255,255,255,1)');g.addColorStop(.3,'rgba(255,255,255,.4)');g.addColorStop(1,'rgba(255,255,255,0)');x.fillStyle=g;x.fillRect(0,0,64,64)});
+const halo=(g,x,y,z,s,c='#21dbe3')=>{const sp=new THREE.Sprite(new THREE.SpriteMaterial({map:HALO,color:c,blending:THREE.AdditiveBlending,depthWrite:false,transparent:true,toneMapped:false}));sp.position.set(x,y,z);sp.scale.set(s,s,1);g.add(sp);return sp};
+const beacon=(g,x,y,z)=>{put(g,new THREE.SphereGeometry(.17,14,10),cyan,x,y,z,{cast:false});halo(g,x,y,z,1.2)};
+// the suit's chest panel, reused on modules and the power unit: amber plate + cyan light + navy buttons
+const panelBits=(g,x,y,z,ry=0,k=1)=>{const p=new THREE.Group();p.position.set(x,y,z);p.rotation.y=ry;p.scale.setScalar(k);g.add(p);put(p,rbox(1.3,.55,.14,.13),lgt,0,0,0);
+  put(p,rbox(.62,.17,.08,.07),amber,-.2,.1,.07,{cast:false,g:'amber'});put(p,new THREE.SphereGeometry(.075,12,8),cyan,.38,.1,.08,{cast:false});for(const dx of [-.36,-.14])put(p,rbox(.15,.1,.06,.04),nvy,dx,-.13,.07,{cast:false});return p};
+const BLOB=TEX(128,128,x=>{const g=x.createRadialGradient(64,64,0,64,64,64);g.addColorStop(0,'rgba(22,28,52,.55)');g.addColorStop(.6,'rgba(22,28,52,.28)');g.addColorStop(1,'rgba(22,28,52,0)');x.fillStyle=g;x.fillRect(0,0,128,128)});
+const blobM=new THREE.MeshBasicMaterial({map:BLOB,transparent:true,depthWrite:false,side:THREE.DoubleSide,toneMapped:false});
+function blob(x,z,rx,rz,rot=0){const N=8,P=[],U=[],I=[],c=Math.cos(rot),s=Math.sin(rot);for(let j=0;j<=N;j++)for(let i=0;i<=N;i++){const lx=(i/N-.5)*2*rx,lz=(j/N-.5)*2*rz,wx=x+lx*c-lz*s,wz=z+lx*s+lz*c,w=W(wx,hM(wx,wz)+.07,wz);P.push(w.x,w.y,w.z);U.push(i/N,j/N)}
+  for(let j=0;j<N;j++)for(let i=0;i<N;i++){const a=j*(N+1)+i;I.push(a,a+1,a+N+1,a+1,a+N+2,a+N+1)}const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(P,3));g.setAttribute('uv',new THREE.Float32BufferAttribute(U,2));g.setIndex(I);
+  const m=new THREE.Mesh(g,blobM);m.renderOrder=1;m.userData.flat=true;base.add(m)}
+const EARTH_W=new THREE.Vector3(EARTH_D[0],EARTH_D[1],-EARTH_D[2]);
+const sunH=Math.atan2(LIGHT.sun[0],-LIGHT.sun[2]);
+
+// 1) HABITAT: two modules on a landed deck; the lander legs stay as the base's feet
+const DECK=2.4,hab=grp(2,-6);
+put(hab,rcyl(6.1,.55,.24,64),lgt,0,DECK-.27,0);
+for(let k=0;k<4;k++){const a=Math.PI/4+k*Math.PI/2,c=Math.sin(a),s=Math.cos(a),foot=[c*6.6,.3,s*6.6],knee=[c*5.6,1.15,s*5.6];
+  rod(hab,[c*4.3,DECK-.5,s*4.3],foot,.24,lgt,16);rod(hab,[c*2.4,DECK-.5,s*2.4],knee,.13,mid);
+  put(hab,new THREE.SphereGeometry(.3,16,12),mid,...knee);put(hab,rcyl(.9,.28,.12,32),slt,foot[0],.14,foot[2])}
+put(hab,rcyl(1.7,1.2,.4,32),slt,0,DECK-1.1,0);
+for(const [x,z] of [[-2.3,1.3],[2.3,1.3],[0,-2.5]])put(hab,new THREE.SphereGeometry(.85,24,16),amber,x,DECK-1.32,z,{s:[1,1.12,1],g:'amber'});
+put(hab,new THREE.CylinderGeometry(.4,.8,.6,24),boot,0,DECK-1.95,0);
+// module A: tall, porthole, chest panel, cyan beacon
+put(hab,rcyl(2.1,4.4,.55,64),wht,-2.2,DECK+2.2,-.3);
+put(hab,new THREE.SphereGeometry(1.95,48,14,0,Math.PI*2,0,Math.PI/2),lgt,-2.2,DECK+4.35,-.3,{s:[1,.38,1]});
+put(hab,rcyl(2.16,.34,.14,64),mid,-2.2,DECK+3.5,-.3);
+{const ph=new THREE.Group();ph.position.set(-2.2,DECK+2.3,1.8);hab.add(ph);put(ph,new THREE.TorusGeometry(.72,.2,14,40),lgt,0,0,0);put(ph,new THREE.CircleGeometry(.68,40),scr,0,0,.03,{cast:false,g:'screen'});
+  const st=put(ph,SHINE,shine,-.24,.3,.1,{cast:false,rz:.55});st.scale.set(.42,.1,1)}
+panelBits(hab,-2.2,DECK+.95,1.85);
+rod(hab,[-2.2,DECK+5,-.3],[-2.2,DECK+6.3,-.3],.08,mid);beacon(hab,-2.2,DECK+6.45,-.3);
+// module B: shorter, row of navy windows, grey suit stripe
+put(hab,rcyl(1.9,3.4,.55,64),wht,2.6,DECK+1.7,.2);
+put(hab,new THREE.SphereGeometry(1.75,48,14,0,Math.PI*2,0,Math.PI/2),lgt,2.6,DECK+3.35,.2,{s:[1,.36,1]});
+put(hab,rcyl(1.96,.34,.14,64),mid,2.6,DECK+.8,.2);
+for(const a of [-.5,0,.5])screen(hab,.62,.78,2.6+Math.sin(a)*1.93,DECK+2.15,.2+Math.cos(a)*1.93,{ry:a});
+put(hab,new THREE.CapsuleGeometry(.75,1.2,8,24),lgt,.3,DECK+1.35,0,{rz:Math.PI/2});
+// deck props: crates, front railing, ladder
+put(hab,rbox(1.2,.9,1,.28),wht,.6,DECK+.45,-3.7);put(hab,rbox(1,1,1,.3),mid,4.6,DECK+.5,-2.5);put(hab,rbox(.8,.6,.7,.22),amber,-4.3,DECK+.3,1.4,{g:'amber'});
+for(const x of [-2.7,-1.5,-.3,.9])rod(hab,[x,DECK,5.25],[x,DECK+.95,5.25],.07,mid);rod(hab,[-2.7,DECK+.95,5.25],[.9,DECK+.95,5.25],.07,mid);
+for(const x of [1.45,2.45])rod(hab,[x,DECK,5.5],[x,0,7],.08,mid);
+for(let i=1;i<7;i++){const t=i/7;rod(hab,[1.45,DECK*(1-t),5.5+1.5*t],[2.45,DECK*(1-t),5.5+1.5*t],.06,mid)}
+
+// 2) TUNNEL: soft, ribbed walkway from module A down to the storm shelter (crew run here when a storm hits)
+{const tp=[[-1.9,2.4+DECK-1.05,-5.6],[-4.4,3.7,-5.6],[-6.6,2.5,-5.5],[-8.1,1.55,-5.4],[-9.05,1.45,-5.4]].map(([x,y,z])=>W(x,hM(x,z)+y,z));
+  const cv=new THREE.CatmullRomCurve3(tp),L=cv.getLength();base.add(mesh(new THREE.TubeGeometry(cv,64,.7,20),wht));
+  const Z=new THREE.Vector3(0,0,1),ring=(t,R,r,mat)=>{const m=mesh(new THREE.TorusGeometry(R,r,10,28),mat);m.position.copy(cv.getPointAt(t));m.quaternion.setFromUnitVectors(Z,cv.getTangentAt(t));base.add(m)};
+  for(let s=.7;s<L-.5;s+=.85)ring(s/L,.73,.13,lgt);for(const t of [0,1])ring(t,.8,.2,mid);
+  const mid0=cv.getPointAt(.55);for(const dz of [-.5,.5])rod(base,[mid0.x,mid0.y-.6,mid0.z+dz],[mid0.x,hM(mid0.x,-mid0.z),mid0.z+dz*1.6],.11,slt)}
+
+// 3) STORM SHELTER: soft regolith mound over a buried module, rounded door with a cyan light
+{const g=new THREE.SphereGeometry(1,48,24,0,Math.PI*2,0,Math.PI/2);const p=g.attributes.position;for(let i=0;i<p.count;i++){const y=p.getY(i),k=1+(Math.sin(p.getX(i)*5)+Math.cos(p.getZ(i)*4))*.02*(1-y);p.setXYZ(i,p.getX(i)*k,y,p.getZ(i)*k)}g.computeVertexNormals();
+  const sh=grp(-11,0,0,-.15);put(sh,g,mound,0,0,0,{s:[5.8,3.4,4.8]})}
+{const en=grp(-10,-5.2);put(en,rbox(2.3,2.4,2.4,.55),wht,0,1.2,0);screen(en,1.2,1.5,0,.95,1.22);put(en,rbox(.95,.13,.08,.06),cyan,0,1.95,1.22,{cast:false});halo(en,0,1.95,1.3,1.4);
+  put(en,rbox(.7,.2,.08,.08),amber,0,2.2,1.2,{cast:false,g:'amber'})}
+
+// 4) COMMS TOWER: chunky lattice mast, floodlight pod over the base, dish locked on Earth
+{const tw=grp(10,4),H=9,wd=y=>1-.6*y/H,C4=[[1,1],[1,-1],[-1,-1],[-1,1]];
+  for(const [sx,sz] of C4)rod(tw,[sx,0,sz],[sx*.4,H,sz*.4],.14,mid,12);
+  for(let i=1;i<=3;i++){const y0=(i-1)*H/3,y1=i*H/3,w0=wd(y0),w1=wd(y1);for(let k=0;k<4;k++){const [ax,az]=C4[k],[bx,bz]=C4[(k+1)%4];
+    rod(tw,[ax*w1,y1,az*w1],[bx*w1,y1,bz*w1],.1,mid);rod(tw,[ax*w0,y0,az*w0],[bx*w1,y1,bz*w1],.07,mid,8);rod(tw,[bx*w0,y0,bz*w0],[ax*w1,y1,az*w1],.07,mid,8)}}
+  put(tw,rcyl(.8,.3,.12,32),lgt,0,H+.1,0);put(tw,rbox(1.7,.6,1.7,.28),wht,0,.3,0);
+  const fl=new THREE.Group();fl.position.set(0,7.2,0);fl.rotation.y=-.67;tw.add(fl);put(fl,rbox(1.9,.8,.6,.28),wht,0,0,.55);
+  for(const x of [-.45,.45]){put(fl,new THREE.CircleGeometry(.27,28),lampM,x,0,.86,{cast:false});halo(fl,x,0,.98,.9,'#fff1cc')}
+  rod(tw,[0,H+.2,0],[0,H+.9,0],.13,mid);beacon(tw,.62,H+.45,.62);
+  const dg=new THREE.Group();dg.position.set(0,H+1.3,0);tw.add(dg);base.updateMatrixWorld(true);dg.lookAt(dg.getWorldPosition(new THREE.Vector3()).add(EARTH_W.clone().multiplyScalar(1000)));
+  const cap=mesh(new THREE.SphereGeometry(1.5,40,14,0,Math.PI*2,0,.9),M('#F2F4F8',{side:THREE.DoubleSide}));cap.userData.noOutline=true;cap.rotation.x=-Math.PI/2;cap.position.z=1.25;dg.add(cap);
+  put(dg,new THREE.TorusGeometry(1.175,.11,10,40),lgt,0,0,.32);rod(dg,[0,0,-.3],[0,0,.95],.06,mid);put(dg,new THREE.SphereGeometry(.15,12,10),mid,0,0,1);put(dg,rcyl(.3,.35,.1,20),mid,0,0,-.42,{rx:Math.PI/2})}
+
+// 5) SOLAR: tall vertical arrays on masts (NASA's polar design, ~10 m; F65), turned toward the low Sun; navy screens
+const MASTS=[[-17,12],[-12.5,14],[-8,16]];
+for(const [x,z] of MASTS){const g=grp(x,z);put(g,rbox(1.6,.8,1.6,.32),wht,0,.4,0);put(g,new THREE.CylinderGeometry(.2,.27,10,18),lgt,0,5,0);
+  const pg=new THREE.Group();pg.position.set(0,6.75,0);pg.rotation.y=sunH;g.add(pg);
+  put(pg,rbox(3.55,6.75,.24,.32),lgt,0,0,.2);put(pg,rbox(3.2,6.4,.1,.22),scr,0,0,.3,{cast:false,g:'screen'});put(pg,new THREE.PlaneGeometry(3.1,6.3),gridM,0,0,.36,{cast:false});
+  const st=put(pg,SHINE,shine,-.75,2.3,.37,{cast:false,rz:.3});st.scale.set(1.2,.15,1);put(pg,new THREE.CylinderGeometry(.18,.18,.5,14),mid,0,0,0,{rx:Math.PI/2})}
+{const g=grp(-12.5,14);beacon(g,0,10.25,0)}
+// power unit (batteries + radiator fins)
+{const g=grp(-4,10,sunH);put(g,rbox(3,1.5,1.8,.42),wht,0,.75,0);for(let i=0;i<4;i++)put(g,rbox(.2,.6,1.4,.09),mid,-.9+i*.6,1.7,0);panelBits(g,0,.8,.93,0,.9)}
+
+// 6) ROVER: pressurised, Curio-style navy wheels with light rings, big navy window, amber side plate
+const RV=[11.5,-10.5];
+{const g=grp(RV[0],RV[1],.35);put(g,rbox(4.4,.5,2.1,.22),slt,0,.95,0);
+  for(const x of [-1.5,0,1.5])for(const z of [-1.2,1.2]){const s=Math.sign(z);put(g,new THREE.CylinderGeometry(.6,.6,.45,28),nvy,x,.6,z,{rx:Math.PI/2});put(g,new THREE.TorusGeometry(.36,.1,10,24),lgt,x,.6,z+s*.24)}
+  put(g,rbox(3.9,1.9,2.2,.62),wht,-.2,2.05,0);put(g,rbox(3.94,.24,2.24,.11),mid,-.2,1.32,0);
+  screen(g,1.75,1,1.77,2.25,0,{ry:Math.PI/2});for(const x of [.4,-.8])for(const s of [-1,1])screen(g,.8,.55,x,2.4,s*1.11,{ry:s>0?0:Math.PI});
+  for(const s of [-1,1])put(g,rbox(1.1,.26,.08,.1),amber,-.5,1.62,s*1.11,{cast:false,g:'amber'});
+  for(const z of [-.65,.65]){put(g,rbox(.08,.2,.36,.04),cyan,2.22,1.02,z,{cast:false});halo(g,2.3,1.02,z,.9)}
+  put(g,rbox(1.6,.08,1.3,.04),nvy,-.9,3.04,0);rod(g,[.7,2.9,.6],[.7,3.9,.6],.06,mid);beacon(g,.7,4,.6)}
+
+// 7) CREW: chibi astronauts matching the v5 sprite (big helmet, side pods, navy visor + shine, cyan top light, arm band)
+function astro(x,z,ry,band){const g=grp(x,z,ry),bm=M(band);
+  for(const sx of [-.17,.17]){put(g,rbox(.3,.24,.42,.11),boot,sx,.12,.04);put(g,new THREE.CapsuleGeometry(.14,.22,4,12),wht,sx,.42,0)}
+  put(g,rbox(.78,.66,.5,.23),wht,0,.9,0);
+  {const pb=new THREE.Group();pb.position.set(0,.92,.25);g.add(pb);put(pb,rbox(.42,.22,.06,.06),lgt,0,0,0);put(pb,rbox(.16,.06,.03,.025),amber,-.06,.04,.035,{cast:false,g:'amber'});put(pb,new THREE.SphereGeometry(.03,8,6),cyan,.11,.04,.04,{cast:false})}
+  for(const sx of [-1,1]){put(g,new THREE.CapsuleGeometry(.12,.3,4,10),wht,sx*.48,.9,0,{rz:sx*.2});put(g,new THREE.CylinderGeometry(.135,.135,.08,14),bm,sx*.46,1,0,{rz:sx*.2});put(g,new THREE.SphereGeometry(.13,12,10),lgt,sx*.53,.66,0)}
+  put(g,rbox(.6,.62,.32,.14),lgt,0,.98,-.38);
+  put(g,new THREE.SphereGeometry(.6,32,22),wht,0,1.72,0,{s:[1,.92,1]});for(const sx of [-1,1])put(g,rcyl(.17,.17,.06,20),lgt,sx*.6,1.72,0,{rz:Math.PI/2});
+  put(g,new THREE.SphereGeometry(.605,32,16,Math.PI/2-.8,1.6,1,.95),scr,0,1.72,0,{cast:false,s:[1,.92,1],g:'screen'});
+  const st=put(g,SHINE,shine,-.16,1.9,.58,{cast:false,rz:.25,ry:-.25});st.scale.set(.26,.06,1);
+  put(g,rbox(.22,.09,.12,.04),cyan,0,2.3,0,{cast:false});halo(g,0,2.3,0,.7);return g}
+astro(4.6,-13.3,-.5,'#f08c3c');astro(-11.4,12.4,-2.54,'#21dbe3');
+
+// 8) ground: soft contact shadows (like the ellipse under every sprite), worn rover path, rounded rocks
+blob(2,-6,7.8,7.8);blob(-11,0,6.8,5.8);blob(-10,-5.3,1.9,1.9);blob(10,4,1.9,1.9);for(const [x,z] of MASTS)blob(x,z,1.4,1.4);blob(-4,10,2.2,1.6,sunH);blob(RV[0],RV[1],2.7,1.7,.35);blob(4.6,-13.3,.6,.6);blob(-11.4,12.4,.6,.6);
+function tracks(ctrl,offs,alpha){const cv=new THREE.CatmullRomCurve3(ctrl.map(([x,z])=>new THREE.Vector3(x,0,z))),N=Math.ceil(cv.getLength()/.6),P=[],C=[],I=[];
+  for(let i=0;i<=N;i++){const t=i/N,p=cv.getPointAt(t),d=cv.getTangentAt(t),a=Math.min(1,i/5)*Math.pow(1-t,.8)*alpha;
+    for(const o of offs){const x=p.x-d.z*o,z=p.z+d.x*o,w=W(x,hM(x,z)+.06,z);P.push(w.x,w.y,w.z);C.push(.1,.11,.14,a)}}
+  for(let i=0;i<N;i++){const a=i*4,b=a+4;for(const s of [0,2])I.push(a+s,a+s+1,b+s,a+s+1,b+s+1,b+s)}
+  const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(P,3));g.setAttribute('color',new THREE.Float32BufferAttribute(C,4));g.setIndex(I);
+  const m=new THREE.Mesh(g,new THREE.MeshBasicMaterial({vertexColors:true,transparent:true,depthWrite:false,side:THREE.DoubleSide,toneMapped:false}));m.renderOrder=1;m.userData.flat=true;base.add(m)}
+const ROAD=[[9.4,-11.3],[14,-9.6],[20,-6],[28,2],[40,18],[62,42],[95,75],[140,120]]; // the worn path the rover takes toward the dark crater
+tracks(ROAD,[-1.5,1.5,1.5,1.5],.2);tracks(ROAD,[-1.15,-.6,.6,1.15],.38);
+// every part: its own vertical gradient, base colour on top fading to slate at the bottom (screens: navy -> blue; amber plates)
+const GR={def:[new THREE.Color(1,1,1),new THREE.Color(1,1,1).lerp(new THREE.Color('#4F5772'),.5)],amber:[new THREE.Color('#F7C081'),new THREE.Color('#BF833E')],screen:[new THREE.Color('#1D2B4C'),new THREE.Color('#4465B2')]};
+function shade(g,top,bot,ys,lo,hi){const p=g.attributes.position,col=new Float32Array(p.count*3),c=new THREE.Color(),span=Math.max(.001,hi-lo);
+  for(let i=0;i<p.count;i++){const t=(ys[i]-lo)/span;c.copy(bot).lerp(top,t*t*(3-2*t));col[i*3]=c.r;col[i*3+1]=c.g;col[i*3+2]=c.b}g.setAttribute('color',new THREE.BufferAttribute(col,3))}
+{base.updateMatrixWorld(true);const v=new THREE.Vector3();base.traverse(o=>{if(!o.isMesh||o.userData.flat||o.geometry.attributes.color)return;const p=o.geometry.attributes.position,ys=new Float32Array(p.count);let lo=1e9,hi=-1e9;
+  for(let i=0;i<p.count;i++){v.fromBufferAttribute(p,i).applyMatrix4(o.matrixWorld);ys[i]=v.y;if(v.y<lo)lo=v.y;if(v.y>hi)hi=v.y}const [t,b]=GR[o.userData.g||'def'];shade(o.geometry,t,b,ys,lo,hi)})}

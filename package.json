@@ -2,10 +2,16 @@
   "name": "lunar-ridge-outpost",
   "private": true,
   "type": "module",
-  "description": "NASA Space Apps 2026 kids' lunar outpost game: rules engine + chat-play prototype (no dependencies, Node 24+)",
+  "description": "NASA Space Apps 2026 lunar outpost game: browser mission, shared rules engine and terminal play (Node 24+)",
   "scripts": {
+    "dev": "node --no-warnings scripts/dev-web.ts",
+    "build": "node --no-warnings scripts/build-web.ts",
+    "test:web": "node --no-warnings --test tests/web-gameplay.test.ts",
     "data": "node --no-warnings scripts/build-storm-data.ts",
     "sim": "node --no-warnings src/sim/bots.ts",
     "play": "node --no-warnings src/cli/play.ts"
+  },
+  "dependencies": {
+    "three": "0.160.0"
   }
 }

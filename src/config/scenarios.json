@@ -1,4 +1,32 @@
 {
+  "weeks7": {
+    "_about": "Seven-week mission (D-028). One turn is one week; weekly rates are tuned game values. Earth link and events follow ideas/timeline-7-weeks-v1.md.",
+    "days": 7,
+    "turnUnit": "week",
+    "mode": "normal",
+    "start": { "o2": 70, "power": 60 },
+    "actions": ["logsun", "measure", "scout", "rover", "regolith", "clean", "air", "repair", "shelter", "rest"],
+    "features": { "faults": true },
+    "earth": { "upTurns": [0, 1, 4, 5], "downTurns": [2, 3, 6] },
+    "longShadow": { "startTurn": 3, "length": [1, 1] },
+    "shortEclipses": { "count": 1, "turnRanges": [[1, 1]] },
+    "stormSlots": [{ "turn": 1, "kind": "medium-big" }, { "turn": 2, "kind": "any" }, { "turn": 4, "kind": "small-medium" }, { "turn": 6, "kind": "sneaky-big", "chance": 0.5 }],
+    "win": { "minStars": 11, "minEach": 1, "gold": 12 }
+  },
+  "solarMax": {
+    "_about": "Solar Max replay mode: more storm pressure and the false-alarm lesson.",
+    "days": 7,
+    "turnUnit": "week",
+    "mode": "solarMax",
+    "start": { "o2": 70, "power": 60 },
+    "actions": ["logsun", "measure", "scout", "rover", "regolith", "clean", "air", "repair", "shelter", "rest"],
+    "features": { "faults": true },
+    "earth": { "upTurns": [0, 1, 4, 5], "downTurns": [2, 3, 6] },
+    "longShadow": { "startTurn": 3, "length": [1, 1] },
+    "shortEclipses": { "count": 1, "turnRanges": [[1, 1]] },
+    "stormSlots": [{ "turn": 1, "kind": "medium-big" }, { "turn": 2, "kind": "any" }, { "turn": 4, "kind": "false-alarm-or-small" }, { "turn": 6, "kind": "sneaky-big", "chance": 1 }],
+    "win": { "minStars": 11, "minEach": 1, "gold": 12 }
+  },
   "week": {
     "_about": "7-day mission (D-020). Real storm replay days 2-4, long shadow from day 5, Earth below the horizon days 5-7, maybe a simulated storm during the blackout.",
     "days": 7,

@@ -2,7 +2,7 @@
 // Usage: node --no-warnings src/sim/bots.ts [full|slice] [games]
 import {
   newGame, step, menu, env, stormActive, blocksToday, reportCard, actionDef, daysUntilSun, verdict,
-  type State, type ActionId, type ScenarioId, type TripChoice,
+  type State, type ActionId, type ScenarioId, type TripChoice, type AlertChoice,
 } from '../engine/engine.ts';
 
 type Bot = { name: string; pick: (s: State) => ActionId[]; trip: TripChoice };
@@ -14,7 +14,7 @@ function fill(s: State, wants: ActionId[]): ActionId[] {
   const m = menu(s);
   for (const id of wants) {
     const item = m.find((x) => x.def.id === id);
-    if (!item || item.blocked || out.includes(id) || item.def.blocks > left) continue;
+    if (!item || item.blocked || (item.def.blocks >= 4 && !item.def.repeatable && out.includes(id)) || item.def.blocks > left) continue;
     if (id === 'powersave' && out.some((o) => actionDef(o).needsPower)) continue;
     if (out.includes('powersave') && actionDef(id).needsPower) continue;
     out.push(id); left -= item.def.blocks;
@@ -43,7 +43,7 @@ const careful: Bot = {
     if (calm && s.shelterLevel < 1 && s.power >= 50) w.push('regolith');
     if (s.power >= 50 && s.scoutBonus < 0.5 && s.evidence.iceFound < 2) w.push('scout');
     if (s.evidence.measures < 4) w.push('measure');
-    if (s.evidence.sunLogs < 2) w.push('logsun');
+    if (s.evidence.sunLogs < (s.scenario === 'weeks7' || s.scenario === 'solarMax' ? 4 : 2)) w.push('logsun');
     if (e(s).storm === 'warning' || (e(s).link && !e(s, 1).link)) w.push('call');
     if (!s.evidence.scouts) w.push('scout');
     return fill(s, w);
@@ -69,7 +69,7 @@ const planner: Bot = {
     if (calm && s.power - 50 >= reserve && s.scoutBonus > 0 && (s.evidence.trips < 1 || (!s.evidence.iceFound && s.evidence.trips < 2))) w.push('rover');
     if (calm && s.shelterLevel < 1 && s.power - 10 >= reserve) w.push('regolith');
     if (s.evidence.measures < 4 && e(s).sun !== 'dark') w.push('measure');
-    if (s.evidence.sunLogs < 2) w.push('logsun');
+    if (s.evidence.sunLogs < (s.scenario === 'weeks7' || s.scenario === 'solarMax' ? 4 : 2)) w.push('logsun');
     if (s.stamina < 55) w.push('rest');
     return fill(s, w);
   },
@@ -122,7 +122,12 @@ function play(bot: Bot, scenario: ScenarioId, seed: number) {
   while (!s.ended) {
     const ids = bot.pick(s);
     let r = step(s, ids);
-    if (r.state.pending) r = step(s, ids, bot.trip);
+    if (r.state.pending) {
+      const choice: TripChoice | AlertChoice = r.state.pending.type === 'alertChoice'
+        ? (r.state.pending.alert === 'storm' ? 'shelter' : r.state.pending.alert === 'shadow' ? 'save' : r.state.pending.alert === 'eclipse' ? 'save' : r.state.pending.alert === 'dust' ? 'clean' : 'continue')
+        : bot.trip;
+      r = step(s, ids, choice);
+    }
     if (r.log[0]?.startsWith('!')) throw new Error(`${bot.name} illegal move day ${s.turn + 1}: ${r.log[0]} [${ids}]`);
     if (r.state.emergency && !s.emergency) emergencies++;
     if (r.state.emergency) emergencyDays++;
@@ -134,7 +139,7 @@ function play(bot: Bot, scenario: ScenarioId, seed: number) {
   return { s, emergencies, emergencyDays, minStamina, stars: rc.LIGHT + rc.RADIATION + rc.SHELTER + rc.ICE, rc, v };
 }
 
-const scenario = (process.argv[2] as ScenarioId) ?? 'week';
+const scenario = (process.argv[2] as ScenarioId) ?? 'weeks7';
 const N = Number(process.argv[3] ?? 500);
 const pct = (x: number) => `${Math.round((x / N) * 100)}%`;
 const avg = (xs: number[]) => (xs.reduce((a, b) => a + b, 0) / xs.length).toFixed(1);
@@ -142,8 +147,10 @@ void daysUntilSun;
 
 console.log(`Scenario: ${scenario}, ${N} seeded games per bot. Stars out of 12.\n`);
 console.log('bot'.padEnd(31) + 'PROM+ APPR+ gold  O2fail doseFail emerg  dose  dose<=25 minStam  stars  L/R/S/I');
+const allRuns = new Map<string, ReturnType<typeof play>[]>();
 for (const bot of [planner, careful, greedy, reckless, idle, random]) {
   const runs = Array.from({ length: N }, (_, i) => play(bot, scenario, i + 1));
+  allRuns.set(bot.name, runs);
   const end = (r: string) => runs.filter((x) => x.s.ended!.reason === r).length;
   const k = (g: 'LIGHT' | 'RADIATION' | 'SHELTER' | 'ICE') => avg(runs.map((x) => x.rc[g]));
   console.log(
@@ -152,4 +159,16 @@ for (const bot of [planner, careful, greedy, reckless, idle, random]) {
     + pct(runs.filter((x) => x.s.dose <= 25).length).padEnd(9) + avg(runs.map((x) => x.minStamina)).padEnd(9)
     + avg(runs.map((x) => x.stars)).padEnd(7) + `${k('LIGHT')}/${k('RADIATION')}/${k('SHELTER')}/${k('ICE')}`,
   );
+}
+
+if (scenario === 'weeks7' || scenario === 'solarMax') {
+  const draws = [...new Set([...allRuns.values()].flatMap((runs) => runs.map((r) => r.s.timeline.find((e) => e.stormName)?.stormName ?? 'no storm draw')))];
+  console.log('\nAPPROVED+ BY STORM DRAW');
+  for (const draw of draws) {
+    const cells = [...allRuns.entries()].map(([name, runs]) => {
+      const selected = runs.filter((r) => (r.s.timeline.find((e) => e.stormName)?.stormName ?? 'no storm draw') === draw);
+      return `${name}: ${selected.length ? pct(selected.filter((r) => r.v.tier === 'approved' || r.v.tier === 'gold').length) : 'n/a'}`;
+    });
+    console.log(`  ${draw.padEnd(28)} ${cells.join(' | ')}`);
+  }
 }

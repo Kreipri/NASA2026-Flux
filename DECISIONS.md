@@ -6,6 +6,54 @@ Status: `decided` | `proposed` | `open` | `superseded`
 
 ---
 
+## Requested: Fresh vectorization from the actual 3D base
+**Status:** decided for the source requirement; proposed for the exported artwork (Bea, 2026-11-15: “just pull up the 3d model again and try to vectorize it”).
+- Use the actual Three.js base in `ideas/ui-mockups/flow-start-v1.html`; do not revise the earlier hand-drawn SVG passes. The incomplete v4 redraw was withdrawn.
+- New draft: `ideas/base-designs/from-3d-v1/space-base.svg`, with transparent PNG and `review.html` comparing the export with the same-camera original 3D model. Mesh positions/proportions/camera come from the source; geometry visibility is resolved at 4× and converted to paths. Shader shading is approximated with SVG gradients and normal-based bands; no dark silhouette outlines are added.
+- Generator, source snapshot, camera and SHA-256 provenance are saved beside the art. Actual 3D source and the app's integrated v3 illustration remain unchanged; no production swap requested.
+
+## Decided: Week 1 is a guided tutorial
+**Status:** decided (Bea, 2026-11-15: "make week 1 a tutorial, with an option to skip to week 2 for debugging").
+- Week 1 of the seven-week mission is the real mission with a Curio guide: answer the dust alert, check the sunlight (Mission), run the air system (Base), rest (Crew), then end the week. Other jobs and End week are held back with a hint until the three are done; the recap explains what a week is. Solar max has no tutorial.
+- Debug only: **More → Debug: skip to week 2** (visible with debug mode on, week 1 only) and a skip button on the guide bubble. It plays week 1 with the same three jobs and lands on the start of week 2.
+- Guide steps are derived from what has been done (no extra saved step), so a reload mid-tutorial resumes correctly.
+
+## Decided: Job-by-job weeks, one voice for objectives, 10 jobs in 3 kinds
+**Status:** decided (Bea, 2026-11-15: asked for step-by-step actions, no conflict between Mission Control and Goals, simpler kid-friendly jobs; approved the proposal "go ahead with all").
+- **Step-by-step:** each job runs when chosen (preview, then Do this job), shows a result card with meter changes, and spends crew time. The week closes when time hits 0 or on End week (with a confirm if time is left). Sunlight, breathing, rest, dust and faults still apply once at week end. Engine: `step()` was split into `newWeek` / `runJob` / `closeWeek`; `step()` is a wrapper and gives identical results (0 differences over 11,729 random weeks). Alerts open the week; the crater and rover-trip decisions open when the rover job starts.
+- **One voice:** Mission Control gives conditions plus one ask for the week (first unfinished main goal). The Goals panel is now the **Report card** (progress and stars only). Mission jobs carry a "Report card · Light/Radiation/Ice/Shelter" tag.
+- **Jobs 12 → 10, three kinds:** Mission (check sunlight, check radiation, fly the hop-drone, drive to the dark crater, cover the shelter with soil), Base (clean the solar panels, run the air system, fix what's broken), Crew (rest and exercise, take shelter). Cut from the seven-week and Solar max missions: Power-saving mode and Call Mission Control (Solar max's week-5 check-in is gone). Both stay in the engine for terminal play and legacy scenarios.
+- Browser saves are now v2; older saves are discarded. Bot sim balance is essentially unchanged.
+- Known gap (not new): the storm alert's free "Shelter for the peak" choice protects the crew without spending crew time, which makes the Take shelter job redundant. Needs a cost.
+
+## Decided: Publish the current browser gameplay on a new branch
+**Status:** decided (Bea, 2026-11-15: "push to a new branch").
+- Use `feat/browser-gameplay`, branched from the current `gameplay-updates` checkout. Include the integrated browser game, current food-free engine and supporting documentation/backlog notes. Preserve the existing branches and use the user's configured Git identity.
+
+## Decided: Connect the finished browser screen to the seven-week engine
+**Status:** decided (Bea, 2026-11-15; requested the new gameplay on the current screen, then confirmed the screen agent had finished).
+- Use the shared engine for actual week results, alerts, progress and endings. Preserve the finished opening story, 3D base and side-dock design sources. The adapter changes their generated website copy only.
+- Browser controller/save code lives in `src/web/`; `npm run dev` starts the game and `npm run build` produces `dist/`. Pin/copy the existing Three.js 0.160.0 locally. Retain the current food-free resource set.
+- This is engine integration, not balance tuning or new science claims. Verification and remaining imported-rule/data gaps: `ideas/browser-gameplay-integration.md`.
+
+## Decided: Queue learning check, causal debrief and parent/teacher guide
+**Status:** decided (Bea, 2026-11-15: “put them in the to do”).
+- Added the three submission-audit proposals to `MILESTONES.md`, with the learning check first. Detailed task list: `/Users/bg/Coding/NASA2026-Flux/TODO.md`.
+- Backlog approval only; none is implemented. This supersedes the earlier description of these items as unapproved proposals.
+
+## Decided: Remove food for now; retain Space Base Commander as working name
+**Status:** decided (Bea, 2026-11-15: “yes. also sure lets remove the food resource for now”).
+- Keep Power, Air/Oxygen and Radiation as the three core systems, with crew energy limiting work. Remove food stock, meal choices, meal-based stamina effects and the food failure state from engine/configs, terminal and browser controls. Food production is not added to the submission scope.
+- Updated `src/engine/engine.ts`, `src/config/{moon,scenarios}.json`, `src/cli/play.ts`, `src/web/{model.js,game.js,game.css}` and existing browser-model tests. Active older browser saves discard retired controls; old runs already ended by food are rejected rather than silently changing their outcome.
+- Verified seven gameplay tests, browser build, CLI syntax and the default bot simulation. No balance retuning or browser visual verification performed. Existing concurrent browser-build work remains in place.
+- Submission text, demo storyboard and rubric audit are saved in the user-requested checkout at `/Users/bg/Coding/NASA2026-Flux/ideas/` (`project-submission-draft-v1.md`, `project-demo-outline-v1.md`, `judging-gap-audit-v1.md`). Working title retained; team/member placeholders remain.
+- Learning check, causal debrief extension and parent/teacher guide are proposals only. Complete the existing data pipeline and costly-choice rules before claiming scientific traceability or full validation.
+
+## Decided: Integrate selected gameplay files on gameplay-updates
+**Status:** decided (Bea, 2026-11-15; requested latest main plus selected Added-Gameplay work).
+- Keep the six gameplay files already imported by `6948ea1`; they match `Added-Gameplay` at `91e68e3`. Merge latest `origin/main` (`238d80a`) into the existing branch, preserving its published history. No duplicate cherry-pick is needed.
+- This is branch integration only; no gameplay tuning or new design decisions. Verification and scope: `ideas/gameplay-updates-integration.md`.
+
 ## Decided: Gameplay uses the side dock
 **Status:** decided (Bea, 2026-11-15: "i like the side panel").
 - Select A from the layout study. Preserve the current UI design; keep jobs, mission tasks and help in a stable side panel beside the 3D base. The older bottom-tray and focus-window drafts remain references.
@@ -314,3 +362,8 @@ A single short, meaningful narrative arc is preferred over open-ended content. A
 ## Proposed: Preserve post-merge drafts on design/mission-ui
 **Status:** proposed (2026-11-15)
 - Following Bea’s merge of cli-prototype into main, save current uncommitted drafts on a new design branch, then integrate origin/main. This preserves drafts before updating their base; no Git changes performed while advising.
+
+## Built: Victory screen and ending story as a separate module
+**Status:** built, awaiting Bea's review (2026-11-15)
+- Implements `storyline-v2.md` §5 / `story-script-v2.md` Part 5 in `src/web/ending.js` (2D storybook style; gameplay stays 3D). Tiers use the renamed stamps (GOLD PATCH 12★, HONORS 11★, MISSION COMPLETE = crew safe + 4 main goals, NOT YET). Crew called home = no stamp, a tip, nobody hurt.
+- Shown after the final recap ("See your story"); debrief offers Play again / Solar max. All 13 screens are reachable from the debug menu. Details and gaps in `HANDOFF.md`.

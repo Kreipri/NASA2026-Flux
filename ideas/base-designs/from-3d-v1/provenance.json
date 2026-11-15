@@ -1,0 +1,26 @@
+{
+  "source": "ideas/ui-mockups/flow-start-v1.html",
+  "sha256": "939afdb949cefa1b73c3fd869a08efbfef987fa804ca9592fdc8a0cc498a9bc3",
+  "camera": {
+    "position": [
+      -2,
+      6.444039064035718,
+      58
+    ],
+    "target": [
+      5,
+      3.4,
+      -1
+    ],
+    "fov": 34
+  },
+  "meshes": 238,
+  "frontTriangles": 58895,
+  "openLoops": 0,
+  "pathRuns": 180,
+  "viewport": {
+    "width": 918,
+    "height": 352
+  },
+  "method": "Project actual front-facing triangles; 4x per-mesh geometry depth buffer; trace and simplify visible regions to editable paths; SVG material gradients; no previous drawing or reference PNG used."
+}
