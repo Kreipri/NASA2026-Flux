@@ -10,6 +10,13 @@
 - No change to the engine or balance. The 8 blocks are not days. A job's cost (1, 2 or 4 blocks) is the time and effort it needs. Tutorial copy should say so. The 7-block and one-job-a-day options are not adopted.
 - Weekly Mission Control briefing popup: **built** at Bea's request (2026-11-15: "yes build it"). See the entry below.
 
+## Decided: Week 1 is a Curio walkthrough; later weeks only get first-time tips
+**Status:** decided and built (Bea, 2026-11-15: Curio walks the player through the first day, then they are on their own; Curio only appears for a new event they would not know how to handle).
+- Week 1 is a 7-step guided walkthrough: meters, check sunlight, report card, run air, rest, Ask Curio, end the week. Each step glows one thing and the Curio card sits beside it with an arrow; look-and-learn steps have a **Got it** button. Steps derive from what was done (reload resumes).
+- The opening tour is cut from 7 stops to 4 (solar, shelter, crater, how jobs work), after Arrive and the Sun time-lapse. Meters and report card are now taught in Week 1. Solar, shelter and crater stay because they carry sourced facts.
+- After Week 1, Curio shows a one-time note only for new situations: first dust, radiation alarm and shadow/eclipse alerts (inside the alert), first Earth radio loss and first broken part (a small pop-up). Seen tips are saved with the mission. Game rules only; the storm wording still needs a fact-source row if it states real-world facts.
+- Checked in headless Chromium at 1280x720: walkthrough through step 5 placement (card beside target, no overlap, nothing clipped) and the full 7 steps functionally, plus tips across weeks 2-6. Not checked: 900x506, steps 6-7 visually, a real GPU, children.
+
 ## Decided: Each week opens with a Mission Control briefing
 **Status:** decided and built (Bea, 2026-11-15: briefing popup after the recap, confirm to start the week, drop-down to repeat it).
 - Week N of 7 card from Mission Control (Curio's "plan Mission Control left" when Earth radio is down) with this week's one ask and conditions, and one **Start week N** button. Alerts come after Start. The Mission pill drop-down has **Hear the briefing again**, which reopens the card read-only with **Back to work**. Week 1 shows it too, with a short tutorial tip. Engine unchanged; `src/web/game.js` (`briefingDue`, `askText`, modal branch) and a `briefedTurn` field in the saved mission.

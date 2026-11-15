@@ -13,6 +13,11 @@
 - Bea is leaning toward C, not yet locking it. `ideas/seven-slide-draft-C-v2.md` provides exact seven-slide copy and visual guidance: evidence → playable choice → result → model transparency → learning loop → invitation. Gameplay now appears by slide 3.
 - Recommendation: use one real paid-job/result sequence; no invented data-to-exposure mapping or outcome. Shared human/AI credits and disclaimers retained. Text only; no deck generated.
 
+## Tutorial rebuilt: Week 1 walkthrough, 4-stop tour, first-time tips, pointer UI (2026-11-15)
+- See top `DECISIONS.md` entry. Code: `tutorialStep()`, `tutIndex()`, `placeGuide()`, `weekTip()`, `ALERT_TIPS` in `src/web/game.js`; tour trim in `scripts/build-web.ts` (stops t1, t3, t7 removed; numbering Tour 1/4-4/4); styles at the end of `src/web/game.css` (`.tut-ring`, `.coach[data-side]` arrow).
+- The old outline glow was replaced by an overlay ring so scrolling panels cannot clip it; the card is placed beside the target (left of the dock for dock targets) and re-placed on resize and after transitions. Global reduced-motion rule covers it.
+- Open: the guided dust step runs the real Clean job (spends time, air, energy, adds radiation); the result card explains it but the Curio line doesn't. 900x506 and phone-size layouts, steps 6-7 screenshots and a real GPU were not checked (software rendering timed out). `scripts/build-web.ts` also holds another session's `submission-resources` import. Uncommitted.
+
 ## Weekly Mission Control briefing built (2026-11-15)
 - New popup opens each week (including Week 1) before any alert: week number, this week's ask, conditions, **Start week N**. Reopen from the Mission pill drop-down (**Hear the briefing again**). `briefedTurn` is saved with the mission so a reload does not repeat it; older saves mid-week are unaffected. `src/web/game.js`, one CSS rule at the end of `game.css`. 12 tests pass; verified in headless Chromium. Open: remove tour stop 3/3 ("Your goal") to avoid two briefings in Week 1; the guided dust step also shows a job result ("Clean the solar panels") after it, which I did not check for time cost.
 

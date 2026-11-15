@@ -468,8 +468,8 @@ export function mountGameplay({ hud, frame, pins, assets, updateScene, updateLay
     const w = card.offsetWidth, ch = card.offsetHeight, cx = r.left + r.width / 2 - h.left, cy = r.top + r.height / 2 - h.top;
     const room = { below: h.bottom - r.bottom - gap - m, above: r.top - h.top - gap - m, right: h.right - r.right - gap - m, left: r.left - h.left - gap - m };
     const fits = { below: room.below >= ch, above: room.above >= ch, right: room.right >= w, left: room.left >= w };
-    const wideTarget = r.width > h.width * .25;
-    const order = wideTarget ? ['above', 'below', 'right', 'left'] : (cy > h.height / 2 ? ['left', 'above', 'right', 'below'] : ['left', 'below', 'right', 'above']);
+    // Targets in the right-hand dock get the card on their left, over the 3D scene, so it never covers the dock's own tabs.
+    const order = cx > h.width / 2 ? ['left', 'above', 'below', 'right'] : (cy > h.height / 2 ? ['above', 'right', 'below', 'left'] : ['below', 'right', 'above', 'left']);
     let side = order.find(k => fits[k]) || order.sort((a, b) => room[b] - room[a])[0];
     let x, y;
     if (side === 'below' || side === 'above') { x = Math.max(m, Math.min(h.width - w - m, cx - w / 2)); y = side === 'below' ? r.bottom - h.top + gap : r.top - h.top - gap - ch; }
