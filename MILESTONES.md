@@ -2,10 +2,11 @@
 
 ## Learning additions queued on 2026-11-15
 
-Bea requested adding these to the to-do list. Planned, not implemented; this does not change the three core systems.
+Bea requested adding these to the to-do list. Statuses below reflect the latest code review; this does not change the three core systems.
 
 - [ ] **First: two-question learning check**, before and after play; include it in the child playtest.
-- [ ] **Causal debrief**, explaining one logged choice, its cost and its consequence.
+- [x] **Causal debrief: initial implementation**, now in the ending's player-specific “What you learned” cards.
+- [ ] **Debrief accuracy review**, using actual action order/location before claiming drone-first preparation, charging before darkness or outside storm exposure.
 - [ ] **One-page parent/teacher guide**, with the learning objective, measured session length, discussion prompts, sources and model limits.
 
 Task details are saved in `/Users/bg/Coding/NASA2026-Flux/TODO.md`. The time estimates and older status snapshot below are historical.

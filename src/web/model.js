@@ -29,7 +29,7 @@ const lineText = t => t.replace(/\s*\[[^\]]*\]\s*$/, '').trim();
 const diffOf = (a, b) => Object.fromEntries(METERS.map(k => [k, Math.round(b[k]) - Math.round(a[k])]));
 function finishJob(mission, id, after, week, log) {
   const before = mission.state;
-  return { mission: { ...mission, state: after, week, result: { id, lines: log.map(lineText).filter(Boolean), diff: diffOf(before, after) } } };
+  return { mission: { ...mission, state: after, week, result: { id, lines: log.map(lineText).filter(Boolean), diff: diffOf(before, after), timeUsed: week.used - mission.week.used } } };
 }
 /** Do one job now. May stop first with a decision (rover trip) that `choose` answers. */
 export function doJob(mission, id) {
@@ -44,6 +44,15 @@ export function doJob(mission, id) {
 export function choose(mission, choice) {
   const { state, week } = mission, prompt = week?.prompt;
   if (!prompt) return { error: 'There is nothing to decide right now.' };
+  if (!alertCard(mission)?.options.some(([id]) => id === choice)) return { error: 'Choose one of the options shown.' };
+  // "Clean now" starts the ordinary job, including all of its costs. It is not a free dust reset.
+  if (prompt.type === 'alert' && prompt.alert === 'dust' && choice === 'clean') {
+    const ready = { ...week, prompt: null, choice };
+    const error = jobBlocked(state, ready, 'clean');
+    if (error) return { error };
+    const r = runJob(state, ready, 'clean');
+    return finishJob(mission, 'clean', r.state, r.week, r.log);
+  }
   const c = chooseOption(state, { ...week, prompt: null }, choice);
   const next = { ...mission, state: c.state, week: c.week, result: null };
   if (!prompt.job) return { mission: next };
@@ -57,7 +66,8 @@ export function endWeek(mission) {
   if (week.prompt) return { error: 'Answer the alert first.' };
   if (!week.ids.length) return { error: 'Do at least one job first.' };
   const c = closeWeek(state, week);
-  return { mission: { ...mission, state: c.state, week: null, result: null, log: [...week.log, ...c.log], before: week.start, recap: true } };
+  const recapDetails = { jobs: diffOf(week.start, state), week: diffOf(state, c.state), ids: [...week.ids], used: week.used, blocks: week.blocks, jobLog: week.log.map(lineText), weekLog: c.log.map(lineText) };
+  return { mission: { ...mission, state: c.state, week: null, result: null, log: [...week.log, ...c.log], before: week.start, recapDetails, recap: true } };
 }
 /** After the recap: open the next week. */
 export function nextWeek(mission) {
@@ -100,11 +110,12 @@ export function alertCard(mission) {
   const prompt = mission.week?.prompt;
   if (!prompt) return null;
   const options = (a, b) => [a, b];
+  const clean = actionDef('clean');
   if (prompt.type === 'trip') return { title: 'Particles are arriving', body: 'The rover is about to leave. What should the crew do?',
     options: options(['back', 'Turn back', `No sample. Power ${moon.trip.backPower}, air ${moon.trip.backO2}.`], ['finish', 'Go anyway', 'Full trip costs and storm exposure. A sample is uncertain.']) };
   if (prompt.type === 'sample') return { title: 'A closer look at the crater?', body: 'The rover crew could try a little longer.', options: options(['sample', 'Try a little longer', 'Extra power −10, energy −5; ice chance improves.'], ['finish', 'Just the normal trip', 'Keep the normal cost and ice chance.']) };
   switch (prompt.alert) {
-    case 'dust': return { title: 'Dust on the panels', body: 'Dust can block sunlight. Choose when to deal with it.', options: options(['clean', 'Clean now', 'Clear the dust before this week’s charging.'], ['later', 'Keep going', 'Dust stays until you do a Clean the solar panels job.']) };
+    case 'dust': return { title: 'Dust on the panels', body: 'Dust blocks sunlight from reaching the panels. Cleaning helps the batteries charge, but the crew must spend time outside.', options: options(['clean', 'Clean now', `${clean.blocks} crew time · Air ${clean.o2} · Energy ${clean.blocks * moon.stamina.outsideBlock} · Radiation +${clean.dose}. Clear the panels before charging.`], ['later', 'Keep going', 'Save the crew time now. Dust reduces charging until you clean the panels.']) };
     case 'storm': return { title: 'Radiation alarm', body: 'The alarm needs a decision. Outside jobs still add exposure.', options: options(['shelter', 'Shelter for the peak', 'Use the shielded room for the worst hours.'], ['continue', 'Keep working', 'Only a Take shelter job protects the crew.']) };
     case 'shadow': case 'eclipse': return { title: prompt.alert === 'shadow' ? 'The ridge is in shadow' : 'The Sun is hidden', body: 'The panels will make less power. What is your plan?', options: options(['save', 'Turn power down', `Save ${moon.perDay.upkeepPower - moon.perDay.powerSaveUpkeep} power; crew energy ${moon.stamina.powerSaveCold}.`], ['carry', 'Keep normal power', 'Use more battery power; keep the heaters up.']) };
   }

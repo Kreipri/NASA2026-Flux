@@ -38,6 +38,32 @@ test('the week opens with its alert; no job can start until it is answered', () 
   assert.ok(doJob(after, 'logsun').mission);
   assert.ok(choose(after, 'later').error);               // nothing left to decide
 });
+test('Clean now runs the paid cleaning job once, including time, air, energy and radiation', () => {
+  const m = createMission('weeks7', 42), before = structuredClone(m);
+  const expected = doJob(choose(m, 'later').mission, 'clean').mission;
+  const cleaned = choose(m, 'clean').mission;
+  assert.deepEqual(m, before);
+  assert.equal(timeLeft(cleaned), timeLeft(m) - 2);
+  assert.deepEqual(cleaned.week.ids, ['clean']);
+  assert.equal(cleaned.result.id, 'clean');
+  assert.equal(cleaned.result.timeUsed, 2);
+  for (const key of ['power', 'o2', 'dose', 'stamina', 'dust']) assert.equal(cleaned.state[key], expected.state[key]);
+  assert.ok(choose(cleaned, 'clean').error);
+  assert.ok(choose(m, 'shelter').error);
+});
+test('the recap separates paid job effects from week-end effects, including meter caps', () => {
+  let m = choose(createMission(), 'clean').mission;
+  for (const id of ['logsun', 'air', 'rest']) m = doJob(m, id).mission;
+  const final = endWeek(m).mission, d = final.recapDetails;
+  assert.deepEqual(d.ids, ['clean', 'logsun', 'air', 'rest']);
+  assert.equal(d.used, 6);
+  assert.equal(d.jobLog.length, m.week.log.length);
+  assert.ok(d.weekLog.some(t => /Sunlight charged/.test(t)));
+  for (const key of ['power', 'o2', 'dose', 'stamina']) {
+    assert.equal(d.jobs[key] + d.week[key], final.state[key] - final.before[key]);
+  }
+  assert.deepEqual(readSaved(JSON.stringify(final)).recapDetails, d);
+});
 test('crew time, heavy-job repeats, availability and ending rules use the engine', () => {
   let m = ready();
   m = doJob(m, 'rover').mission;

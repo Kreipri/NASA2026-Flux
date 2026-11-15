@@ -33,8 +33,12 @@ const INFO = {
 };
 // One short line per job, shown on the card so the player does not have to open a job to learn what it is.
 const SHORTDESC = { logsun:'Record the sunlight and shadows.', measure:'Read the radiation sensor.', scout:'Map the dark crater with the drone.', rover:'Collect a sample from the dark crater.', regolith:'Pile soil on the shelter roof.', clean:'Wipe the dust off the panels.', air:'Make fresh air for the crew.', repair:'Fix a broken panel or air filter.', rest:'Let the crew rest and recover.', shelter:'Wait out a storm in the safest room.' };
+const RESULT_FLAVOR = { logsun:'A new entry in the mission notebook! Your crew saved a record of the ridge’s light and shadows.', measure:'Sensor checked, reading saved. Your crew has more evidence about radiation at this site.', scout:'The drone is back. Its new map will help the crew plan the next rover trip.', rover:'The rover crew is back at base. Here is what happened on the trip.', regolith:'Another layer of Moon soil covers the shelter. The crew has more shielding for the next storm.', clean:'The crew brushed the panels clear. More sunlight can now reach the solar cells.', air:'The air machine has finished its run. Fresh oxygen is ready for the crew to breathe.', repair:'Tools packed away. The crew has finished work on a broken base system.', rest:'Exercise done, boots off. The crew has had time to recover for the jobs ahead.', shelter:'The crew is in the shielded room. It will protect them during the storm peak.' };
 const ASKS = { LIGHT:'Check the sunlight on the ridge.', RADIATION:'Check the radiation. The report card needs a reading.', ICE:'Find out if there is ice in the dark crater. Fly the hop-drone first!', SHELTER:'Cover the shelter with soil. It protects the crew in storms.' };
 const PATHS = {
+  trash:'<path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13"/>',
+  bulb:'<path d="M9 18h6M10 21h4M12 3a6 6 0 0 0-3.5 10.9c.6.5 1 1.2 1 2.1h5c0-.9.4-1.6 1-2.1A6 6 0 0 0 12 3z"/>',
+  alert:'<path d="M12 4 3 20h18z"/><path d="M12 10v5M12 18v.5"/>',
   power:'<path d="M13 2 4 14h7l-1 8 9-12h-7z"/>',
   o2:'<path d="M3 8h11a3 3 0 1 0-3-3"/><path d="M3 12h16a3 3 0 1 1-3 3"/><path d="M3 16h7"/>',
   dose:'<g fill="currentColor" stroke="none"><path d="M12 3A9 9 0 0 1 19.8 7.5L15 10.3A3.5 3.5 0 0 0 12 8.5Z"/><path d="M12 3A9 9 0 0 1 19.8 7.5L15 10.3A3.5 3.5 0 0 0 12 8.5Z" transform="rotate(120 12 12)"/><path d="M12 3A9 9 0 0 1 19.8 7.5L15 10.3A3.5 3.5 0 0 0 12 8.5Z" transform="rotate(240 12 12)"/><circle cx="12" cy="12" r="1.6"/></g>',
@@ -77,6 +81,9 @@ const SHORT = { power:'Power', o2:'Air', dose:'Radiation', stamina:'Energy' };
 const JOBICON = { air:['o2','#bfeeff'], rest:['rest','#ffd6df'], repair:['wrench','#ffe3a8'], clean:['clean','#c8f1e8'], logsun:['sun','#ffe9a0'], shelter:['shield','#d0dcff'], regolith:['mountain','#e6dccb'], measure:['gauge','#e3f3b5'], scout:['drone','#d4e4ff'], rover:['rover','#ffd9b8'] };
 const GOALICON = { LIGHT:['sun','#ffe9a0'], RADIATION:['dose','#e3f3b5'], SHELTER:['shield','#d0dcff'], ICE:['ice','#cdeeff'] };
 const tile = ([icon, bg], cls) => `<span class="${cls}" style="--bg:${bg}" aria-hidden="true">${svg(icon)}</span>`;
+// Decision pop-ups: one icon and colour per kind of event, and one icon per choice, so the cards can be skimmed.
+const ALERT_KIND = { dust:['clean','#ffe9a0'], storm:['dose','#ffd6df'], shadow:['half','#dcd6ff'], eclipse:['moon','#dcd6ff'], trip:['rover','#c8f1e8'], sample:['ice','#d2f0ff'] };
+const CHOICE_ICON = { clean:'clean', later:'fast', shelter:'shield', continue:'outside', back:'back', finish:'rover', sample:'ice', save:'battery', carry:'power' };
 // Reuse DOM nodes that stay the same so CSS transitions can run (bars, tabs, dropdowns). Only changed nodes are replaced.
 function morphKids(a, b) {
   const ac = [...a.childNodes], bc = [...b.childNodes];
@@ -110,34 +117,40 @@ export function tourCard() {
   return `<div class="tour-panel"><h4>Your report card</h4>${Object.keys(GOALS).map(g => tourRow(GOALICON[g][0], GOALICON[g][1], GOALS[g], sub[g], '<span class="st">☆</span>')).join('')}</div>`;
 }
 export function mountGameplay({ hud, frame, pins, assets, updateScene, updateLayout, onHome, onEnding, debugScreens = [], onDebugScreen }) {
-  let mission, storage = true;
+  let mission, storage = true, resetting = false;
   try { mission = readSaved(localStorage.getItem(SAVE_KEY)); } catch { storage = false; }
   mission ||= createMission('weeks7', Math.floor(Math.random() * 0x7fffffff));
   const ui = { active:false, view:'jobs', place:'rover', cat:'mission', open:true, job:null, goal:null, question:'jobs', resource:null, returnView:'jobs', warning:'', modal:null, brief:false, res:false, quick:false, toast:null };
   const toggleFullscreen = () => { try { if (document.fullscreenElement) document.exitFullscreen(); else document.documentElement.requestFullscreen?.(); } catch {} };
   const btn = (action, text, cls = '') => `<button class="${cls}" data-game-action="${action}">${text}</button>`;
-  function save() { try { localStorage.setItem(SAVE_KEY, JSON.stringify(mission)); } catch { storage = false; } }
+  function save() { if (resetting) return; try { localStorage.setItem(SAVE_KEY, JSON.stringify(mission)); } catch { storage = false; } }
   function current() { return env(mission.state); }
   function chip(text, c = '#5fd0c8') { return `<span class="jc" style="--c:${c}">${esc(text)}</span>`; }
   // Week 1 tutorial: the real rules with a guide. The step comes from what has been done, so it survives a reload.
-  const TUT = { logsun:{ n:1, cat:'mission', pick:'Welcome, Commander! Your crew has 8 time blocks each week. Tap the glowing job to check the sunlight.', result:'Look at the meters and the time bar: the job cost a little power and energy, and one time block.' },
-    air:{ n:2, cat:'base', pick:'Now keep the base alive. Open Base, then run the air system.', result:'Air went up! Jobs can fix a meter, but they cost power.' },
-    rest:{ n:3, cat:'crew', pick:'Your crew needs rest too. Open Crew, then tap Rest and exercise.', result:'Resting gives energy back. A rested crew can do more next week.' } };
+  const TUT = { logsun:{ n:1, cat:'mission', pick:'When can we charge the batteries? <b>Check the sunlight</b> to help the next crew plan around shadows.', result:'Sunlight is our power supply. Recording the shadows helps the next crew know when they must rely on batteries.' },
+    air:{ n:2, cat:'base', pick:'The crew uses air all week. Open <b>Base</b>, then run the <b>air system</b> to refill their supply.', result:'The crew needs oxygen even while resting. This machine uses battery power to make more, so air and power must be planned together.' },
+    rest:{ n:3, cat:'crew', pick:'Tired astronauts can do less work. Open <b>Crew</b>, then choose <b>Rest and exercise</b>.', result:'Rest and exercise help the crew recover. Keeping their energy up protects next week’s work time.' },
+    clean:{ result:'Dust blocks sunlight. Cleaning improves charging, but outside work uses crew time, air and energy, and adds radiation.' } };
   function tutorialStep() {
     if (!mission.tutorial || !mission.week || mission.week.prompt || ui.modal) return null;
     const next = ['logsun', 'air', 'rest'].find(id => !mission.week.ids.includes(id)), t = TUT[next];
-    if (!ui.open) return { text: 'Open the job panel to continue.', hl: '.open-curio' };
-    if (ui.view !== 'jobs') return { text: 'Back to the jobs to continue.', hl: '.view-tabs [data-game-action="jobs"]' };
-    if (!next) return { text: 'Nice work! When you are done, end the week. The Sun charges the batteries and the crew rests.', hl: '[data-game-action="end-week"]' };
-    if (ui.job === next) return { job: next, text: 'This shows what the job costs and gives. Tap Do this job.', hl: '[data-game-action="do-job"]' };
-    if (ui.job) return { job: next, text: 'Go back and tap the glowing job.', hl: '[data-game-action="back-jobs"]' };
+    if (!ui.open) return { text: '<b>Open the job panel</b> to continue.', hl: '.open-curio' };
+    if (ui.view !== 'jobs') return { text: 'Go <b>back to the jobs</b> to continue.', hl: '.view-tabs [data-game-action="jobs"]' };
+    if (!next) return { text: 'Nice work! Now <b>end the week</b>. The Sun charges the batteries and the crew rests.', hl: '[data-game-action="end-week"]' };
+    if (ui.job === next) return { job: next, text: 'This shows what the job <b>costs</b> and <b>gives</b>. Tap <b>Do this job</b>.', hl: '[data-game-action="do-job"]' };
+    if (ui.job) return { job: next, text: 'Go <b>back</b> and tap the <b>glowing job</b>.', hl: '[data-game-action="back-jobs"]' };
     return { job: next, text: t.pick, hl: ui.cat === t.cat ? `[data-game-job="${next}"]` : `[data-game-cat="${t.cat}"]` };
   }
+  const TUT_ORDER = ['logsun', 'air', 'rest'];
+  const tutNote = text => `<div class="tut-callout"><span class="tc-face"><img src="${assets.curio}" alt=""></span><div><small>${svg('bulb')}Tutorial tip</small><p>${text}</p></div></div>`;
   function coach() {
     const t = tutorialStep();
     if (!t) return '';
     const debug = document.documentElement.classList.contains('debug');
-    return `<aside class="coach" role="status"><span class="face"><img src="${assets.curio}" alt=""></span><p><small>Tutorial · week 1</small>${esc(t.text)}</p>${debug ? btn('skip-tutorial', 'Skip to week 2 (debug)', 'coach-skip') : ''}</aside>`;
+    const ids = mission.week.ids, done = TUT_ORDER.filter(id => ids.includes(id)).length, next = TUT_ORDER.find(id => !ids.includes(id));
+    const dots = [0, 1, 2, 3].map(i => `<i class="${i < done ? 'done' : i === done ? 'now' : ''}"></i>`).join('');
+    const what = next ? tile(JOBICON[next] || ['wrench', '#e8e4ff'], 'ch-ic') : tile(['fast', '#ffe3a8'], 'ch-ic');
+    return `<aside class="coach" role="status" aria-label="Tutorial, step ${done + 1} of 4"><header class="coach-head"><span class="face"><img src="${assets.curio}" alt=""></span><div class="ch-t"><small>Tutorial · week 1</small><span class="ch-step">Step ${done + 1} of 4</span></div><span class="dots" aria-hidden="true">${dots}</span></header><div class="coach-body">${what}<p>${t.text}</p></div>${debug ? btn('skip-tutorial', 'Skip to week 2 (debug)', 'coach-skip') : ''}</aside>`;
   }
   const METER_COLOR = { power:'#ffd34d', o2:'#7fe3ff', dose:'#b4e05c', stamina:'#ff7b8f' };
   function resources() {
@@ -231,12 +244,11 @@ export function mountGameplay({ hud, frame, pins, assets, updateScene, updateLay
       shelter:stormActive(current())?'A storm is on right now.':'No storm right now.',
     })[id] || '';
   }
-  // Compact job details: icon costs, one line, and three hover/focus pills for the extra explanation.
+  // Keep the current conditions and Curio's advice readable without hovering.
   function preview() {
     const id=ui.job,p=jobPreview(mission,id),I=INFO[id]||{ does:EFFECTS[id]||'', why:'', tip:'' };
-    const hv=(cls,icon,label,body)=>`<span class="hv ${cls}" tabindex="0" role="button" aria-label="${label}: ${esc(body.replace(/<[^>]+>/g,''))}">${icon}<span>${label}</span><span class="hv-pop" role="tooltip"><span class="hv-b">${body}</span></span></span>`;
     const ice=p.chance!==null?`<span class="cc" style="--c:#cdeeff" title="Ice chance on this trip: ${p.chance}%. A game chance, not a NASA estimate." role="img" aria-label="Ice chance ${p.chance} percent">${svg('ice')}<b>${p.chance}%</b></span>`:'';
-    return `<div class="jcs preview-costs">${costs(id)}${ice}</div><p class="jdoes">${I.does}</p><div class="hvs">${hv('hv-why',svg('star'),'Why do it',I.why)}${hv('hv-now',svg('gauge'),'Right now',jobNow(id))}${hv('hv-tip',`<img src="${assets.curio}" alt="">`,'Curio’s tip',I.tip)}</div>`;
+    return `<div class="jcs preview-costs">${costs(id)}${ice}</div><p class="jdoes">${I.does}</p><div class="job-explain"><section class="job-now"><h3>${svg('gauge')}Right now</h3><p>${jobNow(id)}</p></section><section class="job-tip"><h3><img src="${assets.curio}" alt="">Curio’s tip</h3><p>${I.tip}</p></section><details class="job-why"><summary>${svg('star')}Why do it?${svg('down','explain-chevron')}</summary><p>${I.why}</p></details></div>`;
   }
 
   function missions() {
@@ -245,12 +257,12 @@ export function mountGameplay({ hud, frame, pins, assets, updateScene, updateLay
   }
   function helpAnswer() {
     if(ui.resource) { const [title,body]=HELP[ui.resource]; return `<h3>${title}</h3><p>${body}</p>`; }
-    if(ui.question==='time') return `<p>Your crew has ${mission.week?.blocks??8} time blocks this week. A tired crew may have fewer next week.</p><p>Unused time helps recovery. A rest job spends time; it does not give more time back.</p>`;
-    if(ui.question==='earth') return `<p>Mission Control sends messages when Earth is in view. Earth radio is <b>${current().link?'on':'off'}</b> now.</p><p>When it is off, the onboard alarm still works. I can still help.</p>`;
+    if(ui.question==='time') return `<h3>Plan your crew’s time</h3><p class="cp-status">${svg('clock','inl')}<b>${timeLeft(mission)} of ${mission.week?.blocks??8} blocks left</b> this week</p><ul class="cp-points"><li>Each job spends time right away.</li><li>Unused time helps the crew recover.</li><li>Rest uses time. It restores energy, not time blocks.</li><li>A tired crew may have fewer blocks next week.</li></ul>`;
+    if(ui.question==='earth') return `<h3>Keeping in touch</h3><p class="cp-status">${svg('transmitter','inl')}Earth radio is <b>${current().link?'on':'off'} now</b></p><p>Mission Control sends messages when Earth is in view.</p><div class="cp-note"><b>When radio is off</b><p>The onboard alarm still works. I can still help.</p></div>`;
     if(ui.question==='meters') return `<ul class="meter-list">${Object.entries(HELP).map(([k,[n]])=>`<li style="--c:${METER_COLOR[k]}"><span class="ml-ic">${svg(k)}</span><span><b>${n}</b>${QUICKHELP[k]}</span></li>`).join('')}</ul>`;
     const picks = advice();
     const next = picks.length ? `<div class="cp-next"><b>Try next</b>${picks.map(a=>`<button class="cp-job" data-game-job="${a.id}"><span class="cp-jt" style="--bg:${(JOBICON[a.id]||[0,'#e8e4ff'])[1]}">${svg((JOBICON[a.id]||['wrench'])[0])}</span><span><b>${jobName(a.id)}</b>${a.why}</span></button>`).join('')}</div>` : `<p class="cp-next none">Nothing urgent. Pick a ${svg('star','inl')} job to fill in your report card.</p>`;
-    return `<p>Every job uses <b>crew time</b> ${svg('clock','inl')} and some of your meters.</p><p><b class="gn">Green +</b> numbers help you. <b class="rd">Orange −</b> numbers cost you. Jobs with a ${svg('star','inl')} fill in your report card.</p>${next}`;
+    return `<h3>Before you choose a job</h3><ul class="cp-points"><li>${svg('clock','inl')}Every job spends <b>crew time</b>.</li><li>Check the meter changes: <b class="gn">green +</b> adds to a meter; <b class="rd">orange −</b> spends it.</li><li>${svg('star','inl')}Star jobs fill in your report card.</li></ul>${next}`;
   }
   function help() {
     const tabs=(!ui.pop||ui.pop.tabs)?`<div class="question-tabs">${[['jobs','Doing jobs'],['time','Crew time'],['earth','Earth radio'],['meters','The meters']].map(([k,n])=>`<button data-game-question="${k}" aria-expanded="${!ui.resource&&ui.question===k}">${n}</button>`).join('')}</div>`:'';
@@ -261,12 +273,12 @@ export function mountGameplay({ hud, frame, pins, assets, updateScene, updateLay
   }
   function sources() {
     const e=current();
-    return `<h3>Where is this from?</h3><p><b>Simulated:</b> every meter, job cost, ice chance and event timing is a game model. No live feed is shown.</p>${e.stormName?`<p><b>Historic event:</b> ${esc(e.stormName.replace(' false alarm',' solar flare'))}${e.realDay?' · '+esc(e.realDay):''}.</p>`:''}${e.realDay?'<p><b>NASA archive:</b> the bundled May 2024 CRaTER/LRO measurements were recorded in lunar orbit, not at this base. Game dose is scaled separately.</p>':'<p>Other storm names refer to historic events. Their game profiles are simplified; exact hourly measurements are not bundled.</p>'}<p>Storms are placed closer together for the game. DONKI is a research archive.</p><p><a href="https://ccmc.gsfc.nasa.gov/tools/DONKI/" target="_blank" rel="noopener">NASA DONKI</a> · <a href="https://visualization.osdr.nasa.gov/radlab/gui/data-api/" target="_blank" rel="noopener">NASA RadLab</a></p><p>Earth art: <a href="https://science.nasa.gov/earth/earth-observatory/collections/blue-marble/" target="_blank" rel="noopener">NASA Blue Marble</a>. Base, terrain and crew are illustrations.</p>`;
+    return `<div class="data-guide"><p class="data-notice">${svg('info')}<span><b>This is a simulation.</b> No live feed is shown.</span></p><div class="data-sections"><section class="data-section data-rules"><h3>${svg('wrench')}Made for the game</h3><ul><li>Meters, job costs and ice chances use game rules.</li><li>Event timing is simplified. Storms are placed closer together for the game.</li><li>Radiation uses game points, not a NASA safety limit.</li></ul></section><section class="data-section data-science"><h3>${svg('globe')}Real NASA sources</h3>${e.stormName?`<div class="data-event"><b>Historical event</b><span>${esc(e.stormName.replace(' false alarm',' solar flare'))}</span>${e.realDay?`<time>${esc(e.realDay)}</time>`:''}</div>`:''}<p>${e.realDay?'The bundled May 2024 CRaTER/LRO measurements were recorded in lunar orbit, not at this base. Game radiation is scaled separately.':'Storm names refer to historical events. Their game profiles are simplified; exact hourly measurements are not bundled.'}</p><div class="data-links"><a href="https://ccmc.gsfc.nasa.gov/tools/DONKI/" target="_blank" rel="noopener"><b>NASA DONKI</b><span>Space-weather research archive ↗</span></a><a href="https://visualization.osdr.nasa.gov/radlab/gui/data-api/" target="_blank" rel="noopener"><b>NASA RadLab</b><span>Radiation data archive ↗</span></a></div></section></div><section class="data-art"><h3>Pictures and artwork</h3><p>Earth: <a href="https://science.nasa.gov/earth/earth-observatory/collections/blue-marble/" target="_blank" rel="noopener">NASA Blue Marble ↗</a>. The base, terrain and crew are illustrations.</p></section></div>`;
   }
   function more() {
     const row = (action, icon, text) => btn(action, `<span class="mo-ic">${svg(icon)}</span><span>${text}</span>`, 'menu-option');
     const debug = document.documentElement.classList.contains('debug');
-    return `${mission.state.scenario==='solarMax'?'<p>Solar max · harder mission</p>':''}<div class="menu-grid">${row('calendar','calendar','Mission calendar')}${row('sources','info','NASA data and game rules')}${row('restart','refresh','Start a new mission')}${row('home','home','Back to opening story')}${row('fullscreen','expand','Full screen on / off (F)')}${row('debug','bug',`Debug: screen navigator ${debug?'ON':'off'}`)}${debug&&mission.state.turn===0?row('skip-tutorial','refresh','Debug: skip to week 2'):''}</div>${debug&&debugScreens.length?`<h3 class="menu-h">Debug · screens</h3><div class="menu-grid compact">${debugScreens.map(s=>`<button class="menu-option sm" data-game-action="debug-screen" data-screen="${s.id}"><span>${s.name}</span></button>`).join('')}</div>`:''}<p class="plan-note">${storage?'Your mission saves in this browser.':'Browser storage is unavailable. Keep this tab open to keep playing.'}</p>`;
+    return `${mission.state.scenario==='solarMax'?'<p>Solar max · harder mission</p>':''}<div class="menu-grid">${row('calendar','calendar','Mission calendar')}${row('sources','info','NASA data and game rules')}${row('restart','refresh','Start a new mission')}${btn('reset',`<span class="mo-ic">${svg('trash')}</span><span>Reset all data</span>`,'menu-option danger')}${row('home','home','Back to opening story')}${row('fullscreen','expand','Full screen on / off (F)')}${row('debug','bug',`Debug: screen navigator ${debug?'ON':'off'}`)}${debug&&mission.state.turn===0?row('skip-tutorial','refresh','Debug: skip to week 2'):''}</div>${debug&&debugScreens.length?`<h3 class="menu-h">Debug · screens</h3><div class="menu-grid compact">${debugScreens.map(s=>`<button class="menu-option sm" data-game-action="debug-screen" data-screen="${s.id}"><span>${s.name}</span></button>`).join('')}</div>`:''}<p class="plan-note">${storage?'Your mission saves in this browser.':'Browser storage is unavailable. Keep this tab open to keep playing.'}</p>`;
   }
   // Fast-forward circle: ends the week early (it lights up and pulses when the crew is out of time).
   function endFab() {
@@ -290,6 +302,22 @@ export function mountGameplay({ hud, frame, pins, assets, updateScene, updateLay
   function diffChips(diff) {
     return ['power','o2','stamina','dose'].filter(k=>diff[k]).map(k=>`<span class="cc ${k==='dose'||diff[k]<0?'cost':'gain'}" style="--c:${METER_COLOR[k]}" title="${SHORT[k]} ${sign(diff[k])}" role="img" aria-label="${SHORT[k]} ${sign(diff[k])}">${svg(k)}<b>${sign(diff[k])}</b></span>`).join('');
   }
+  function recapMeters() {
+    const details=mission.recapDetails;
+    return `<div class="week-meters">${[['power','Power'],['o2','Air'],['dose','Radiation'],['stamina','Crew energy']].map(([k,n])=>{
+      const before=mission.before[k],after=mission.state[k],delta=Math.round(after-before),good=k==='dose'?delta<=0:delta>=0;
+      const width=v=>Math.max(0,Math.min(100,v));
+      return `<section class="week-meter"><h3>${svg(k)}${n}<span class="week-delta ${good?'better':'worse'}">${delta?sign(delta):'No change'}</span></h3><div class="week-values"><span>${before}</span>${svg('back','week-arrow')}<strong>${after}</strong></div><div class="week-bar" role="img" aria-label="${n}: ${before} at the start, ${after} at the end. ${k==='dose'?'Lower is better.':'Higher is better.'}"><span class="wb-before" style="width:${width(before)}%"></span><span class="wb-after ${good?'better':'worse'}" style="width:${width(after)}%"></span></div>${details?`<p><span>Jobs <strong>${sign(details.jobs[k])}</strong></span><span>Week end <strong>${sign(details.week[k])}</strong></span></p>`:''}</section>`;
+    }).join('')}</div><p class="week-key">Faint bar = start · Solid bar = end · All values are game points</p>`;
+  }
+  function recapStory() {
+    const d=mission.recapDetails;
+    if(!d)return '';
+    const plain=t=>t.replace(/\s*\[[^\]]*\]/g,'').replace(/Stamina/g,'Crew energy').replace(/stamina/g,'crew energy').replace(/Oxygen/g,'Air').replace(/oxygen/g,'air').replace(/today/g,'this week').replace(/half a day of sun/g,'reduced sunlight').replace(/^FAULT: /,'').replace(/^POWER EMERGENCY: /,'');
+    const warnings=d.weekLog.filter(t=>/FAULT:|POWER EMERGENCY:|Power restored/.test(t));
+    const lines=d.weekLog.filter(t=>!/FAULT:|POWER EMERGENCY:|Power restored/.test(t));
+    return `<div class="week-story"><section><h3>${svg('wrench')}Your crew’s work</h3><p>${d.used} of ${d.blocks} time blocks used.</p><ul class="week-jobs">${[...new Set(d.ids)].map(id=>`<li>${svg('check')}${jobName(id)}${d.ids.filter(k=>k===id).length>1?` ×${d.ids.filter(k=>k===id).length}`:''}</li>`).join('')}</ul></section><section><h3>${svg('sun')}Around the base</h3><ul>${lines.map(t=>`<li>${esc(plain(t))}</li>`).join('')}<li>The crew used air to breathe. Radiation built up, and sleep and exercise helped energy recover.</li></ul></section>${warnings.length?`<section class="week-attention"><h3>${svg('alert')}Before the next week</h3><ul>${warnings.map(t=>`<li>${esc(plain(t))}</li>`).join('')}</ul></section>`:''}</div>`;
+  }
   // Quick do: a small note that fades out, instead of a popup.
   function toast() {
     const t = ui.toast, m = [['power','#ffd34d'],['o2','#7fe3ff'],['stamina','#ff7b8f'],['dose','#b4e05c']];
@@ -297,37 +325,44 @@ export function mountGameplay({ hud, frame, pins, assets, updateScene, updateLay
     return `<div class="qtoast" role="status">${svg('check')}<span class="qt-n"><b>${esc(jobName(t.id))}</b> done</span><span class="qt-chips">${chips}</span></div>`;
   }
   function dock() {
-    const title=ui.view==='help'?'Ask Curio':ui.view==='missions'?'Report card':ui.view==='calendar'?'Plan ahead':ui.view==='sources'?'Sources':ui.view==='more'?'Mission options':CATS[ui.cat].name+' jobs';
+    const title=ui.view==='help'?'Ask Curio':ui.view==='missions'?'Report card':ui.view==='calendar'?'Plan ahead':ui.view==='sources'?'Data and game rules':ui.view==='more'?'Mission options':CATS[ui.cat].name+' jobs';
     const content=ui.view==='jobs'?(ui.job?preview():jobs()):ui.view==='missions'?missions():ui.view==='help'?help():ui.view==='calendar'?calendar():ui.view==='sources'?sources():more();
     const theme=ui.view==='help'?'curio':ui.view==='missions'?'goals':['more','calendar','sources'].includes(ui.view)?'menu':'jobs';
     const hic=theme==='curio'?'':svg(theme==='goals'?'star':theme==='menu'?'dots':'wrench');
     const tabs=`<nav class="place-tabs" aria-label="Kinds of job">${Object.entries(CATS).map(([id,c])=>`<button data-game-cat="${id}" aria-pressed="${ui.cat===id}">${svg(c.icon)}<span>${c.name}</span></button>`).join('')}</nav>`;
     const head=ui.view==='jobs'&&ui.job?`<div class="jh jh-prev"><button class="back" data-game-action="back-jobs" aria-label="Back to all jobs">${svg('back')}</button>${tile(JOBICON[ui.job]||['wrench','#e8e4ff'],'jicon inline')}<b>${jobName(ui.job)}</b><button class="x" data-game-action="close" aria-label="Close side dock">×</button></div>`:ui.view==='jobs'?`<div class="jh jh-tabs">${tabs}<button class="x" data-game-action="close" aria-label="Close side dock">×</button></div>`:`<div class="jh">${hic?`<span class="jh-ic" aria-hidden="true">${hic}</span>`:''}<div><b>${title}</b></div><button class="x" data-game-action="close" aria-label="Close side dock">×</button></div>`;
-    return `<section class="jobs" data-theme="${theme}" data-quick="${ui.view==='jobs'&&ui.quick?'on':'off'}" aria-label="${title}">${head}<div class="dock-body" data-key="${ui.view}|${ui.cat}|${ui.job}|${ui.question}|${ui.resource}|${ui.goal}" tabindex="-1">${ui.warning?`<p class="plan-warning" role="status">${esc(ui.warning)}</p>`:''}${content}</div>${ui.view==='jobs'&&ui.toast?toast():''}<div class="planner-footer">${footer()}</div>${ui.view==='jobs'?curioFab():''}</section>`;
+    return `<section class="jobs" data-theme="${theme}" data-view="${ui.view}" data-quick="${ui.view==='jobs'&&ui.quick?'on':'off'}" aria-label="${title}">${head}<div class="dock-body" data-key="${ui.view}|${ui.cat}|${ui.job}|${ui.question}|${ui.resource}|${ui.goal}" tabindex="-1">${ui.warning?`<p class="plan-warning" role="status">${esc(ui.warning)}</p>`:''}${content}</div>${ui.view==='jobs'&&ui.toast?toast():''}<div class="planner-footer">${footer()}</div>${ui.view==='jobs'?curioFab():''}</section>`;
   }
   function modal() {
-    let body='',actions='',title='';
+    let body='',actions='',title='',badge='',kicker='',choices='';
     const s=mission.state,e=current(),alert=alertCard(mission);
     if(alert) {
-      title=alert.title;body=`<p>${e.link?'Mission Control':'Curio · onboard alarm'}</p><p>${alert.body}</p><details class="week-log"><summary>Data and game rules</summary>${sources()}</details>`;
-      if(mission.tutorial&&mission.week?.prompt?.type==='alert')body=`<p class="tut-note">Tutorial: sometimes you must decide. Cleaning now is a good pick.</p>`+body;
-      actions=alert.options.map(([choice,label,detail])=>`<button class="alert-option" data-game-choice="${choice}"><b>${label}</b><span>${detail}</span></button>`).join('');
-    } else if(mission.recap && ui.modal!=='restart') {
+      const p=mission.week.prompt, kind=ALERT_KIND[p.type==='alert'?p.alert:p.type]||['info','#e8e4ff'], mc=!!e.link;
+      title=alert.title;badge=`<span class="ad-ic" style="--bg:${kind[1]}">${svg(kind[0])}</span>`;kicker=`<span class="kick">${svg('alert')}Decision needed</span>`;choices=' choices';
+      body=`${mission.tutorial&&p.type==='alert'?tutNote('Sometimes you must decide. Cleaning now is a good pick.'):''}<div class="dlg-say"><span class="dlg-who">${mc?`<span class="who-ic">${svg('radio')}</span>`:`<span class="who-face"><img src="${assets.curio}" alt=""></span>`}${mc?'Mission Control':'Curio · onboard alarm'}</span><p>${alert.body}</p></div><details class="week-log info-row"><summary>${svg('info')}<span>Data and game rules</span>${svg('down','explain-chevron')}</summary>${sources()}</details>`;
+      actions=alert.options.map(([choice,label,detail],i)=>`<button class="alert-option opt-${i}" data-game-choice="${choice}"><span class="ao-ic">${svg(CHOICE_ICON[choice]||'check')}</span><span class="ao-t"><b>${label}</b><span>${detail}</span></span>${mission.tutorial&&choice==='clean'?`<em class="ao-pick">${svg('star')}Good pick</em>`:''}</button>`).join('');
+    } else if(mission.recap && !['restart','reset'].includes(ui.modal)) {
       const ended=s.ended,v=verdict(s),reason=ended?.reason;
       title=ended?(reason==='complete'?({gold:'Gold mission!',approved:'Site approved!',promising:'A promising site', 'not-proven':'More evidence needed'}[v.tier]):'Time to bring the crew home'):`Week ${mission.before.turn+1} complete`;
-      body=`${mission.tutorial?'<p class="tut-note">That was a full week! The Sun charged the batteries, the crew breathed and rested, and your report card has its first evidence. Six more weeks to prove this ridge is a good home.</p>':''}${reason&&reason!=='complete'?`<p>${{oxygen:'The air supply ran out.',dose:'The radiation plan reached its limit.'}[reason]} Replay and try another plan.</p>`:''}<div class="recap-meters">${[['power','Power'],['o2','Air'],['dose','Radiation'],['stamina','Energy']].map(([k,n])=>`<div title="${n}" role="img" aria-label="${n}: ${mission.before[k]} to ${s[k]}" style="--c:${METER_COLOR[k]}"><span>${svg(k)}</span><b>${mission.before[k]} → ${s[k]}</b></div>`).join('')}</div><p><b>${v.mainDone}/4 main goals · ${v.stars}/12 stars</b></p><details class="week-log"><summary>What changed and why</summary><ul>${mission.log.map(t=>`<li>${esc(t)}</li>`).join('')}</ul></details>${ended?`<div class="end-goals">${Object.entries(checklist(s)).map(([g,checks])=>`<p>${checks[0].done?'✓':'□'} ${GOALS[g]} ${checks.map(c=>c.done?'★':'☆').join('')}</p>`).join('')}</div>`:''}`;
+      body=`${mission.tutorial?tutNote('A week includes your jobs, plus charging, breathing and recovery. Here’s what changed.'):''}${reason&&reason!=='complete'?`<p>${{oxygen:'The air supply ran out.',dose:'The radiation plan reached its limit.'}[reason]} Replay and try another plan.</p>`:''}${recapMeters()}<p class="week-score"><strong>${v.mainDone}/4 main goals · ${v.stars}/12 stars</strong></p><h3 class="week-story-title">What changed and why</h3>${recapStory()}<details class="week-log"><summary>Full week log</summary><ul>${mission.log.map(t=>`<li>${esc(t)}</li>`).join('')}</ul></details>${ended?`<div class="end-goals">${Object.entries(checklist(s)).map(([g,checks])=>`<p>${checks[0].done?'✓':'□'} ${GOALS[g]} ${checks.map(c=>c.done?'★':'☆').join('')}</p>`).join('')}</div>`:''}`;
       actions=ended?btn('ending','See your story','next'):btn('continue',mission.tutorial?`Start week ${s.turn+1}`:`Plan week ${s.turn+1}`,'next');
     } else if(ui.modal==='result'&&mission.result&&mission.week) {
       const r=mission.result,left=timeLeft(mission),meters=[['power','Power','#ffd34d'],['o2','Air','#7fe3ff'],['stamina','Energy','#ff7b8f'],['dose','Radiation','#b4e05c']];
-      title=jobName(r.id);
-      body=`${mission.tutorial&&TUT[r.id]?`<p class="tut-note">${TUT[r.id].result}</p>`:''}<ul class="result-lines">${r.lines.slice(0,3).map(t=>`<li>${esc(t)}</li>`).join('')}</ul><div class="result-chips">${diffChips(r.diff)||'<span class="plan-note">No meters changed.</span>'}</div>${time()}${left?'':'<p>Out of crew time. Time to end the week.</p>'}`;
-      actions=left?btn('end-week','End week early','text-button')+btn('result-next','Choose the next job','next'):btn('end-now','End the week','next');
+      title=jobName(r.id);badge=tile(JOBICON[r.id]||['wrench','#e8e4ff'],'ad-ic');
+      const spent=r.timeUsed??actionDef(r.id).blocks;
+      const outcome=['repair','rover','scout','measure'].includes(r.id)?r.lines.slice(0,2):r.lines.slice(1,2);
+      body=`<p class="result-flavor">${RESULT_FLAVOR[r.id]||''}</p><div class="result-summary"><span>${svg('clock')}<strong>${spent} time ${spent===1?'block':'blocks'} used</strong></span><div class="result-chips">${diffChips(r.diff)||'<span class="plan-note">No meters changed.</span>'}</div></div>${outcome.length?`<ul class="result-lines">${outcome.map(t=>`<li>${svg('check')}<span>${esc(t)}</span></li>`).join('')}</ul>`:''}${mission.tutorial&&TUT[r.id]?tutNote(TUT[r.id].result):''}${left?'':'<p class="result-next-note">No crew time left. End the week from the job panel when you’re ready.</p>'}`;
+      actions=btn('result-next','Got it','next');
     } else if(ui.modal==='end') {
-      title='End the week now?';body=`<p>Your crew still has <b>${timeLeft(mission)} crew time</b> left. Unused time helps them rest.</p>`;actions=btn('back','Keep working','text-button')+btn('end-now','End week','next');
+      title='End the week now?';body=`<p>Your crew still has <strong>${timeLeft(mission)} time blocks</strong> left.</p><p>Ending now gives the crew more recovery time. Sunlight, breathing and radiation are worked out for the whole week.</p>`;actions=btn('back','Keep working','text-button')+btn('end-now','End week','next');
     } else if(ui.modal==='restart') {
       title='Start a new mission?';body='<p>This replaces the saved mission in this browser.</p>';actions=btn('back','Keep my mission','text-button')+btn('new-normal','Seven-week mission','next')+btn('new-solar','Solar max · harder','text-button');
+    } else if(ui.modal==='reset') {
+      title='Reset all data?';badge=`<span class="ad-ic" style="--bg:#ffd6df">${svg('trash')}</span>`;
+      body=`<div class="dlg-say"><p>This erases the game and takes you back to the very start of the intro.</p></div><ul class="result-lines"><li>${svg('info')}<span>Your saved mission and report card are deleted.</span></li><li>${svg('info')}<span>You will see the opening story and the tutorial again.</span></li></ul>`;
+      actions=btn('back','Keep my mission','text-button')+btn('reset-confirm','Reset and go to the intro','next danger');
     } else return '';
-    return `<div class="review-shade"></div><section class="endc review3 game-dialog" role="dialog" aria-modal="true" aria-labelledby="game-dialog-title" tabindex="-1"><h2 id="game-dialog-title">${title}</h2><div class="dialog-body">${body}</div><div class="dialog-actions">${actions}</div></section>`;
+    return `<div class="review-shade"></div><section class="endc review3 game-dialog${ui.modal==='result'&&!alert?' job-result-dialog':''}" role="dialog" aria-modal="true" aria-labelledby="game-dialog-title" tabindex="-1"><div class="dialog-head">${badge}<h2 id="game-dialog-title">${title}</h2>${kicker}</div><div class="dialog-body">${body}</div><div class="dialog-actions${choices}">${actions}</div></section>`;
   }
   function render(focus) {
     ui.active=true;const s=mission.state;
@@ -420,6 +455,8 @@ export function mountGameplay({ hud, frame, pins, assets, updateScene, updateLay
     else if(action==='end-now'){apply(endWeek(mission));ui.modal=null;if(!mission.recap&&ui.warning){ui.open=true;}}
     else if(action==='continue'){mission=nextWeek(mission);ui.modal=null;ui.view='jobs';ui.job=null;ui.open=true;}
     else if(action==='restart'){ui.modal='restart';}
+    else if(action==='reset'){ui.modal='reset';}
+    else if(action==='reset-confirm'){resetting=true;try{Object.keys(localStorage).filter(k=>k.startsWith('lunar-ridge.')).forEach(k=>localStorage.removeItem(k));}catch{}location.replace(location.pathname);return;}
     else if(action==='new-normal'||action==='new-solar'){mission=createMission(action==='new-solar'?'solarMax':'weeks7',Math.floor(Math.random()*0x7fffffff));ui.modal=null;ui.view='jobs';ui.open=true;ui.job=null;ui.place='rover';ui.cat='mission';}
     else if(action==='brief'){toggleDrop('brief');return;}
     else if(action==='skip-tutorial'){mission=skipToWeek2(mission);ui.modal=null;ui.view='jobs';ui.job=null;ui.open=true;ui.cat='mission';ui.place='rover';}
