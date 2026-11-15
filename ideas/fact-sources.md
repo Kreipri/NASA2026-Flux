@@ -94,3 +94,9 @@ Used in: P = prelude card, M = mission briefing card, Q = Ask Base Bot, D = "Did
 - F26: retain as historical context only; current landing duration remains unverified. [NASA Nov 4 update](https://www.nasa.gov/missions/artemis/nasa-shares-plans-to-accelerate-artemis-return-to-moon/) places Artemis III tests in 2027 and Artemis IV lunar landing in 2028. Do not reuse old flight dates/manifests.
 - F62: [2024 instrument announcement](https://www.nasa.gov/news-release/nasa-selects-first-lunar-instruments-for-artemis-astronaut-deployment/) read: supports proposed instrument deployment and LEAF plant study; it is not confirmation of the current flight manifest or every activity in the compound sentence. Prefer “NASA has selected instruments to study the lunar environment, including plant research” with the announcement year when needed.
 - Exact Shackleton asset creator/source, Earth-texture provenance gap, font/library credits and AI disclosure are now tracked in `submission-credits-and-disclaimers.md`. Scientific fact citations and asset reuse credits are distinct.
+
+## Demo deck slide 2 (2026-11-15)
+Computed from the archived samples in `data/samples/` (retrieved 2026-11-14); archive badge, never live.
+- F-DEMO1: 76 DONKI flare records for 2024-05-08 to 05-12; strongest X5.8 peaking 2024-05-11T01:23Z. Source: `donki_FLR_2024-05-08_to_12.json` (NASA CCMC DONKI, https://ccmc.gsfc.nasa.gov/tools/DONKI/).
+- F-DEMO2: DONKI geomagnetic storm record shows Kp 9.0 on 2024-05-11. Source: `donki_GST_2024-05-08_to_14.json` (same API).
+- F-DEMO3: CRaTER (LRO) hourly absorbed dose rate, 168 readings 2024-05-08 to 05-14: low 4.94 uGy/h (05-08 03:59 UTC), peak 3,151.75 uGy/h (05-14 02:59 UTC). Source: `radlab_CRaTER_LRO_2024-05-08_to_14.json` (NASA OSDR RadLab, https://visualization.osdr.nasa.gov/radlab/gui/data-api/). Lunar-orbit instrument reading, not a surface or crew dose.

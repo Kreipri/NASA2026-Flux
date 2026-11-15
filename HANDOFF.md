@@ -1,5 +1,10 @@
 # Handoff
 
+## Demo deck built from live-site screenshots (2026-11-15)
+- Bea asked for the demo using screenshots of the deployed site (https://kreipri.github.io/NASA2026-Flux/). Built the accepted direction-C seven-slide deck: `ideas/submission-package/output/space-base-commander-demo.pdf` (7 pages, 16:9) plus PNG previews in `output/previews/`. Source: `build/make-deck.py` -> `build/deck.html` -> `build/render-deck.mjs`; screenshots in `assets/screens/`, captured by headless Chromium from the live site (seeded Week 2 save, Take shelter -> result -> recap).
+- Slide 2 uses real numbers from `data/samples/` (76 flares May 8-12, strongest X5.8 May 11 01:23 UTC, Kp 9.0 May 11, CRaTER hourly 4.94 -> 3,151.75 uGy/h, May 8-14). Added to `ideas/fact-sources.md` as F-DEMO rows. The chart plots all 168 real hourly points, nothing invented.
+- Still open: the PDF has no public URL yet (not committed or pushed; nothing uploaded). `RELEASE.md` does not exist; the form needs the PDF link and the play URL. Earth-texture creator is still unresolved (slide 7 credits "three.js examples" only). PDF page render was not visually checked (no poppler); previews come from the same HTML in the same Chromium.
+
 ## Remaining submission drafts (2026-11-15)
 - Bea accepted C as the slide narrative and asked what else needs drafts. Saved `ideas/submission-drafts-remaining.md`: prioritize updated form answers, finalize existing credits/disclosure and short reviewer quick-start; video/teacher guide remain optional for submission packaging.
 - Existing slide C copy, reference registry and disclaimer drafts need completion/use, not restarting. No deck or other artifact generated.
