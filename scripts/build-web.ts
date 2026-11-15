@@ -22,6 +22,8 @@ export function buildWeb() {
   const dock = 'ideas/ui-mockups/gameplay-side-dock-v2/source/';
   // Adapt the finished opening flow in memory. Its source and generated design files stay intact.
   let html = read('ideas/ui-mockups/flow-start-v1.html');
+  // Keep the embedded legacy job list in the opening-flow template consistent with the live gameplay dock.
+  html = html.replaceAll('Pile soil on the shelter', 'Cover shelter with Moon soil');
   const replace = (from: string, to: string) => {
     if (!html.includes(from)) throw new Error(`Opening-flow integration point changed: ${from.slice(0, 80)}`);
     html = html.replace(from, to);

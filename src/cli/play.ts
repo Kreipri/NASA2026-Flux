@@ -40,7 +40,7 @@ function effect(s: State, d: ActionDef): string {
     case 'measure': return 'RADIATION';
     case 'scout': return 'ICE: odds +25%';
     case 'rover': return `ICE: ${Math.round(iceChance(s) * 100)}% chance`;
-    case 'regolith': return 'SHELTER: +1 level';
+    case 'regolith': return 'SHELTER: cover it with Moon soil (+1 shield level)';
     case 'clean': return 'solar back to full';
     case 'air': return 'oxygen +30';
     case 'repair': return 'fixes a fault';
@@ -108,7 +108,7 @@ function taskResult(s: State, id: ActionId): string[] {
     case 'measure': return ['TASK RESULT: radiation measurement recorded.', stormActive(env(s)) ? 'This measurement counts as storm evidence.' : 'A quiet-day measurement gives a baseline.'];
     case 'scout': return [`TASK RESULT: hop-drone map complete. The next rover trip has a ${Math.round(Math.min(0.8, iceChance(s) + 0.25) * 100)}% ice chance.`];
     case 'rover': return ['TASK RESULT: rover dispatched to the dark crater. Its sample result will be revealed when the day ends.'];
-    case 'regolith': return [`TASK RESULT: shelter construction assigned. It will become level ${Math.min(3, s.shelterLevel + 1)} when the day resolves.`];
+    case 'regolith': return [`TASK RESULT: Moon soil will cover the shelter like a thick blanket. It will become shield level ${Math.min(3, s.shelterLevel + 1)} when the week resolves.`];
     case 'clean': return ['TASK RESULT: crew is cleaning the panels. Solar charging will improve when the day resolves.'];
     case 'air': return ['TASK RESULT: air system work assigned. Oxygen will increase when the day resolves.'];
     case 'repair': return ['TASK RESULT: repair crew assigned to the base fault.'];

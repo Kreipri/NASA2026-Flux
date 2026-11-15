@@ -52,7 +52,7 @@
     { "id": "measure",  "group": "goal",  "goal": "RADIATION", "label": "Measure radiation",             "blocks": 1, "power": -4,  "o2": 0,  "dose": 0, "outside": false, "needsPower": true },
     { "id": "scout",    "group": "goal",  "goal": "ICE",       "label": "Scout with hop-drone",   "blocks": 1, "power": -15, "o2": 0,  "dose": 0, "outside": false, "needsPower": true },
     { "id": "rover",    "group": "goal",  "goal": "ICE",       "label": "Rover to dark crater", "blocks": 4, "power": -50, "o2": -8, "dose": 4, "outside": true },
-    { "id": "regolith", "group": "goal",  "goal": "SHELTER",   "label": "Pile soil on shelter", "blocks": 4, "power": -10, "o2": -4, "dose": 2, "outside": true },
+    { "id": "regolith", "group": "goal",  "goal": "SHELTER",   "label": "Cover shelter with Moon soil", "blocks": 4, "power": -10, "o2": -4, "dose": 2, "outside": true },
     { "id": "clean",    "group": "alive", "label": "Clean dust off panels",         "blocks": 2, "power": 0,   "o2": -2, "dose": 1, "outside": true, "emergencyOk": true },
     { "id": "air",      "group": "alive", "label": "Tune the air system",           "blocks": 1, "power": -20, "o2": 30, "dose": 0, "outside": false },
     { "id": "repair",   "group": "alive", "label": "Repair a fault",                "blocks": 2, "power": -10, "o2": 0,  "dose": 0, "outside": false, "emergencyOk": true },
