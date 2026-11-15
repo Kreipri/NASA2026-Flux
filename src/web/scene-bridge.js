@@ -27,7 +27,7 @@ const gameplay=mountGameplay({hud,frame,pins:PINS,assets:ASSET,onHome:()=>go('ti
     anim=null;camera.position.copy(CAMS.base.pos);controls.target.copy(CAMS.base.tgt);
     controls.target.y+=.02*CAMS.base.pos.distanceTo(CAMS.base.tgt);
     camera.fov=open?38:34;camera.clearViewOffset();
-    if(open)camera.setViewOffset(w,h,w*.27,0,w,h);
+    if(open)camera.setViewOffset(w,h,w*.24,0,w,h);
     camera.updateProjectionMatrix();controls.update();placeOverlays();
   }
 });

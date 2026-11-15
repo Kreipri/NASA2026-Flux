@@ -190,18 +190,17 @@ export function mountGameplay({ hud, frame, pins, assets, updateScene, updateLay
   // Jobs Curio suggests right now, with a short reason. Never suggests a job that can't be done.
   function advice() {
     const s = mission.state, ev = s.evidence, e = current(), out = [];
-    const add = (id, why) => { if (out.length < 2 && !out.some(o => o.id === id) && !jobStatus(mission, id)) out.push({ id, why }); };
+    const once = ['logsun','measure','scout','rover','regolith','shelter'];
+    const add = (id, why) => { if (out.length < 2 && !out.some(o => o.id === id) && !jobStatus(mission, id) && !(once.includes(id) && jobsDone(mission, id) > 0)) out.push({ id, why }); };
     if (s.o2 <= 40) add('air', 'Air is getting low.');
     if (s.faults.panel || s.faults.scrubber) add('repair', 'Something is broken.');
     if (stormActive(e)) { add('shelter', 'A storm is on. Stay safe.'); if (ev.stormMeasures < 1) add('measure', 'A storm reading is great evidence.'); }
     if (s.stamina < 45) add('rest', 'The crew is tired.');
     if (s.dust > 0 && s.power <= 55) add('clean', 'Dusty panels make less power.');
-    if (!out.length) {
-      if (ev.sunLogs < 2) add('logsun', 'Your report card needs sunlight readings.');
-      else if (ev.scouts < 1) add('scout', 'Map the crater before you drive there.');
-      else if (ev.trips < 1) add('rover', 'Your report card needs an ice sample.');
-      else if (s.shelterLevel < 1) add('regolith', 'Soil on the shelter protects the crew.');
-    }
+    if (!out.length && ev.sunLogs < 2) add('logsun', 'Your report card needs sunlight readings.');
+    if (!out.length && ev.scouts < 1) add('scout', 'Map the crater before you drive there.');
+    if (!out.length && ev.scouts >= 1 && ev.trips < 1) add('rover', 'Your report card needs an ice sample.');
+    if (!out.length && s.shelterLevel < 1) add('regolith', 'Soil on the shelter protects the crew.');
     return out;
   }
   function jobs() {
