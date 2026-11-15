@@ -13,6 +13,12 @@
 - Bea is leaning toward C, not yet locking it. `ideas/seven-slide-draft-C-v2.md` provides exact seven-slide copy and visual guidance: evidence → playable choice → result → model transparency → learning loop → invitation. Gameplay now appears by slide 3.
 - Recommendation: use one real paid-job/result sequence; no invented data-to-exposure mapping or outcome. Shared human/AI credits and disclaimers retained. Text only; no deck generated.
 
+## Housekeeping and build slimming (2026-11-15)
+- `scripts/build-web.ts` now copies only the 13 three.js addon files the game imports (plus their imports) and clears stale ones: `dist/` 24 MB to 2.8 MB. Removed dead code in `game.js` (unreachable dock "help" view, unused `tourMeters`/`tourCard`, an unused local) and 94 unused CSS rules (about 9 KB). Deleted a stray `.DS_Store`.
+- Verified: 12 web tests, build, and the full 7-step Week 1 walkthrough in headless Chromium on a private port (3D canvas present, no console errors, no HTTP errors).
+- Not removed, needs Bea's call: older design iterations under `ideas/` (about 23 MB: `ui-mockups` all-screens v6.3/v7/v8, `base-designs` v1-v3, `character-designs` v2-v4, v1 story/balance docs). They are tracked, referenced as history in `DECISIONS.md`, and recoverable from git. `.github/` is untracked and not mine.
+- Gotcha: another process may serve port 5311 from the card checkout; use your own port for browser checks.
+
 ## Tutorial rebuilt: Week 1 walkthrough, 4-stop tour, first-time tips, pointer UI (2026-11-15)
 - See top `DECISIONS.md` entry. Code: `tutorialStep()`, `tutIndex()`, `placeGuide()`, `weekTip()`, `ALERT_TIPS` in `src/web/game.js`; tour trim in `scripts/build-web.ts` (stops t1, t3, t7 removed; numbering Tour 1/4-4/4); styles at the end of `src/web/game.css` (`.tut-ring`, `.coach[data-side]` arrow).
 - The old outline glow was replaced by an overlay ring so scrolling panels cannot clip it; the card is placed beside the target (left of the dock for dock targets) and re-placed on resize and after transitions. Global reduced-motion rule covers it.

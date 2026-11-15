@@ -82,7 +82,7 @@ function go(id,instant){
 function goNow(id,instant){`);
   replace("const openMenu=m=>{go('week1');", "const openMenu=m=>{goNow('week1',true);");
   // Opening tour reflects the current game: real meter names and ring meters, job-by-job time, three kinds of job, the report card.
-  replace("import { mountGameplay } from './game.js';", "import { mountGameplay, tourMeters, tourKinds, tourCard } from './game.js';");
+  replace("import { mountGameplay } from './game.js';", "import { mountGameplay, tourKinds } from './game.js';");
   // The tour is 4 stops: solar, shelter, crater and the job kinds (with crew time). Meters and the report card are now taught by doing in Week 1.
   html = html.replace(/Tour 2\/5/g, 'Tour 1/4').replace(/Tour 4\/5/g, 'Tour 2/4').replace(/Tour 5\/5/g, 'Tour 3/4');
   replace("Up high, they catch more light.'", "Up high, they catch more light. Dust makes them weaker, so a Base job cleans them.'");

@@ -102,19 +102,10 @@ function morph(a, b) {
 
 // Static panels for the opening tour, built from the same icons, names and rules as the game itself.
 const TOUR_COLORS = { power:'#ffd34d', o2:'#7fe3ff', dose:'#b4e05c', stamina:'#ff7b8f' };
-export function tourMeters() {
-  const s = newGame('weeks7', 1);
-  const cells = Object.keys(SHORT).map(k => `<div class="rc" style="--meter:${TOUR_COLORS[k]}"><span class="rc-ring"><svg class="ring" viewBox="0 0 40 40" aria-hidden="true"><circle class="trk" cx="20" cy="20" r="17"/><circle class="arc" cx="20" cy="20" r="17" pathLength="100" style="stroke-dashoffset:${100 - s[k]}"/></svg>${svg(k)}</span><span class="rc-v">${s[k]}</span><span class="rc-n">${SHORT[k]}</span></div>`).join('');
-  return `<section class="res3 hl tour-res" aria-label="The four meters">${cells}</section>`;
-}
 const tourRow = (icon, bg, name, sub, end = '') => `<div class="tour-row"><span class="ti" style="--bg:${bg}">${svg(icon)}</span><div><b>${name}</b><span class="s">${sub}</span></div>${end}</div>`;
 export function tourKinds() {
   const sub = { mission:'Collect evidence', base:'Keep power and air healthy', crew:'Look after the astronauts' }, bg = { mission:'#ffe9a0', base:'#c8f1e8', crew:'#ffd6df' };
   return `<div class="tour-panel"><h4>3 kinds of jobs</h4>${Object.entries(CATS).map(([id, c]) => tourRow(c.icon, bg[id], c.name, sub[id])).join('')}</div>`;
-}
-export function tourCard() {
-  const sub = { LIGHT:'Check the sunlight', RADIATION:'Check the radiation', SHELTER:'Cover the shelter with Moon soil', ICE:'Look for ice in the dark crater' };
-  return `<div class="tour-panel"><h4>Your report card</h4>${Object.keys(GOALS).map(g => tourRow(GOALICON[g][0], GOALICON[g][1], GOALS[g], sub[g], '<span class="st">☆</span>')).join('')}</div>`;
 }
 export function mountGameplay({ hud, frame, pins, assets, updateScene, updateLayout, onHome, onEnding, debugScreens = [], onDebugScreen }) {
   let mission, storage = true, resetting = false;
@@ -224,7 +215,6 @@ export function mountGameplay({ hud, frame, pins, assets, updateScene, updateLay
   function briefingDue() { return !!mission.week && !mission.recap && !mission.state.ended && mission.briefedTurn !== mission.state.turn && !mission.week.ids.length; }
   function brief() {
     const s = mission.state, e = current();
-    const todo = Object.entries(checklist(s)).find(([, c]) => !c[0].done)?.[0];
     const main = askText(s, e);
     const sunIcon = e.sun==='dark' ? 'moon' : e.sun==='half' ? 'half' : 'sun';
     const broken = [s.faults.panel&&'panel joint',s.faults.scrubber&&'air system'].filter(Boolean);
@@ -310,10 +300,6 @@ export function mountGameplay({ hud, frame, pins, assets, updateScene, updateLay
     const next = picks.length ? `<div class="cp-next"><b>Try next</b>${picks.map(a=>`<button class="cp-job" data-game-job="${a.id}"><span class="cp-jt" style="--bg:${(JOBICON[a.id]||[0,'#e8e4ff'])[1]}">${svg((JOBICON[a.id]||['wrench'])[0])}</span><span><b>${jobName(a.id)}</b>${a.why}</span></button>`).join('')}</div>` : `<p class="cp-next none">Nothing urgent. Pick a ${svg('star','inl')} job to fill in your report card.</p>`;
     return `<h3>Before you choose a job</h3><ul class="cp-points"><li>${svg('clock','inl')}Every job spends <b>crew time</b>.</li><li>Check the meter changes: <b class="gn">green +</b> adds to a meter; <b class="rd">orange −</b> spends it.</li><li>${svg('star','inl')}Star jobs fill in your report card.</li></ul>${next}`;
   }
-  function help() {
-    const tabs=(!ui.pop||ui.pop.tabs)?`<div class="question-tabs">${[['jobs','Doing jobs'],['time','Crew time'],['earth','Earth radio'],['meters','The meters']].map(([k,n])=>`<button data-game-question="${k}" aria-expanded="${!ui.resource&&ui.question===k}">${n}</button>`).join('')}</div>`:'';
-    return `${tabs}<div class="curio-row"><span class="curio-av"><img src="${assets.curio}" alt=""></span><section class="curio-answer">${helpAnswer()}</section></div>`;
-  }
   function calendar() {
     return `<h3>The mission calendar</h3><p>Game timing. Space weather may surprise you.</p><ol class="calendar">${mission.state.timeline.map((e,i)=>`<li class="${i===mission.state.turn?'current':''}"><b>Week ${i+1}</b><span>Earth ${e.link?'in view':'out of view'} · ${e.sun==='dark'?'Long shadow':e.sun==='half'?'Short eclipse':'Sunlight'}</span></li>`).join('')}</ol><p class="plan-note">Seven weekly turns compress the mission. Future storm draws stay hidden.</p>`;
   }
@@ -332,7 +318,6 @@ export function mountGameplay({ hud, frame, pins, assets, updateScene, updateLay
     return `<button class="end-fab ${left?'':'ready'}" data-game-action="end-week" data-tip="${tip}" aria-label="${tip}">${svg('fast')}</button>`;
   }
   function footer() {
-    if(ui.view==='help')return btn('return','Back to jobs','next');
     if(ui.view==='more')return '';
     if(ui.view==='calendar'||ui.view==='sources')return btn('more','‹ Menu','next');
     if(ui.view!=='jobs')return btn('jobs','Choose jobs','next');
@@ -371,9 +356,9 @@ export function mountGameplay({ hud, frame, pins, assets, updateScene, updateLay
     return `<div class="qtoast" role="status">${svg('check')}<span class="qt-n"><b>${esc(jobName(t.id))}</b> done</span><span class="qt-chips">${chips}</span></div>`;
   }
   function dock() {
-    const title=ui.view==='help'?'Ask Curio':ui.view==='missions'?'Report card':ui.view==='calendar'?'Plan ahead':ui.view==='sources'?'Data and game rules':ui.view==='more'?'Mission options':CATS[ui.cat].name+' jobs';
-    const content=ui.view==='jobs'?(ui.job?preview():jobs()):ui.view==='missions'?missions():ui.view==='help'?help():ui.view==='calendar'?calendar():ui.view==='sources'?sources():more();
-    const theme=ui.view==='help'?'curio':ui.view==='missions'?'goals':['more','calendar','sources'].includes(ui.view)?'menu':'jobs';
+    const title=ui.view==='missions'?'Report card':ui.view==='calendar'?'Plan ahead':ui.view==='sources'?'Data and game rules':ui.view==='more'?'Mission options':CATS[ui.cat].name+' jobs';
+    const content=ui.view==='jobs'?(ui.job?preview():jobs()):ui.view==='missions'?missions():ui.view==='calendar'?calendar():ui.view==='sources'?sources():more();
+    const theme=ui.view==='missions'?'goals':['more','calendar','sources'].includes(ui.view)?'menu':'jobs';
     const hic=theme==='curio'?'':svg(theme==='goals'?'star':theme==='menu'?'dots':'wrench');
     const tabs=`<nav class="place-tabs" aria-label="Kinds of job">${Object.entries(CATS).map(([id,c])=>`<button data-game-cat="${id}" aria-pressed="${ui.cat===id}">${svg(c.icon)}<span>${c.name}</span></button>`).join('')}</nav>`;
     const head=ui.view==='jobs'&&ui.job?`<div class="jh jh-prev"><button class="back" data-game-action="back-jobs" aria-label="Back to all jobs">${svg('back')}</button>${tile(JOBICON[ui.job]||['wrench','#e8e4ff'],'jicon inline')}<b>${jobName(ui.job)}</b><button class="x" data-game-action="close" aria-label="Close side dock">×</button></div>`:ui.view==='jobs'?`<div class="jh jh-tabs">${tabs}<button class="x" data-game-action="close" aria-label="Close side dock">×</button></div>`:`<div class="jh">${hic?`<span class="jh-ic" aria-hidden="true">${hic}</span>`:''}<div><b>${title}</b></div><button class="x" data-game-action="close" aria-label="Close side dock">×</button></div>`;
