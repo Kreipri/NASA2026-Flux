@@ -26,9 +26,9 @@ export function mountPanels({ frame }) {
     return `<h2 id="pn-t">Settings</h2><p class="pn-sub">Only the things that work today.</p>
       <div class="pn-row"><span><b>Full screen</b><small>Also press F any time.</small></span><button class="pn-btn" data-pn="fs" aria-pressed="${full}">${ic('expand')}${full ? 'On' : 'Off'}</button></div>
       <div class="pn-row"><span><b>Debug tools</b><small>Screen list for testing. Also Shift + D.</small></span><button class="pn-btn" data-pn="debug" aria-pressed="${dbg}">${ic('bug')}${dbg ? 'On' : 'Off'}</button></div>
-      <div class="pn-row"><span><b>Saved mission</b><small>${confirmErase ? 'This deletes your saved mission. Sure?' : 'Start again from week 1.'}</small></span>${confirmErase
-        ? `<span class="pn-pair"><button class="pn-btn ghost" data-pn="keep">Keep it</button><button class="pn-btn danger" data-pn="erase">${ic('trash')}Yes, erase</button></span>`
-        : `<button class="pn-btn ghost" data-pn="ask">${ic('trash')}Erase…</button>`}</div>`;
+      <div class="pn-row"><span><b>Reset all data</b><small>${confirmErase ? 'This erases everything and restarts the intro. Sure?' : 'Erase the saved mission and go back to the start of the intro.'}</small></span>${confirmErase
+        ? `<span class="pn-pair"><button class="pn-btn ghost" data-pn="keep">Keep it</button><button class="pn-btn danger" data-pn="erase">${ic('trash')}Yes, reset</button></span>`
+        : `<button class="pn-btn ghost" data-pn="ask">${ic('trash')}Reset…</button>`}</div>`;
   };
 
   function paint(focusSel) {
@@ -54,7 +54,7 @@ export function mountPanels({ frame }) {
     else if (a === 'debug') { const on = document.documentElement.classList.toggle('debug'); try { localStorage.setItem('sbc-debug', on ? '1' : '0'); } catch {} paint('[data-pn="debug"]'); }
     else if (a === 'ask') { confirmErase = true; paint('[data-pn="keep"]'); }
     else if (a === 'keep') { confirmErase = false; paint('[data-pn="ask"]'); }
-    else if (a === 'erase') { try { Object.keys(localStorage).filter(k => k.startsWith(SAVE_PREFIX)).forEach(k => localStorage.removeItem(k)); } catch {} location.reload(); }
+    else if (a === 'erase') { try { Object.keys(localStorage).filter(k => k.startsWith(SAVE_PREFIX)).forEach(k => localStorage.removeItem(k)); } catch {} location.replace(location.pathname); }
   });
   layer.addEventListener('keydown', e => { if (e.key === 'Escape') { e.preventDefault(); close(); } });
   return { open, close, isOpen: () => !layer.hidden };

@@ -565,3 +565,189 @@ html.debug #nav .g{flex-basis:100%;font-size:10px;margin:3px 0 0 2px}
 
 .cp-answer .i.inl{display:inline-block;width:1.1em;height:1.1em;vertical-align:-.15em;color:#1f7f78}
 .cp-answer .gn{color:#1f7a52}.cp-answer .rd{color:#a3481a}
+
+/* ---- Readable tutorial and decision panels (icons, speaker row, tip callout, choice cards) ---- */
+.mission-gameplay .dialog-head{display:flex;align-items:center;gap:1.2cqw;margin:0 0 1.2cqw}
+.mission-gameplay .dialog-head h2{margin:0;flex:1}
+.mission-gameplay .ad-ic{flex:none;width:5.2cqw;height:5.2cqw;min-width:44px;min-height:44px;border-radius:1.4cqw;background:var(--bg,#e8e4ff);display:grid;place-items:center;color:#3a1f6e}
+.mission-gameplay .ad-ic .i{width:62%;height:62%}
+.mission-gameplay .kick{flex:none;display:inline-flex;align-items:center;gap:.5cqw;padding:.5cqw 1.1cqw;border-radius:99px;background:#fff0cf;color:#6b3f00;font:600 max(11px,1.1cqw) Lexend;letter-spacing:.06em;text-transform:uppercase}
+.mission-gameplay .kick .i{width:1.6cqw;min-width:14px;height:1.6cqw;min-height:14px}
+.mission-gameplay .tut-callout{display:flex;gap:1.1cqw;align-items:center;background:#fff3d6;border:2px dashed #ffb547;border-radius:1.2cqw;padding:.9cqw 1.2cqw;margin:0 0 1.2cqw}
+.mission-gameplay .tc-face{flex:none;width:4.2cqw;height:4.2cqw;min-width:40px;min-height:40px;border-radius:50%;background:#fff;display:grid;place-items:center;overflow:hidden}
+.mission-gameplay .tc-face img{width:90%;height:90%;object-fit:contain}
+.mission-gameplay .tut-callout small{display:flex;align-items:center;gap:.4cqw;font:600 max(11px,1.05cqw) Lexend;letter-spacing:.1em;text-transform:uppercase;color:#8a5200;margin-bottom:.2cqw}
+.mission-gameplay .tut-callout small .i{width:1.5cqw;min-width:13px;height:1.5cqw;min-height:13px}
+.mission-gameplay .tut-callout p{margin:0;font:500 max(14px,1.5cqw)/1.35 Fredoka;color:#4a3410}
+.mission-gameplay .dlg-say{display:flex;flex-direction:column;gap:.6cqw;margin:0 0 1.2cqw}
+.mission-gameplay .dlg-who{display:inline-flex;align-items:center;gap:.7cqw;font:600 max(12px,1.2cqw) Lexend;color:#523884}
+.mission-gameplay .who-ic,.mission-gameplay .who-face{width:3cqw;height:3cqw;min-width:28px;min-height:28px;border-radius:50%;background:#e8e4ff;display:grid;place-items:center;overflow:hidden}
+.mission-gameplay .who-ic .i{width:60%;height:60%}
+.mission-gameplay .who-face img{width:90%;height:90%;object-fit:contain}
+.mission-gameplay .dlg-say p{margin:0;background:#f0edff;border-radius:0 1.2cqw 1.2cqw 1.2cqw;padding:1cqw 1.3cqw;font:500 max(15px,1.7cqw)/1.35 Fredoka;color:#251b52}
+.mission-gameplay .info-row summary{display:flex;align-items:center;gap:.6cqw;text-decoration:none;color:#6a5a94;font:500 max(12px,1.25cqw) Fredoka}
+.mission-gameplay .info-row summary .i{width:1.7cqw;min-width:15px;height:1.7cqw;min-height:15px}
+.mission-gameplay .info-row[open] summary{color:#3a1f6e}
+.mission-gameplay .game-dialog .dialog-actions.choices{display:grid;grid-template-columns:1fr 1fr;gap:1.4cqw;border-top:0;padding-top:1.3cqw}
+.mission-gameplay .alert-option{position:relative;display:flex;gap:1cqw;align-items:flex-start;border-width:2px}
+.mission-gameplay .alert-option .ao-ic{flex:none;width:4.4cqw;height:4.4cqw;min-width:38px;min-height:38px;border-radius:1.2cqw;background:var(--bg,#e8e4ff);display:grid;place-items:center;color:#3a1f6e}
+.mission-gameplay .alert-option .ao-ic .i{width:60%;height:60%}
+.mission-gameplay .alert-option .ao-t{display:block;min-width:0}
+.mission-gameplay .alert-option .ao-t>span{margin-top:.4cqw}
+.mission-gameplay .alert-option.opt-0{border-color:#7fd6c8;background:#effaf7}.mission-gameplay .alert-option.opt-0 .ao-ic{--bg:#bdeee4}
+.mission-gameplay .alert-option.opt-1{border-color:#f2c36b;background:#fff8e8}.mission-gameplay .alert-option.opt-1 .ao-ic{--bg:#ffe1a8}
+.mission-gameplay .alert-option:hover{background:#fff4df;border-color:#ffb547}
+.mission-gameplay .ao-pick{position:absolute;top:-1.1cqw;right:1cqw;display:inline-flex;align-items:center;gap:.4cqw;font:600 max(11px,1.1cqw) Lexend;font-style:normal;background:#ffb547;color:#3a2200;border-radius:99px;padding:.3cqw .9cqw}
+.mission-gameplay .ao-pick .i{width:1.4cqw;min-width:12px;height:1.4cqw;min-height:12px;fill:currentColor}
+.mission-gameplay .result-lines{display:grid;gap:.6cqw}
+.mission-gameplay .result-lines li{display:flex;gap:.9cqw;align-items:flex-start;background:#f0edff;border-radius:1cqw;padding:.7cqw 1cqw;margin:0}
+.mission-gameplay .result-lines li .i{flex:none;width:2cqw;min-width:18px;height:2cqw;min-height:18px;color:#1c8f7a}
+.mission-gameplay .next.danger{background:#d9454f;color:#fff;border-color:#a82a33}
+/* Week 1 guide card: header (step + progress dots) then icon + one sentence */
+.mission-gameplay .coach{display:block;max-width:37cqw;padding:0;overflow:hidden;border:2px solid #ffb547}
+.mission-gameplay .coach-head{display:flex;align-items:center;gap:1cqw;padding:.7cqw 1.2cqw;background:#fff3d6}
+.mission-gameplay .coach-head .face{width:3.6cqw;height:3.6cqw;min-width:34px;min-height:34px}
+.mission-gameplay .coach .ch-t{flex:1;display:flex;flex-direction:column}
+.mission-gameplay .coach .ch-t small{margin:0;color:#8a5200}
+.mission-gameplay .coach .ch-step{font:600 max(14px,1.45cqw)/1.2 Fredoka;color:#4a3410}
+.mission-gameplay .coach .dots{display:flex;gap:.5cqw}
+.mission-gameplay .coach .dots i{width:1.1cqw;height:1.1cqw;min-width:9px;min-height:9px;border-radius:50%;background:#e2d6b8}
+.mission-gameplay .coach .dots i.done{background:#1c8f7a}
+.mission-gameplay .coach .dots i.now{background:#ffb547;box-shadow:0 0 0 .3cqw #ffe1a8}
+.mission-gameplay .coach-body{display:flex;gap:1cqw;align-items:center;padding:1cqw 1.2cqw}
+.mission-gameplay .coach .ch-ic{flex:none;width:4.4cqw;height:4.4cqw;min-width:38px;min-height:38px;border-radius:1.2cqw;background:var(--bg,#e8e4ff);display:grid;place-items:center;color:#3a1f6e}
+.mission-gameplay .coach .ch-ic .i{width:60%;height:60%}
+.mission-gameplay .coach-body p{margin:0;font:500 max(15px,1.65cqw)/1.35 Fredoka}
+.mission-gameplay .coach-body b{color:#6b2fb3;font-weight:600}
+.mission-gameplay .coach-skip{margin:0 1.2cqw 1cqw}
+.mission-gameplay .jobs[data-theme="menu"] .menu-option.danger{border-color:rgba(255,138,138,.55);color:#ffb3b3;background:rgba(255,80,80,.12)}
+
+/* Keep the guide card clear of the pins and the conditions pill */
+.mission-gameplay .coach{top:11.4cqw}
+.mission-gameplay .coach-head{padding:.5cqw 1.1cqw}
+.mission-gameplay .coach-body{padding:.7cqw 1.1cqw .8cqw}
+
+/* Help is reading space: short sections, visible advice, and explicit source credits. */
+.mission-gameplay .job-explain{display:grid;gap:.85cqw}
+.mission-gameplay .job-explain>section{margin:0;padding:1cqw 1.2cqw;border-radius:1cqw}
+.mission-gameplay .job-now{background:#f0edff;border-left:3px solid #afa0da}
+.mission-gameplay .job-tip{background:#e9fcf8;border-left:3px solid #35a99b}
+.mission-gameplay .job-explain h3{display:flex;align-items:center;gap:.65cqw;margin:0 0 .4cqw;font:600 max(14px,1.5cqw)/1.25 Fredoka}
+.mission-gameplay .job-explain h3 .i{width:1.3em;height:1.3em}
+.mission-gameplay .job-explain h3 img{width:2em;height:2em;object-fit:contain;background:#fff;border-radius:50%}
+.mission-gameplay .job-tip h3{color:#0b5150}
+.mission-gameplay .job-explain p{margin:0;font:400 max(14px,1.4cqw)/1.5 Fredoka;color:#30264e}
+.mission-gameplay .job-tip p{color:#174b46}
+.mission-gameplay .job-why{border-top:1px solid #ddd5ef}
+.mission-gameplay .job-why summary{display:flex;align-items:center;gap:.6cqw;min-height:44px;cursor:pointer;color:#523881;font:500 max(14px,1.4cqw) Fredoka;list-style:none}
+.mission-gameplay .job-why summary::-webkit-details-marker,.mission-gameplay .info-row summary::-webkit-details-marker{display:none}
+.mission-gameplay .job-why p{padding:0 .3cqw .8cqw}
+.mission-gameplay .explain-chevron{margin-left:auto;transition:transform .2s}
+.mission-gameplay details[open]>summary>.explain-chevron{transform:rotate(180deg)}
+
+.mission-gameplay .curio-pop{width:34cqw;max-width:calc(100% - 24px)}
+.mission-gameplay .cp-t small{font:500 max(12px,1.1cqw) Fredoka;letter-spacing:0}
+.mission-gameplay .cp-answer{font-weight:400;line-height:1.5;padding:1.2cqw 1.4cqw}
+.mission-gameplay .cp-answer h3{margin:0 0 .8cqw;line-height:1.25}
+.mission-gameplay .cp-points{list-style:disc;margin:0;padding:0 0 0 1.2em;display:grid;gap:.6cqw}
+.mission-gameplay .cp-points li{padding-left:.15em}
+.mission-gameplay .cp-status{display:flex;align-items:center;flex-wrap:wrap;gap:.35em;background:#e9fcf8;border-radius:.7cqw;padding:.7cqw .8cqw;margin:0 0 1cqw}
+.mission-gameplay .cp-note{border-top:1px solid #bfeee7;margin-top:1cqw;padding-top:.8cqw}
+.mission-gameplay .cp-note>b{display:block;margin-bottom:.3cqw}
+.mission-gameplay .cp-next{gap:.7cqw;margin-top:1.1cqw;padding-top:1cqw}
+.mission-gameplay .cp-next>b{font:600 max(14px,1.4cqw) Fredoka;letter-spacing:0;text-transform:none;color:#0b5150}
+.mission-gameplay .cp-job{padding:.8cqw;min-height:44px}
+.mission-gameplay .cp-job>span:last-child{display:grid;gap:.3cqw}
+.mission-gameplay .meter-list li{line-height:1.45}
+
+/* The same source guide works on a light alert and inside the dark menu. */
+.mission-gameplay .data-guide{--dg-text:#30264e;--dg-muted:#61557c;--dg-line:#dbd4ec;--dg-bg:#fff;--dg-link:#155e70;color:var(--dg-text);font:400 max(14px,1.35cqw)/1.5 Fredoka;display:grid;gap:1cqw;padding:.3cqw 0 .7cqw}
+.mission-gameplay .data-guide p{font:inherit;line-height:1.5;color:inherit;margin:0}
+.mission-gameplay .data-guide b{font-family:inherit;font-size:inherit;line-height:inherit;color:inherit}
+.mission-gameplay .data-notice{display:flex;align-items:flex-start;gap:.7cqw;padding:.9cqw 1.1cqw;background:#e4f6f3;border-radius:.8cqw;color:#154b46!important}
+.mission-gameplay .data-notice>.i{flex:none;margin-top:.15em;width:1.3em;height:1.3em}
+.mission-gameplay .data-notice b{font-weight:600}
+.mission-gameplay .data-sections{display:grid;grid-template-columns:1fr 1.15fr;gap:1.3cqw;align-items:start}
+.mission-gameplay .data-section{margin:0;min-width:0;border:1px solid var(--dg-line);border-radius:1cqw;background:var(--dg-bg);padding:1.1cqw 1.2cqw}
+.mission-gameplay .data-guide h3{display:flex;align-items:center;gap:.6cqw;font:600 max(15px,1.55cqw)/1.25 Fredoka;margin:0 0 .8cqw;color:var(--dg-text)}
+.mission-gameplay .data-guide h3>.i{width:1.2em;height:1.2em;flex:none;color:var(--dg-link)}
+.mission-gameplay .data-section ul{display:grid;gap:.7cqw;margin:0;padding:0 0 0 1.2em;font:inherit}
+.mission-gameplay .data-section li{margin:0;padding-left:.15em}
+.mission-gameplay .data-event{display:grid;gap:.2cqw;border-left:3px solid #41a99f;padding:.5cqw .8cqw;margin:0 0 .8cqw;background:#eaf8f5;color:#154b46}
+.mission-gameplay .data-event>b{font-size:.9em;font-weight:500}
+.mission-gameplay .data-event>span{font-weight:600}
+.mission-gameplay .data-event time{font-size:.9em}
+.mission-gameplay .data-links{display:grid;gap:.5cqw;margin-top:.9cqw}
+.mission-gameplay .data-guide a{color:var(--dg-link);text-underline-offset:3px}
+.mission-gameplay .data-links a{display:grid;gap:.15cqw;padding:.7cqw .8cqw;border-radius:.65cqw;border:1px solid var(--dg-line);text-decoration:none;min-height:44px;align-content:center}
+.mission-gameplay .data-links a:hover{background:#e4f6f3;color:#154b46}
+.mission-gameplay .data-links b{text-decoration:underline;text-underline-offset:3px;font-weight:600}
+.mission-gameplay .data-links span{font-size:.9em;line-height:1.4}
+.mission-gameplay .data-art{margin:0;padding:.8cqw .2cqw 0;border-top:1px solid var(--dg-line);color:var(--dg-muted)}
+.mission-gameplay .data-art h3{font-size:max(14px,1.35cqw);margin-bottom:.4cqw}
+.mission-gameplay .jobs[data-view="sources"]{width:40cqw}
+.mission-gameplay .jobs[data-view="sources"] .data-guide{--dg-text:#f2edff;--dg-muted:#cfc6f0;--dg-line:#595271;--dg-bg:#2b2548;--dg-link:#9ee7df}
+.mission-gameplay .jobs[data-view="sources"] .data-sections{grid-template-columns:1fr}
+.mission-gameplay .jobs[data-view="sources"] .data-guide p{color:inherit}
+.mission-gameplay .jobs[data-view="sources"] .data-links a{color:var(--dg-link)}
+.mission-gameplay .jobs[data-view="sources"] .data-links a:hover{color:#154b46}
+.mission-gameplay .jobs[data-view="sources"] .data-art{color:var(--dg-muted)}
+
+.mission-gameplay .game-dialog{width:72cqw;max-height:calc(100% - 3cqw)}
+.mission-gameplay .dialog-head,.mission-gameplay .dialog-actions{flex-shrink:0}
+.mission-gameplay .dialog-body{overscroll-behavior:contain;scrollbar-gutter:stable}
+.mission-gameplay .game-dialog .dialog-body b,.mission-gameplay .game-dialog .dialog-body strong{font-family:inherit;font-size:inherit;line-height:inherit;color:inherit;font-weight:600}
+.mission-gameplay .game-dialog .dialog-body p{font:400 max(14px,1.5cqw)/1.5 Fredoka}
+.mission-gameplay .game-dialog .dialog-body .tut-callout p{font-size:max(14px,1.4cqw)}
+.mission-gameplay .job-result-dialog{width:54cqw}
+.mission-gameplay .result-flavor{margin:0 0 1cqw;color:#30264e}
+.mission-gameplay .result-summary{border-block:1px solid #dbd4ec;padding:.8cqw 0;display:grid;gap:.6cqw}
+.mission-gameplay .result-summary>span{display:flex;align-items:center;gap:.6cqw;font:500 max(14px,1.4cqw) Fredoka}
+.mission-gameplay .result-summary .result-chips{margin:0}
+.mission-gameplay .result-next-note{color:#655b82}
+.mission-gameplay .job-result-dialog .result-lines{list-style:none;padding:0;margin:.8cqw 0}
+.mission-gameplay .job-result-dialog .tut-callout{margin:.8cqw 0 0}
+.mission-gameplay .job-result-dialog .dialog-actions .next{min-width:12cqw}
+.mission-gameplay .week-meters{display:grid;grid-template-columns:1fr 1fr;gap:.9cqw}
+.mission-gameplay .week-meter{margin:0;border:1px solid #dbd4ec;border-radius:1cqw;padding:1cqw;background:#fff;min-width:0}
+.mission-gameplay .week-meter h3{display:flex;align-items:center;gap:.5cqw;margin:0;font:600 max(14px,1.4cqw) Fredoka;color:#30264e}
+.mission-gameplay .week-meter h3>.i{width:1.3em;height:1.3em;color:#65518c}
+.mission-gameplay .week-delta{margin-left:auto;font-size:.85em;border-radius:99px;padding:.2cqw .6cqw}
+.mission-gameplay .week-delta.better{color:#1c6c51;background:#e2f5eb}
+.mission-gameplay .week-delta.worse{color:#963d29;background:#fff0e6}
+.mission-gameplay .week-values{display:flex;align-items:center;gap:.7cqw;margin:.5cqw 0;color:#766a91;font:500 max(18px,2cqw) Fredoka}
+.mission-gameplay .week-values strong{color:#30264e!important;font-weight:600}
+.mission-gameplay .week-arrow{width:1.1em;height:1.1em;transform:rotate(180deg)}
+.mission-gameplay .week-bar{position:relative;height:10px;background:#f0edff;border-radius:99px;overflow:hidden}
+.mission-gameplay .week-bar span{position:absolute;left:0;top:0;height:100%;border-radius:99px}
+.mission-gameplay .wb-before{background:#c6bddb}
+.mission-gameplay .week-bar .wb-after{height:5px;top:2.5px}
+.mission-gameplay .wb-after.better{background:#218465}
+.mission-gameplay .wb-after.worse{background:#bb5738}
+.mission-gameplay .game-dialog .week-meter p{display:flex;flex-wrap:wrap;gap:.4cqw 1cqw;justify-content:space-between;margin:.5cqw 0 0;font:400 max(12px,1.15cqw)/1.4 Fredoka;color:#655b82}
+.mission-gameplay .game-dialog .week-key{font-size:max(12px,1.1cqw);color:#655b82;margin:.6cqw 0}
+.mission-gameplay .game-dialog .week-score{margin:1cqw 0;color:#523881}
+.mission-gameplay .week-story-title{font:600 max(17px,1.8cqw) Fredoka;margin:1cqw 0 .7cqw;color:#30264e}
+.mission-gameplay .week-story{display:grid;grid-template-columns:1fr 1.15fr;gap:1cqw}
+.mission-gameplay .week-story section{margin:0;padding:1cqw 1.2cqw;background:#f0edff;border-radius:1cqw}
+.mission-gameplay .week-story h3{display:flex;align-items:center;gap:.6cqw;margin:0 0 .7cqw;font:600 max(15px,1.5cqw) Fredoka;color:#30264e}
+.mission-gameplay .week-story h3>.i{width:1.3em;height:1.3em;flex:none;color:#65518c}
+.mission-gameplay .week-story ul{display:grid;gap:.6cqw;list-style:disc;padding-left:1.2em;margin:0;font:400 max(14px,1.35cqw)/1.5 Fredoka}
+.mission-gameplay .week-story .week-jobs{list-style:none;padding:0}
+.mission-gameplay .week-jobs li{display:flex;align-items:center;gap:.5cqw}
+.mission-gameplay .week-jobs .i{width:1.1em;height:1.1em;color:#218465;flex:none}
+.mission-gameplay .week-story .week-attention{grid-column:1/-1;background:#fff3d6}
+.mission-gameplay .week-story .week-attention h3{color:#6b3f00}
+.mission-gameplay .info-row{margin:.6cqw 0 0;border:1px solid #dbd4ec;border-radius:1cqw;background:#f5f3fb;padding:0 1cqw}
+.mission-gameplay .info-row>summary{list-style:none;min-height:44px;font:500 max(14px,1.4cqw) Fredoka;gap:.7cqw;color:#523881}
+.mission-gameplay .info-row>summary>.i{flex:none}
+.mission-gameplay .info-row[open]>summary{margin-bottom:.5cqw;border-bottom:1px solid #dbd4ec}
+@container(max-width:900px){
+  .mission-gameplay .data-sections{grid-template-columns:1fr}
+  .mission-gameplay .jobs[data-view="sources"]{width:46cqw}
+  .mission-gameplay .curio-pop{width:40cqw}
+  .mission-gameplay .curio-pop.wide .meter-list{grid-template-columns:1fr}
+  .mission-gameplay .kick{font-size:10px;letter-spacing:0;padding:.5cqw .7cqw}
+  .mission-gameplay .job-result-dialog{width:72cqw}
+  .mission-gameplay .week-story{grid-template-columns:1fr}
+}

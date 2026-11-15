@@ -6,6 +6,15 @@ Status: `decided` | `proposed` | `open` | `superseded`
 
 ---
 
+## Decided: Readable gameplay help, paid tutorial cleaning, and visual week recaps
+**Status:** decided (Bea, 2026-11-15: requested clearer Curio/data containers, charged cleaning time, practical tutorial reasons, a single result confirmation, consistent dialog fonts, and an easier “what changed and why”).
+- Data and game rules separates simulated rules, NASA archive attribution, historical events and artwork credits. The same guide appears in alerts and the More drawer; no live-data claim.
+- Job details keep Right now and Curio’s tip visible; Why do it uses an expandable row. Curio help uses short lists and status callouts.
+- Browser **Clean now** runs the existing cleaning job: 2 time blocks plus the normal air, crew-energy and radiation costs. Its result has one **Got it** button, like other jobs; it never ends the week automatically.
+- Tutorial instructions/results explain each task’s practical purpose. Week recaps show before/after meter bars, job versus week-end changes, completed jobs, base events and repair/emergency notices, with the full log below. Dialog body emphasis now shares the body type size.
+- **Proposed, not applied:** try 7 work-time blocks per week (easier to associate with seven days, but a tighter mission). These would remain pooled crew work time, not one job per calendar day. The current 8/6/4 energy-based budget remains until Bea chooses.
+- Scope/verification: `ideas/gameplay-help-and-recap.md`.
+
 ## Requested: Fresh vectorization from the actual 3D base
 **Status:** decided for the source requirement; proposed for the exported artwork (Bea, 2026-11-15: “just pull up the 3d model again and try to vectorize it”).
 - Use the actual Three.js base in `ideas/ui-mockups/flow-start-v1.html`; do not revise the earlier hand-drawn SVG passes. The incomplete v4 redraw was withdrawn.
