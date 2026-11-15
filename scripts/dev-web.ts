@@ -1,6 +1,7 @@
 import { createServer } from 'node:http';
 import { readFileSync, statSync, watch } from 'node:fs';
 import { resolve, extname, sep } from 'node:path';
+import { gzipSync } from 'node:zlib';
 import { buildWeb, root } from './build-web.ts';
 const out = buildWeb();
 const mime = { '.html': 'text/html', '.js': 'text/javascript', '.css': 'text/css', '.png': 'image/png', '.jpg': 'image/jpeg', '.svg': 'image/svg+xml' };
@@ -10,8 +11,11 @@ const server = createServer((req, res) => {
     const path = decodeURIComponent(new URL(req.url!, 'http://localhost').pathname);
     const file = resolve(out, '.' + (path === '/' ? '/index.html' : path));
     if (!file.startsWith(out + sep) || !statSync(file).isFile()) { res.writeHead(404); res.end(); return; }
-    res.writeHead(200, { 'Content-Type': mime[extname(file)] || 'application/octet-stream', 'Cache-Control': 'no-store' });
-    res.end(readFileSync(file));
+    const body = readFileSync(file), ext = extname(file);
+    const vendor = path.startsWith('/vendor/') || path.startsWith('/assets/');
+    const gz = /\bgzip\b/.test(String(req.headers['accept-encoding'])) && ['.html', '.js', '.css', '.svg'].includes(ext);
+    res.writeHead(200, { 'Content-Type': mime[ext] || 'application/octet-stream', 'Cache-Control': vendor ? 'max-age=3600' : 'no-cache', ...(gz && { 'Content-Encoding': 'gzip' }) });
+    res.end(gz ? gzipSync(body) : body);
   } catch { res.writeHead(404); res.end('Not found'); }
 });
 let timer: ReturnType<typeof setTimeout>;

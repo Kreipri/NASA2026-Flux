@@ -199,14 +199,14 @@ export function daysUntilSun(s: State): number | null {
   return null;
 }
 
-export function menu(s: State): { def: ActionDef; blocked: string | null }[] {
-  const e = env(s);
+export function menu(s: State, avail?: number): { def: ActionDef; blocked: string | null }[] {
+  const e = env(s), room = avail ?? blocksToday(s);
   return (scenarioOf(s).actions as ActionId[]).map((id) => {
     const def = actionDef(id);
     let blocked: string | null = null;
     if (def.needsLink && !e.link) blocked = 'Earth link down';
     else if (s.emergency && !def.emergencyOk) blocked = 'power emergency';
-    else if (def.blocks > blocksToday(s)) blocked = 'crew too tired';
+    else if (def.blocks > room) blocked = avail === undefined ? 'crew too tired' : 'not enough time left';
     else if (id === 'repair' && !s.faults.panel && !s.faults.scrubber) blocked = 'nothing broken';
     else if (id === 'regolith' && s.shelterLevel >= 3) blocked = 'shelter is full';
     return { def, blocked };
@@ -236,104 +236,138 @@ export function validate(s: State, ids: ActionId[]): string | null {
 
 const clamp = (v: number) => Math.max(0, Math.min(100, v));
 
-/**
- * Resolve one day. If a storm starts while the rover is out and no choice was given,
- * returns with pending set and nothing resolved: call again with a TripChoice.
- */
-export function step(s0: State, ids: ActionId[], choice?: StepChoice): { state: State; log: string[] } {
-  const err = validate(s0, ids);
-  if (err) return { state: s0, log: ['! ' + err] };
-  const e = env(s0);
-  if (e.alert && !choice && (e.alert !== 'sample' || ids.includes('rover'))) {
-    return { state: { ...s0, pending: { type: 'alertChoice', actions: ids, alert: e.alert } }, log: [] };
-  }
-  if (ids.includes('rover') && stormActive(e) && e.stormOnset && !choice) {
-    return { state: { ...s0, pending: { type: 'tripChoice', actions: ids } }, log: [] };
-  }
-  const s: State = structuredClone(s0);
-  s.pending = null;
-  const log: string[] = [];
-  const pd = moon.perDay;
-  const st = moon.stamina;
-  let outsideBlocks = 0, insideBlocks = 0, sheltered = choice === 'shelter', powerSave = choice === 'save';
-  let doseFromJobs = 0;
-  if (e.storm === 'warning' && e.stormName?.includes('false alarm')) log.push('False-alarm wrap-up: the flare did not bring a particle storm. [✓ NASA ARCHIVE / game placement]');
+/** One week in progress: jobs run one at a time, then `closeWeek` applies sunlight, breathing, rest and hazards. */
+export interface Week {
+  blocks: number; used: number; ids: ActionId[]; choice: StepChoice | null;
+  outside: number; inside: number; sheltered: boolean; powerSave: boolean; emergency0: boolean; log: string[];
+}
+export const newWeek = (s: State): Week => ({ blocks: blocksToday(s), used: 0, ids: [], choice: null, outside: 0, inside: 0, sheltered: false, powerSave: false, emergency0: s.emergency, log: [] });
+
+/** The decision this week opens with, if any (shadow, storm, dust). The crater "sample" alert waits for the rover job. */
+export function weekAlert(s: State): NonNullable<Env['alert']> | null {
+  const a = env(s).alert ?? null;
+  return a && a !== 'sample' ? a : null;
+}
+
+/** Why a job can't be done right now, given the time left in the week (null = go ahead). */
+export function jobBlocked(s: State, w: Week, id: ActionId): string | null {
+  if (s.ended) return 'Mission is over.';
+  const item = menu(s, w.blocks - w.used).find((x) => x.def.id === id);
+  if (!item) return `That job isn't available in this mission.`;
+  if (item.blocked) return item.blocked;
+  if (item.def.blocks >= 4 && !item.def.repeatable && w.ids.includes(id)) return 'heavy work, once a week';
+  return null;
+}
+/** Does starting this job open a decision first? */
+export function jobPrompt(s: State, w: Week, id: ActionId): 'sample' | 'trip' | null {
+  if (id !== 'rover' || w.choice) return null;
+  const e = env(s);
+  if (e.alert === 'sample') return 'sample';
+  return stormActive(e) && e.stormOnset ? 'trip' : null;
+}
+
+function applyChoice(s: State, w: Week, choice: StepChoice, log: string[]) {
+  w.choice = choice;
+  if (choice === 'shelter') w.sheltered = true;
+  if (choice === 'save') w.powerSave = true;
   if (choice === 'clean') { s.dust = 0; log.push('Alert choice: the crew cleaned the panels immediately.'); }
   if (choice === 'later') log.push('Alert choice: the crew postponed the extra work and kept the base steady.');
   if (choice === 'sample') { s.scoutBonus = Math.min(moon.ice.maxChance - moon.ice.baseChance, s.scoutBonus + 0.10); s.power -= 10; s.stamina -= 5; log.push('Alert choice: one more crater sample attempt. Power -10, stamina -5, ice chance improved.'); }
+}
+export function chooseOption(s0: State, w0: Week, choice: StepChoice): { state: State; week: Week; log: string[] } {
+  const s = structuredClone(s0), w = structuredClone(w0), log: string[] = [];
+  applyChoice(s, w, choice, log);
+  w.log.push(...log);
+  return { state: s, week: w, log };
+}
 
-  for (const id of ids) {
-    const a = actionDef(id);
-    if (id === 'rover' && choice === 'back') {
-      s.power += moon.trip.backPower; s.o2 += moon.trip.backO2; insideBlocks += a.blocks;
-      log.push(`Rover turned back when the particles arrived. No sample, but the crew is safe inside. (power ${moon.trip.backPower}, oxygen ${moon.trip.backO2})`);
-      continue;
-    }
-    s.power += powerCost(s, id);
-    s.o2 += a.o2;
-    doseFromJobs += a.dose;
-    if (a.outside) outsideBlocks += a.blocks; else insideBlocks += a.blocks;
-    if (a.stamina) s.stamina += a.stamina;
-    switch (id) {
-      case 'logsun': {
-        s.evidence.sunLogs++;
-        if (e.eclipse !== 'none') s.evidence.eclipseLogged = true;
-        if (e.eclipse === 'long') s.evidence.longShadowLogged = true;
-        log.push(e.eclipse !== 'none' ? 'Logged the shadow: how long the ridge stays dark. Rare evidence! [LIGHT]' : 'Logged sunlight on the ridge. [LIGHT]');
-        break;
-      }
-      case 'measure': {
-        s.evidence.measures++;
-        if (stormActive(e)) s.evidence.stormMeasures++;
-        log.push(stormActive(e) ? 'Measured radiation DURING the storm. Great evidence! [RADIATION]' : 'Measured radiation on a quiet day. [RADIATION]');
-        log.push(...radiationReading(e));
-        break;
-      }
-      case 'scout':
-        s.evidence.scouts++;
-        s.scoutBonus = Math.min(moon.ice.maxChance - moon.ice.baseChance, s.scoutBonus + moon.ice.scoutBonus);
-        log.push(`Hop-drone mapped the dark crater. Ice chance on the next rover trip: ${Math.round(iceChance(s) * 100)}%. [ICE]`);
-        break;
-      case 'rover': {
-        const chance = iceChance(s);
-        s.evidence.trips++;
-        s.dust = Math.min(pd.maxDust, s.dust + 1);
-        if (rand(s) < chance) {
-          s.iceSamples++; s.evidence.iceFound++;
-          log.push(`Rover trip to the dark crater (${Math.round(chance * 100)}% chance): ICE FOUND! Proof that water is hiding near the ridge. Future crews could turn it into drinking water and oxygen (with big machines and lots of power). [ICE]`);
-        } else {
-          s.evidence.mappedEmpty++;
-          log.push(`Rover trip to the dark crater (${Math.round(chance * 100)}% chance): this spot is dry. That is still evidence: you mapped where NOT to look. [ICE]`);
-        }
-        s.scoutBonus = 0;
-        break;
-      }
-      case 'regolith':
-        s.shelterLevel++;
-        log.push(`Two astronauts ran the digging machine all day: more moon soil on the shelter, level ${s.shelterLevel}/3. Storms hurt less in there now. [SHELTER]`);
-        if (s.shelterLevel === 1) {
-          log.push('  Real fact: moon soil blocks solar storm particles well. One NASA design uses about 3 m (10 ft) of soil to also stop most cosmic rays. [NASA Tech Briefs 2012]');
-          log.push('  [~ SIMULATED] Game shortcut: real shielding means tonnes of soil moved by machines over many days. 3 levels stand for that 3 m.');
-        }
-        break;
-      case 'clean': s.dust = 0; log.push('Two astronauts cleaned dust off the panels and seals. Full sunlight power again.'); break;
-      case 'air': log.push(`Air system tuned: it splits water into oxygen using power. Oxygen +${a.o2}.`); break;
-      case 'repair':
-        if (s.faults.panel) { s.faults.panel = false; log.push('Fixed the jammed solar panel.'); }
-        else { s.faults.scrubber = false; log.push('Fixed the clogged air scrubber.'); }
-        break;
-      case 'powersave': powerSave = true; log.push(`Power-saving mode: heaters and instruments turned down. Base uses ${pd.powerSaveUpkeep} power instead of ${pd.upkeepPower}, but the crew gets cold (stamina ${st.powerSaveCold}).`); break;
-      case 'shelter': sheltered = true; log.push('Whole crew sheltered in the most shielded room during the worst hours.'); break;
-      case 'rest': log.push(`Two astronauts took a rest day. Stamina +${a.stamina}.`); break;
-      case 'call':
-        if (scenarioOf(s).mode === 'solarMax' && s.turn >= 4) {
-          s.stamina = clamp(s.stamina + 5);
-          s.keyMoments.push('The crew called home during Solar max and checked in safely.');
-          log.push('Call home completed: Mission Control checked the crew. Stamina +5.');
-        } else log.push(...forecastLines(s));
-        break;
-    }
+function applyJob(s: State, w: Week, id: ActionId, log: string[]) {
+  const e = env(s), a = actionDef(id), pd = moon.perDay, st = moon.stamina;
+  w.ids.push(id); w.used += a.blocks;
+  if (id === 'rover' && w.choice === 'back') {
+    s.power += moon.trip.backPower; s.o2 += moon.trip.backO2; w.inside += a.blocks; s.stamina += a.blocks * st.insideBlock;
+    log.push(`Rover turned back when the particles arrived. No sample, but the crew is safe inside. (power ${moon.trip.backPower}, oxygen ${moon.trip.backO2})`);
+    return;
   }
+  s.power += powerCost(s, id);
+  s.o2 += a.o2;
+  if (!stormActive(e)) s.dose += a.dose;   // on storm days the whole day's dose is worked out when the week closes
+  if (a.outside) { w.outside += a.blocks; s.stamina += a.blocks * st.outsideBlock; } else { w.inside += a.blocks; s.stamina += a.blocks * st.insideBlock; }
+  if (a.stamina) s.stamina += a.stamina;
+  switch (id) {
+    case 'logsun': {
+      s.evidence.sunLogs++;
+      if (e.eclipse !== 'none') s.evidence.eclipseLogged = true;
+      if (e.eclipse === 'long') s.evidence.longShadowLogged = true;
+      log.push(e.eclipse !== 'none' ? 'Logged the shadow: how long the ridge stays dark. Rare evidence! [LIGHT]' : 'Logged sunlight on the ridge. [LIGHT]');
+      break;
+    }
+    case 'measure': {
+      s.evidence.measures++;
+      if (stormActive(e)) s.evidence.stormMeasures++;
+      log.push(stormActive(e) ? 'Measured radiation DURING the storm. Great evidence! [RADIATION]' : 'Measured radiation on a quiet day. [RADIATION]');
+      log.push(...radiationReading(e));
+      break;
+    }
+    case 'scout':
+      s.evidence.scouts++;
+      s.scoutBonus = Math.min(moon.ice.maxChance - moon.ice.baseChance, s.scoutBonus + moon.ice.scoutBonus);
+      log.push(`Hop-drone mapped the dark crater. Ice chance on the next rover trip: ${Math.round(iceChance(s) * 100)}%. [ICE]`);
+      break;
+    case 'rover': {
+      const chance = iceChance(s);
+      s.evidence.trips++;
+      s.dust = Math.min(pd.maxDust, s.dust + 1);
+      if (rand(s) < chance) {
+        s.iceSamples++; s.evidence.iceFound++;
+        log.push(`Rover trip to the dark crater (${Math.round(chance * 100)}% chance): ICE FOUND! Proof that water is hiding near the ridge. Future crews could turn it into drinking water and oxygen (with big machines and lots of power). [ICE]`);
+      } else {
+        s.evidence.mappedEmpty++;
+        log.push(`Rover trip to the dark crater (${Math.round(chance * 100)}% chance): this spot is dry. That is still evidence: you mapped where NOT to look. [ICE]`);
+      }
+      s.scoutBonus = 0;
+      break;
+    }
+    case 'regolith':
+      s.shelterLevel++;
+      log.push(`Two astronauts ran the digging machine all day: more moon soil on the shelter, level ${s.shelterLevel}/3. Storms hurt less in there now. [SHELTER]`);
+      if (s.shelterLevel === 1) {
+        log.push('  Real fact: moon soil blocks solar storm particles well. One NASA design uses about 3 m (10 ft) of soil to also stop most cosmic rays. [NASA Tech Briefs 2012]');
+        log.push('  [~ SIMULATED] Game shortcut: real shielding means tonnes of soil moved by machines over many days. 3 levels stand for that 3 m.');
+      }
+      break;
+    case 'clean': s.dust = 0; log.push('Two astronauts cleaned dust off the panels and seals. Full sunlight power again.'); break;
+    case 'air': log.push(`Air system tuned: it splits water into oxygen using power. Oxygen +${a.o2}.`); break;
+    case 'repair':
+      if (s.faults.panel) { s.faults.panel = false; log.push('Fixed the jammed solar panel.'); }
+      else { s.faults.scrubber = false; log.push('Fixed the clogged air scrubber.'); }
+      break;
+    case 'powersave': w.powerSave = true; log.push(`Power-saving mode: heaters and instruments turned down. Base uses ${pd.powerSaveUpkeep} power instead of ${pd.upkeepPower}, but the crew gets cold (stamina ${st.powerSaveCold}).`); break;
+    case 'shelter': w.sheltered = true; log.push('Whole crew sheltered in the most shielded room during the worst hours.'); break;
+    case 'rest': log.push(`Two astronauts took a rest day. Stamina +${a.stamina}.`); break;
+    case 'call':
+      if (scenarioOf(s).mode === 'solarMax' && s.turn >= 4) {
+        s.stamina = clamp(s.stamina + 5);
+        s.keyMoments.push('The crew called home during Solar max and checked in safely.');
+        log.push('Call home completed: Mission Control checked the crew. Stamina +5.');
+      } else log.push(...forecastLines(s));
+      break;
+  }
+}
+/** Do one job now. The caller has already checked `jobBlocked` and answered any `jobPrompt`. */
+export function runJob(s0: State, w0: Week, id: ActionId): { state: State; week: Week; log: string[] } {
+  const s = structuredClone(s0), w = structuredClone(w0), log: string[] = [];
+  applyJob(s, w, id, log);
+  w.log.push(...log);
+  return { state: s, week: w, log };
+}
+
+/** End the week: sunlight, life support, breathing, radiation, recovery, dust and faults, then advance the day. */
+export function closeWeek(s0: State, w0: Week): { state: State; log: string[] } {
+  const s = structuredClone(s0), w = structuredClone(w0), log: string[] = [];
+  const e = env(s), pd = moon.perDay, st = moon.stamina;
+  s.pending = null;
+  if (e.storm === 'warning' && e.stormName?.includes('false alarm')) log.push('False-alarm wrap-up: the flare did not bring a particle storm. [✓ NASA ARCHIVE / game placement]');
 
   // Power
   if (e.sun !== 'dark') {
@@ -343,7 +377,7 @@ export function step(s0: State, ids: ActionId[], choice?: StepChoice): { state: 
     s.power += solar;
     log.push(`Sunlight charged the batteries +${solar}${e.sun === 'half' ? ' (short eclipse: half a day of sun)' : ''}${s.dust ? ` (dust blocked ${s.dust * pd.dustSolarPenalty})` : ''}.`);
   } else log.push('No sunlight today. The base ran on batteries.');
-  const upkeep = powerSave || s.emergency ? pd.powerSaveUpkeep : pd.upkeepPower;
+  const upkeep = w.powerSave || s.emergency ? pd.powerSaveUpkeep : pd.upkeepPower;
   s.power -= upkeep;
   log.push(`Life support, heaters and radios used ${upkeep} power.`);
 
@@ -351,27 +385,27 @@ export function step(s0: State, ids: ActionId[], choice?: StepChoice): { state: 
   s.o2 -= s.emergency ? pd.emergencyO2 : pd.breathO2;
   if (s.faults.scrubber) s.o2 -= pd.scrubberFaultO2;
 
-  // Dose
+  // Dose (job dose on quiet days was added as each job ran)
   let dose: number;
   if (stormActive(e)) {
     const f = e.storm === 'rising' ? moon.storm.risingFactor : 1;
-    const inside = sheltered ? moon.storm.shelterByLevel[s.shelterLevel] : moon.storm.habitat;
-    const out = outsideBlocks * moon.storm.outsidePerBlock;
+    const inside = w.sheltered ? moon.storm.shelterByLevel[s.shelterLevel] : moon.storm.habitat;
+    const out = w.outside * moon.storm.outsidePerBlock;
     dose = Math.ceil((inside + out) * f);
-    if (sheltered) {
+    if (w.sheltered) {
       s.evidence.shelteredStormDays++;
       s.keyMoments.push(`Sheltered during ${e.stormName ?? e.realDay ?? 'a particle storm'}${e.link ? '' : ' without Earth link'}.`);
     }
-    s.evidence.outsideStormBlocks += outsideBlocks;
-    log.push(`Particle storm (${e.storm === 'strong' ? 'strong' : 'building'}): ${sheltered ? 'crew sheltered for the peak' : 'crew stayed in the habitat, not the shelter'}${outsideBlocks ? `, and astronauts were OUTSIDE` : ''}. Dose +${dose}.`);
+    s.evidence.outsideStormBlocks += w.outside;
+    log.push(`Particle storm (${e.storm === 'strong' ? 'strong' : 'building'}): ${w.sheltered ? 'crew sheltered for the peak' : 'crew stayed in the habitat, not the shelter'}${w.outside ? `, and astronauts were OUTSIDE` : ''}. Dose +${dose}.`);
   } else {
-    dose = pd.baseDose + doseFromJobs;
+    dose = pd.baseDose;
   }
   s.dose += dose;
 
-  // Stamina: work tires, sleep + daily exercise restore, free time relaxes
-  const unused = blocksToday(s0) - ids.reduce((n, id) => n + actionDef(id).blocks, 0);
-  s.stamina += st.dailyRecovery + insideBlocks * st.insideBlock + outsideBlocks * st.outsideBlock + unused * st.unusedBlock + (powerSave ? st.powerSaveCold : 0) + (s0.emergency ? st.emergencyCold : 0);
+  // Stamina: work tired the crew as each job ran; sleep + daily exercise restore, free time relaxes
+  const unused = w.blocks - w.used;
+  s.stamina += st.dailyRecovery + unused * st.unusedBlock + (w.powerSave ? st.powerSaveCold : 0) + (w.emergency0 ? st.emergencyCold : 0);
   if (unused > 0) log.push(`Free crew time (${unused}) went to rest and chores. Stamina +${unused * st.unusedBlock}.`);
 
   // Dust builds up
@@ -397,12 +431,35 @@ export function step(s0: State, ids: ActionId[], choice?: StepChoice): { state: 
     if (s.emergency && s.power >= moon.emergencyExitPower) { s.emergency = false; log.push('Power restored! Emergency over.'); }
   }
 
-  s.history.push({ turn: s.turn, actions: ids, ...(choice ? { choice } : {}) });
+  s.history.push({ turn: s.turn, actions: w.ids, ...(w.choice ? { choice: w.choice } : {}) });
   s.turn++;
   if (s.o2 <= 0) s.ended = { reason: 'oxygen' };
   else if (s.dose >= 100) s.ended = { reason: 'dose' };
   else if (s.turn >= totalDays(s)) s.ended = { reason: 'complete' };
   return { state: s, log };
+}
+
+/**
+ * Resolve a whole day from a finished plan (terminal play and bot simulation). Same rules as the browser's
+ * job-by-job flow. If a storm starts while the rover is out and no choice was given,
+ * returns with pending set and nothing resolved: call again with a TripChoice.
+ */
+export function step(s0: State, ids: ActionId[], choice?: StepChoice): { state: State; log: string[] } {
+  const err = validate(s0, ids);
+  if (err) return { state: s0, log: ['! ' + err] };
+  const e = env(s0);
+  if (e.alert && !choice && (e.alert !== 'sample' || ids.includes('rover'))) {
+    return { state: { ...s0, pending: { type: 'alertChoice', actions: ids, alert: e.alert } }, log: [] };
+  }
+  if (ids.includes('rover') && stormActive(e) && e.stormOnset && !choice) {
+    return { state: { ...s0, pending: { type: 'tripChoice', actions: ids } }, log: [] };
+  }
+  const s: State = structuredClone(s0);
+  const w = newWeek(s0), log: string[] = [];
+  if (choice) applyChoice(s, w, choice, log);
+  for (const id of ids) applyJob(s, w, id, log);
+  const closed = closeWeek(s, w);
+  return { state: closed.state, log: [...log, ...closed.log] };
 }
 
 export function radiationReading(e: Env): string[] {

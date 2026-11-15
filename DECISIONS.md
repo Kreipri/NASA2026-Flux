@@ -6,6 +6,26 @@ Status: `decided` | `proposed` | `open` | `superseded`
 
 ---
 
+## Requested: Fresh vectorization from the actual 3D base
+**Status:** decided for the source requirement; proposed for the exported artwork (Bea, 2026-11-15: “just pull up the 3d model again and try to vectorize it”).
+- Use the actual Three.js base in `ideas/ui-mockups/flow-start-v1.html`; do not revise the earlier hand-drawn SVG passes. The incomplete v4 redraw was withdrawn.
+- New draft: `ideas/base-designs/from-3d-v1/space-base.svg`, with transparent PNG and `review.html` comparing the export with the same-camera original 3D model. Mesh positions/proportions/camera come from the source; geometry visibility is resolved at 4× and converted to paths. Shader shading is approximated with SVG gradients and normal-based bands; no dark silhouette outlines are added.
+- Generator, source snapshot, camera and SHA-256 provenance are saved beside the art. Actual 3D source and the app's integrated v3 illustration remain unchanged; no production swap requested.
+
+## Decided: Week 1 is a guided tutorial
+**Status:** decided (Bea, 2026-11-15: "make week 1 a tutorial, with an option to skip to week 2 for debugging").
+- Week 1 of the seven-week mission is the real mission with a Curio guide: answer the dust alert, check the sunlight (Mission), run the air system (Base), rest (Crew), then end the week. Other jobs and End week are held back with a hint until the three are done; the recap explains what a week is. Solar max has no tutorial.
+- Debug only: **More → Debug: skip to week 2** (visible with debug mode on, week 1 only) and a skip button on the guide bubble. It plays week 1 with the same three jobs and lands on the start of week 2.
+- Guide steps are derived from what has been done (no extra saved step), so a reload mid-tutorial resumes correctly.
+
+## Decided: Job-by-job weeks, one voice for objectives, 10 jobs in 3 kinds
+**Status:** decided (Bea, 2026-11-15: asked for step-by-step actions, no conflict between Mission Control and Goals, simpler kid-friendly jobs; approved the proposal "go ahead with all").
+- **Step-by-step:** each job runs when chosen (preview, then Do this job), shows a result card with meter changes, and spends crew time. The week closes when time hits 0 or on End week (with a confirm if time is left). Sunlight, breathing, rest, dust and faults still apply once at week end. Engine: `step()` was split into `newWeek` / `runJob` / `closeWeek`; `step()` is a wrapper and gives identical results (0 differences over 11,729 random weeks). Alerts open the week; the crater and rover-trip decisions open when the rover job starts.
+- **One voice:** Mission Control gives conditions plus one ask for the week (first unfinished main goal). The Goals panel is now the **Report card** (progress and stars only). Mission jobs carry a "Report card · Light/Radiation/Ice/Shelter" tag.
+- **Jobs 12 → 10, three kinds:** Mission (check sunlight, check radiation, fly the hop-drone, drive to the dark crater, cover the shelter with soil), Base (clean the solar panels, run the air system, fix what's broken), Crew (rest and exercise, take shelter). Cut from the seven-week and Solar max missions: Power-saving mode and Call Mission Control (Solar max's week-5 check-in is gone). Both stay in the engine for terminal play and legacy scenarios.
+- Browser saves are now v2; older saves are discarded. Bot sim balance is essentially unchanged.
+- Known gap (not new): the storm alert's free "Shelter for the peak" choice protects the crew without spending crew time, which makes the Take shelter job redundant. Needs a cost.
+
 ## Decided: Publish the current browser gameplay on a new branch
 **Status:** decided (Bea, 2026-11-15: "push to a new branch").
 - Use `feat/browser-gameplay`, branched from the current `gameplay-updates` checkout. Include the integrated browser game, current food-free engine and supporting documentation/backlog notes. Preserve the existing branches and use the user's configured Git identity.
@@ -342,3 +362,8 @@ A single short, meaningful narrative arc is preferred over open-ended content. A
 ## Proposed: Preserve post-merge drafts on design/mission-ui
 **Status:** proposed (2026-11-15)
 - Following Bea’s merge of cli-prototype into main, save current uncommitted drafts on a new design branch, then integrate origin/main. This preserves drafts before updating their base; no Git changes performed while advising.
+
+## Built: Victory screen and ending story as a separate module
+**Status:** built, awaiting Bea's review (2026-11-15)
+- Implements `storyline-v2.md` §5 / `story-script-v2.md` Part 5 in `src/web/ending.js` (2D storybook style; gameplay stays 3D). Tiers use the renamed stamps (GOLD PATCH 12★, HONORS 11★, MISSION COMPLETE = crew safe + 4 main goals, NOT YET). Crew called home = no stamp, a tip, nobody hurt.
+- Shown after the final recap ("See your story"); debrief offers Play again / Solar max. All 13 screens are reachable from the debug menu. Details and gaps in `HANDOFF.md`.

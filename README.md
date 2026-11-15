@@ -13,7 +13,7 @@ npm run dev
 
 Open **http://localhost:5173**. Start with the opening story, or open **http://localhost:5173/?s=week1** to go straight to the playable mission. Keep the terminal running; Ctrl+C stops the server. Source changes rebuild the game; reload the page to see them.
 
-Choose a place, read a job's costs, add jobs to the plan, then review and run the week. Alerts need a choice before the week resolves. The mission saves in this browser. **More → Start a new mission** offers the normal mission and Solar max replay.
+Each week, pick a kind of job (Mission, Base or Crew), read its costs, and do it: it happens right away, shows its result and spends crew time. When time runs out, or you press End week, sunlight, breathing and rest are applied and a recap shows. Alerts ask for a choice first. The mission saves in this browser. **More → Start a new mission** offers the normal mission and Solar max replay.
 
 For terminal play: `npm run play`. For a different preview port: `npm run dev -- 5180`.
 
